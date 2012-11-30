@@ -6,5 +6,10 @@ setup(
     install_requires=[
         'path.py',
         'sh'
-    ]
+    ],
+    entry_points={
+            'console_scripts': [
+                'gitifyhg = gitifyhg:gitify',
+            ],
+    }
 )
