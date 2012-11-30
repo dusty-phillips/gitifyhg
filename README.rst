@@ -8,21 +8,24 @@ I'm not gonna preach to you.
 
 gitifyhg has been tested on Python 3.3. It might work on other interpreters.
 
-You'll want to perform three steps before running gitify:
+You'll want to perform these steps before running gitify:
 
-1. ``pip install hg-git``. gitifyhg doesn't depend on ``hg-git`` because you will
-want it installed in the same environment as hg proper.
+1. ``pip install gitifyhg``. gitifyhg doesn't depend on ``hg-git`` because you
+   will want it installed in the same environment as hg proper.
 
-2. Tell your ``~/.hgignore`` to ignore ``.git``. I suggest doing this in the global
-ignore so sensitive mercurial users don't get too tetchy about the fact that
-you think it's good to rewrite history.
+2. Tell your ``~/.hgignore`` to ignore ``.git``. I suggest doing this in the
+   global ignore so sensitive mercurial users don't get too tetchy about the
+   fact that you think it's good to rewrite history.
 
-3. Add ``syntax: glob`` to the top of your ``.hgignore`` file and change patterns
-to glob format. ``gitifyhg`` will link your .hgignore to your .gitignore, and
-git prefers the glob syntax.
+3. Add ``syntax: glob`` to the top of your ``.hgignore`` file and change
+   patterns to glob format. ``gitifyhg`` will link your .hgignore to your
+   ``.gitignore``, and git prefers the glob syntax.
 
-Now you can run ``gitifyhg`` in any hg directory and a local git repo is created.
-You can use the
+4. ``pip install gitifyhg``
+
+Now you can run ``gitifyhg`` in any hg directory and a local git repo is
+created. You can use the ``git hgpull`` and ``git hgpush`` commands to push
+your changes into the remote hg repository.
 
 A good workflow is to:
 
