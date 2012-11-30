@@ -10,18 +10,18 @@ gitifyhg has been tested on Python 3.3. It might work on other interpreters.
 
 You'll want to perform these steps before running gitify:
 
-1. ``pip install gitifyhg``. gitifyhg doesn't depend on ``hg-git`` because you
-   will want it installed in the same environment as hg proper.
+* ``pip install gitifyhg``. gitifyhg doesn't depend on ``hg-git`` because you
+  will want it installed in the same environment as hg proper.
 
-2. Tell your ``~/.hgignore`` to ignore ``.git``. I suggest doing this in the
-   global ignore so sensitive mercurial users don't get too tetchy about the
-   fact that you think it's good to rewrite history.
+* Tell your ``~/.hgignore`` to ignore ``.git``. I suggest doing this in the
+  global ignore so sensitive mercurial users don't get too tetchy about the
+  fact that you think it's good to rewrite history.
 
-3. Add ``syntax: glob`` to the top of your ``.hgignore`` file and change
-   patterns to glob format. ``gitifyhg`` will link your .hgignore to your
-   ``.gitignore``, and git prefers the glob syntax.
+* Add ``syntax: glob`` to the top of your ``.hgignore`` file and change
+  patterns to glob format. ``gitifyhg`` will link your .hgignore to your
+  ``.gitignore``, and git prefers the glob syntax.
 
-4. ``pip install gitifyhg``
+* ``pip install gitifyhg``
 
 Now you can run ``gitifyhg`` in any hg directory and a local git repo is
 created. You can use the ``git hgpull`` and ``git hgpush`` commands to push
