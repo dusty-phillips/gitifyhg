@@ -8,8 +8,8 @@ setup(
         'sh'
     ],
     entry_points={
-            'console_scripts': [
-                'gitifyhg = gitifyhg:gitify',
-            ],
+        'console_scripts': [
+            'gitifyhg = gitifyhg:gitify',
+        ],
     }
 )
