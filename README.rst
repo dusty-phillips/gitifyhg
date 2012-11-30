@@ -9,15 +9,15 @@ I'm not gonna preach to you.
 You'll want to perform three steps before running gitify:
 
 1. `pip install hg-git`. gitifyhg doesn't depend on `hg-git` because you will
- want it installed in the same environment as hg proper.
+want it installed in the same environment as hg proper.
 
 2. Tell your `~/.hgignore to ignore '.git'. I suggest doing this in the global
 ignore so sensitive mercurial users don't get too tetchy about the fact that
- you think it's good to rewrite history.
+you think it's good to rewrite history.
 
 3. Add `syntax: glob` to the top of your `.hgignore` file and change patterns
- to glob format. `gitifyhg` will link your .hgignore to your .gitignore, and
- git prefers the glob syntax.
+to glob format. `gitifyhg` will link your .hgignore to your .gitignore, and
+git prefers the glob syntax.
 
 Now you can run `gitifyhg` in any hg directory and a local git repo is created.
 You can use the
