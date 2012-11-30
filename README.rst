@@ -1,12 +1,18 @@
 gitifyhg
 ========
 
-This little app does the dirty work of setting up a git repo inside an existing
-hg repo so that you can work in git and push to remote hg repositories.
-Don't ask me why you would want to do this. If you don't know,
-I'm not gonna preach to you.
+This tiny app does the dirty work of setting up a git repo inside an existing
+hg repo so that you can work in git and push to remote hg repositories. If you
+don't want to do this, it's because you don't understand how amazing git really
+is.
 
 gitifyhg has been tested on Python 3.3. It might work on other interpreters.
+
+URLS
+----
+* `source <https://github.com/buchuki/gitifyhg>`_
+* `pypi package <https://pypi.python.org/pypi/indico/>`_
+* `Dusty Phillips <https://archlinux.me/dusty>`_
 
 Dependencies
 ------------
@@ -47,9 +53,6 @@ You can also install manually by ::
 
 If you want to hack on it, use ``setup.py develop`` instead. In this case, you
 probably **are** better off using ``virtualenv``
-
-
-
 
 Instructions
 ------------
