@@ -8,20 +8,32 @@ I'm not gonna preach to you.
 
 gitifyhg has been tested on Python 3.3. It might work on other interpreters.
 
-You'll want to perform these steps before running gitify:
+gitifyhg explicitly depends on:
 
-* ``pip install gitifyhg``. gitifyhg doesn't depend on ``hg-git`` because you
-  will want it installed in the same environment as hg proper.
+* `path.py <https://github.com/jaraco/path.py>`_
+* `sh <http://amoffat.github.com/sh/>`_
+
+These packages will be installed automatically by `easy_install`, 
+`pip`, or `setup.py install`.
+
+gitifyhg also expects the following to be installed on your os:
+
+* `Mercurial <http://mercurial.selenic.com/>`_
+* `git <http://git-scm.com/>`_
+* `hg-git <http://hg-git.github.com/>`_
+
+In addition to installing the hg-git dependencies, 
+you'll want to perform these steps before running gitifyhg:
 
 * Tell your ``~/.hgignore`` to ignore ``.git``. I suggest doing this in the
   global ignore so sensitive mercurial users don't get too tetchy about the
   fact that you think it's good to rewrite history.
 
+* Clone an hg repo if you don't have one you want to work in.
+
 * Add ``syntax: glob`` to the top of your ``.hgignore`` file and change
   patterns to glob format. ``gitifyhg`` will link your .hgignore to your
   ``.gitignore``, and git prefers the glob syntax.
-
-* ``pip install gitifyhg``
 
 Now you can run ``gitifyhg`` in any hg directory and a local git repo is
 created. You can use the ``git hgpull`` and ``git hgpush`` commands to push
