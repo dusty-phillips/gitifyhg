@@ -78,12 +78,29 @@ Now you can run ``gitifyhg`` in any hg directory and a local git repo is
 created. You can use the ``git hgpull`` and ``git hgpush`` commands to push
 your changes into the remote hg repository.
 
+These commands are rather dangerous. They basically try to sync up the hg
+default and git master branches. When you run ``git hgpull`` changes are pulled
+into ``default`` from the upstream mercurial repository and git master is
+hard reset to point at it. It's probably better if you don't have changes on
+master that you didn't want obliterated.
+
+``git hgpush`` does basically the opposite, it tries to sync up the hg default
+branch with whatever commits have been pushed onto master, and then pushes it
+to the remote repository.
+
 A good workflow is to:
 
 * Never commit to master. Create a new branch in git.
-* When you are ready to merge that branch, first ``git hpull`` into master
+* When you are ready to merge that branch, first ``git hgpull`` to sync master
+  with the upstream mercurial repository.
 * Rebase your working branch onto master. If you don't know about
   ``git rebase -i``, learn.
+* Merge your working branch into master and delete the working branch. If you
+  don't delete it, hg-git will create a new bookmark for that git branch. That
+  won't hurt anything, but if you have git branches that have changes on them
+  that are not merged into master, those changes will also be pulled into
+  mercurial. This is probably not good because you probably don't want those
+  commits pushed upstream as an unnamed branch.
 * ``git hpush`` to push your changes upstream.
 * `hgview <http://www.logilab.org/project/hgview/>`_ is a terrific extension
   for viewing hg history. It even shows your hggit branch location.
