@@ -3,8 +3,8 @@ from path import path as p
 
 import sh
 
-def test_gitify(tmpdir):
-    tmpdir = p(str(tmpdir)) # I prefer path.py over py.path
+def pytest_funcarg__hg_repo(request):
+    tmpdir = p(str(request.getfuncargvalue('tmpdir')))
     hg_base = tmpdir.joinpath('hg_base') # an hg repo to clone from
     hg_base.mkdir() # could be on the above line if jaraco would release a bugfix
     with hg_base.joinpath('test_file').open('w') as file:
@@ -18,11 +18,12 @@ def test_gitify(tmpdir):
     # Now clone that repo and run gitify
     sh.hg.clone('hg_base', 'cloned_repo')
     sh.cd('cloned_repo')
+    return tmpdir.joinpath('cloned_repo')
 
+def test_gitify(hg_repo):
     gitifyhg()
 
-    cloned_repo_path = tmpdir.joinpath('cloned_repo')
-    assert cloned_repo_path.joinpath('.git').isdir()
+    assert hg_repo.joinpath('.git').isdir()
     print(sh.git.alias().stdout)
     print(type(sh.git.alias().stdout))
     assert sh.git.alias().stdout == (
