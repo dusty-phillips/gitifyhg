@@ -1,4 +1,4 @@
-from gitifyhg import gitifyhg, hgpull
+from gitifyhg import gitifyhg, hgpull, hgpush
 from path import path as p
 
 import sh
@@ -89,3 +89,20 @@ def test_basic_hg_pull(hg_repo):
     hgpull()
     assert_empty_status()
     assert_commit_count(2)
+
+
+def test_basic_hg_push(hg_repo):
+    '''When commits are made to the local git master branch and there is nothing
+    unexpected upstream or in the hg repo, and there are no extra branches in
+    git, hg push will sync everything up.'''
+    gitifyhg()
+    # Add a git commit to the local git repo
+    write_to_test_file('b')
+    sh.git.commit(message='b', all=True)
+
+    hgpush()
+    assert_empty_status()
+    assert_commit_count(2)
+
+    sh.cd(hg_repo.hg_base)
+    assert sh.grep(sh.hg.log(), 'changeset:').stdout.count(b'\n') == 2
