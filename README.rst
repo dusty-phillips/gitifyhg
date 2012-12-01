@@ -2,11 +2,20 @@ gitifyhg
 ========
 
 This tiny app does the dirty work of setting up a git repo inside an existing
-hg repo so that you can work in git and push to remote hg repositories. If you
-don't want to do this, it's because you don't understand how amazing git really
-is.
+hg repo so that you can work in git and push to remote hg repositories.
 
-gitifyhg has been tested on Python 3.3. It might work on other interpreters.
+``gitifyhg`` has been tested on Python 3.3, 2.7, and 2.6. It might work on other
+interpreters.
+
+It tries not to affect the upstream mercurial repo in any way. Thus, only a
+restricted git workflow is available to you. Right now, only the most basic
+tasks can be accomplished; you can sync up mercurial default with git master.
+This allows a similar pipeline to ``git-svn``, but I'm still testing things with
+branches and the like.
+
+The git and hg repositories operate on the same working files. This can allow
+stuff to get out of sync, where ``hg status`` shows changes that are already
+committed in git and vice versa. Try not to use mercurial at all.
 
 URLS
 ----
@@ -20,6 +29,7 @@ gitifyhg explicitly depends on:
 
 * `path.py <https://github.com/jaraco/path.py>`_
 * `sh <http://amoffat.github.com/sh/>`_
+* `six <http://packages.python.org/six/>`_
 
 These packages will be installed automatically by `easy_install`, 
 `pip`, or `setup.py install`.
@@ -34,7 +44,7 @@ gitifyhg also expects the following to be installed on your os:
 Install
 -------
 
-gitifyhg is a properly designed Python package. You can get it from
+``gitifyhg`` is a properly designed Python package. You can get it from
 `pypi <https://pypi.python.org>`_ using either ::
 
   pip install gitifyhg
@@ -46,13 +56,13 @@ or ::
 gitifyhg works in a `virtualenv `http://www.virtualenv.org/>`_, but you're
 probably just as well off to install it at the system level.
 
-You can also install manually by ::
+You can also install manually with ::
 
   git clone https://github.com/buchuki/gitifyhg.git
   python setup.py install
 
-If you want to hack on it, use ``setup.py develop`` instead. In this case, you
-probably **are** better off using ``virtualenv``
+If you want to hack on it, use ``setup.py develop``, instead. In this case, you
+probably **are** better off using a ``virtualenv``.
 
 Instructions
 ------------
@@ -106,7 +116,6 @@ A good workflow is to:
   for viewing hg history. It even shows your hggit branch location.
   I recommend it over the git browsers because your colleagues are probably
   using hg branches.
-* If you need to track other hg branches, bookmark it and track it using
-  (I haven't tested this much)::
-    hg bookmark hg/branchname -r branchname
-    git branch --track branchname hg/branchname
+* ``hg strip`` from the mercurial queues extension is useful if your git
+  commits foul up your hg repository. ``git reset --hard master`` is also
+  necessary sometimes. I'm hoping to make this more seamless in the future.
