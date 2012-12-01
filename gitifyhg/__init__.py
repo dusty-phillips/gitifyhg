@@ -35,7 +35,7 @@ def gitify():
     gitconfig.read('.git/config')
     if not gitconfig.has_section('alias'):
         gitconfig.add_section('alias')
-    gitconfig['alias']['hgpull'] = '!"hg pull ; hg gexport"'
+    gitconfig['alias']['hgpull'] = '!"hg pull ; hg bookmark -f -r default master ; hg gexport ; hg update ; git checkout master ; git reset --hard master"'
     gitconfig['alias']['hgpush'] = '!"hg gimport ; hg update ; hg push"'
     with open('.git/config', 'w') as file:
         gitconfig.write(file)
