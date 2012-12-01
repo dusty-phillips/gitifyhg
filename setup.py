@@ -5,7 +5,7 @@ setup(
     author_email="dusty@buchuki.com",
     url="https://github.com/buchuki/gitifyhg",
     version="0.1",
-    packages=find_packages(),
+    py_modules="gitifyhg",
     install_requires=[
         'path.py',
         'sh'
