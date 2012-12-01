@@ -1,6 +1,5 @@
 from gitifyhg import gitifyhg
 from path import path as p
-from
 
 import sh
 
