@@ -4,9 +4,9 @@ import sys
 from configparser import ConfigParser
 
 
-def gitify():
-    '''Call this function (probably as an entry point) to initialize a git
-    checkout in an existing local hg repository.'''
+def gitifyhg():
+    '''Call this function to initialize a git checkout in an existing local hg
+    repository.'''
 
     if not p('.hg').isdir():
         sys.exit('There is no .hg directory. Are you at the top'
@@ -28,15 +28,47 @@ def gitify():
     sh.hg.gexport()
     sh.git.reset('--hard')
     sh.git.config('core.excludesfile', p('.hgignore'))
+    sh.git.config('alias.hgpull', '!gitifyhg hgpull')
+    sh.git.config('alias.hgpush', '!gitifyhg hgpush')
     with p('.git/info/exclude').open('a') as f:
         f.write('.hg*\n')
 
-    gitconfig = ConfigParser()
-    gitconfig.read('.git/config')
-    if not gitconfig.has_section('alias'):
-        gitconfig.add_section('alias')
-    gitconfig['alias']['hgpull'] = '!"hg pull ; hg bookmark -f -r default master ; hg gexport ; hg update ; git checkout master ; git reset --hard master"'
-    gitconfig['alias']['hgpush'] = '!"hg gimport ; hg update ; hg push"'
-    with open('.git/config', 'w') as file:
-        gitconfig.write(file)
+
+def hgpull():
+    '''Attempts to sync up git's master with upstream's default. This works
+    kinda like git-svn, we aren't trying to merge multiple branches and stuff,
+    yet, just trying to make those two branches coincide.
+
+    This is tricky because they are operating on the same working directory,
+    so we end up doing a series of updates and resets to get everything lined
+    up. Thus it can be potentially destructive.'''
+    sh.hg.pull()
+    sh.hg.bookmark('-f', '-r', 'default', 'master')
+    sh.hg.gexport()
+    sh.hg.update()
+    sh.git.checkout('master')
+    sh.git.reset('--hard', 'master')
+
+
+def hgpush():
+    '''Attempts to sync up upstreams default with git's master. This is less
+    tricky if you recently did an hgpull and everything is satisfactory.
+
+    One thing to watch out here is gimport imports all git branches as
+    bookmarks. Therefor, you should not have any working branches on git that
+    have commits not on master, or they will create new heads in the mercurial
+    repo. I have some ideas to use hg strip to allow branches to stay local
+    in git, but nothing is implemented yet.'''
+
+    sh.git.checkout('master')
+    sh.hg.gimport()
+    sh.hg.update()
+    sh.hg.push()
+
+
+def main():
+    if len(sys.argv) == 1:
+        gitifyhg()
+    elif sys.argv[1] in ('hgpush', 'hgpull'):
+        globals()[sys.argv[1]]()
 
