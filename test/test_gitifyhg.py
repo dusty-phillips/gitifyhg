@@ -3,14 +3,19 @@ from path import path as p
 
 import sh
 
+
 # FUNCARGS
 # ========
 def pytest_funcarg__hg_repo(request):
     '''funcarg hg_repo that creates an hg repository in a temporary directory
     and clones it. This allows testing of pulls and pushes between
-    repositories.
+    repositories. The current working directory will also be set to the
+    cloned repo.
 
-    :param request: The pytest_funcarg request object'''
+    :param request: The pytest_funcarg request object.
+    :return: a path object pointing at the repo that was cloned into. It also
+        has an ``hg_base`` attribute that is a path object pointing at the
+        upstream repo that was cloned from.'''
     tmpdir = p(str(request.getfuncargvalue('tmpdir')))
     hg_base = tmpdir.joinpath('hg_base')  # an hg repo to clone from
     hg_base.mkdir()  # could be on the above line if jaraco would release a bugfix
@@ -24,8 +29,10 @@ def pytest_funcarg__hg_repo(request):
 
     # Now clone that repo and run gitify
     sh.hg.clone('hg_base', 'cloned_repo')
+    cloned_repo = tmpdir.joinpath('cloned_repo')
+    cloned_repo.hg_base = hg_base
     sh.cd('cloned_repo')
-    return tmpdir.joinpath('cloned_repo')
+    return cloned_repo
 
 
 # ASSERTION HELPERS
@@ -66,9 +73,8 @@ def test_basic_hg_pull(hg_repo):
     '''
     gitifyhg()
     # Add a commit to the upstream repo
-    hg_base = hg_repo.joinpath('../hg_base')
-    sh.cd(hg_base)
-    with hg_base.joinpath('test_file').open('a') as file:
+    sh.cd(hg_repo.hg_base)
+    with hg_repo.hg_base.joinpath('test_file').open('a') as file:
         file.write('b')
     sh.hg.commit(message="b")
 
