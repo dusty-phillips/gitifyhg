@@ -1,7 +1,10 @@
 import sh
 from path import path as p
 import sys
-from configparser import ConfigParser
+try:
+    from configparser import ConfigParser
+except ImportError:
+    from ConfigParser import ConfigParser
 
 
 def gitifyhg():
@@ -17,9 +20,9 @@ def gitifyhg():
     for section in ('git', 'extensions'):
         if not hgconfig.has_section(section):
             hgconfig.add_section(section)
-    hgconfig['git']['intree'] = '1'
-    hgconfig['extensions']['bookmarks'] = ''
-    hgconfig['extensions']['hggit'] = ''
+    hgconfig.set('git', 'intree', '1')
+    hgconfig.set('extensions', 'bookmarks', '')
+    hgconfig.set('extensions', 'hggit', '')
     with open('.hg/hgrc', 'w') as file:
         hgconfig.write(file)
 
