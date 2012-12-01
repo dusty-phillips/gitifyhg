@@ -18,10 +18,9 @@ def pytest_funcarg__hg_repo(request):
         upstream repo that was cloned from.'''
     tmpdir = p(str(request.getfuncargvalue('tmpdir')))
     hg_base = tmpdir.joinpath('hg_base')  # an hg repo to clone from
-    hg_base.mkdir()  # could be on the above line if jaraco would release a bugfix
-    with hg_base.joinpath('test_file').open('w') as file:
-        file.write('a')
+    hg_base.mkdir()
     sh.cd(hg_base)
+    write_to_test_file('a')
     sh.hg.init()
     sh.hg.add('test_file')
     sh.hg.commit(message="a")
@@ -51,8 +50,17 @@ def assert_commit_count(count):
     assert sh.grep(sh.hg.log(), 'changeset:').stdout.count(b'\n') == count
 
 
-# TESTS
-# =====
+# HELPERS
+# =======
+def write_to_test_file(message):
+    '''Append the message to the 'something' file in the current working
+    directory. This is normally done to stage a commit in hg or git.'''
+    with p('test_file').open('a') as file:
+        file.write('a')
+
+
+# THE ACTUAL TESTS
+# ================
 def test_gitify(hg_repo):
     '''Ensure that gitifyhg has done it's job.'''
     gitifyhg()
@@ -74,8 +82,7 @@ def test_basic_hg_pull(hg_repo):
     gitifyhg()
     # Add a commit to the upstream repo
     sh.cd(hg_repo.hg_base)
-    with hg_repo.hg_base.joinpath('test_file').open('a') as file:
-        file.write('b')
+    write_to_test_file('b')
     sh.hg.commit(message="b")
 
     sh.cd(hg_repo)
