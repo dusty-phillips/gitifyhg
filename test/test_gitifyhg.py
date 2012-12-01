@@ -52,11 +52,17 @@ def assert_commit_count(count):
 
 # HELPERS
 # =======
-def write_to_test_file(message):
+def write_to_test_file(message, filename='test_file'):
     '''Append the message to the 'test_file' file in the current working
-    directory. This is normally done to stage a commit in hg or git.'''
-    with p('test_file').open('a') as file:
-        file.write('a')
+    directory or filename if it was passed. This is normally done to stage a
+    commit in hg or git.
+
+    :param message: Something to be appended to the test file. Use \\n
+        judiciously.
+    :param filename: A filename to commit to. If unsupplied, test_file
+        will be updated.'''
+    with p(filename).open('a') as file:
+        file.write(message)
 
 
 # THE ACTUAL TESTS
