@@ -53,7 +53,7 @@ def assert_commit_count(count):
 # HELPERS
 # =======
 def write_to_test_file(message):
-    '''Append the message to the 'something' file in the current working
+    '''Append the message to the 'test_file' file in the current working
     directory. This is normally done to stage a commit in hg or git.'''
     with p('test_file').open('a') as file:
         file.write('a')
