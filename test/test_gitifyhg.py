@@ -112,3 +112,42 @@ def test_basic_hg_push(hg_repo):
 
     sh.cd(hg_repo.hg_base)
     assert sh.grep(sh.hg.log(), 'changeset:').stdout.count(b'\n') == 2
+
+
+def test_pull_push_no_merge(hg_repo):
+    '''Test the common case that commits have been made locally and upstream.
+    The local commits must be made on a separate branch, cause master gets
+    mucked around by hg-git. This test illustrates how things *should* be done
+    as much as it is testing things are working.'''
+    gitifyhg()
+
+    # make a change to the first file (upstream)
+    sh.cd(hg_repo.hg_base)
+    write_to_test_file('b')
+    sh.hg.commit(message="b")
+
+    # make a change on a new branch in the git repo
+    sh.cd(hg_repo)
+    sh.git.branch('c')
+    sh.git.checkout('c')
+    write_to_test_file('c', 'c')
+    sh.git.add('c')
+    sh.git.commit(message='c')
+
+    # At this point, git and hg are out of sync. Know about it.
+    # Know that if you ``hgpush`` now, your commits on ``c`` would
+    # end up in your hg repo on an unnamed but bookmarked branch.
+
+    hgpull()
+    # Know that hgpull checked out master and reset master hard to upstream
+    sh.git.checkout('c')
+    sh.git.rebase('master')
+    sh.git.checkout('master')
+    sh.git.merge('c')  # It's not a real merge, it's fastforward
+    hgpush()
+
+    assert_empty_status()
+    assert_commit_count(3)
+
+    sh.cd(hg_repo.hg_base)
+    assert sh.grep(sh.hg.log(), 'changeset:').stdout.count(b'\n') == 3
