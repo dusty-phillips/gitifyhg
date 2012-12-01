@@ -1,10 +1,7 @@
 import sh
 from path import path as p
 import sys
-try:
-    from configparser import ConfigParser
-except ImportError:
-    from ConfigParser import ConfigParser
+from six.moves import configparser
 
 
 def gitifyhg():
@@ -15,7 +12,7 @@ def gitifyhg():
         sys.exit('There is no .hg directory. Are you at the top'
             ' of the repository?')
 
-    hgconfig = ConfigParser()
+    hgconfig = configparser.ConfigParser()
     hgconfig.read('.hg/hgrc')
     for section in ('git', 'extensions'):
         if not hgconfig.has_section(section):

@@ -9,7 +9,8 @@ setup(
     py_modules="gitifyhg",
     install_requires=[
         'path.py',
-        'sh'
+        'sh',
+        'six'
     ],
     entry_points={
         'console_scripts': [
