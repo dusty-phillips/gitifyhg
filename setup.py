@@ -24,7 +24,7 @@ setup(
     url="https://github.com/buchuki/gitifyhg",
     description="Tools to facilitate using hg git as a git client for hg",
     version="0.3",
-    py_modules="gitifyhg",
+    py_modules=["gitifyhg"],
     install_requires=[
         'path.py',
         'sh',
