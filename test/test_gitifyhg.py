@@ -26,5 +26,7 @@ def test_gitify(hg_repo):
     assert hg_repo.joinpath('.git').isdir()
     assert sh.git.alias().stdout == (
         b'hgpull = !gitifyhg hgpull\nhgpush = !gitifyhg hgpush\n')
+    print(sh.git.log(pretty='oneline'))
+    assert sh.git.log(pretty='oneline').stdout.count(b'\n') == 1
 
     
