@@ -18,6 +18,7 @@
 
 from path import path as p
 import sys
+import sh
 from six.moves import configparser
 
 
