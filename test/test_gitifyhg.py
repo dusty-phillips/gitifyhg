@@ -1,5 +1,6 @@
 from gitifyhg import gitifyhg
 from path import path as p
+from
 
 import sh
 
@@ -24,8 +25,6 @@ def test_gitify(hg_repo):
     gitifyhg()
 
     assert hg_repo.joinpath('.git').isdir()
-    print(sh.git.alias().stdout)
-    print(type(sh.git.alias().stdout))
     assert sh.git.alias().stdout == (
         b'hgpull = !gitifyhg hgpull\nhgpush = !gitifyhg hgpush\n')
 
