@@ -42,11 +42,11 @@ def hgpull():
     This is tricky because they are operating on the same working directory,
     so we end up doing a series of updates and resets to get everything lined
     up. Thus it can be potentially destructive.'''
+    sh.git.checkout('master')
     sh.hg.pull()
     sh.hg.bookmark('-f', '-r', 'default', 'master')
     sh.hg.gexport()
     sh.hg.update()
-    sh.git.checkout('master')
     sh.git.reset('--hard', 'master')
 
 
