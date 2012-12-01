@@ -24,9 +24,8 @@ def gitify():
         hgconfig.write(file)
 
     sh.git.init()
-    sh.hg.bookmark('hg/default', '-r', 'default')
+    sh.hg.bookmark('master', '-r', 'default')
     sh.hg.gexport()
-    sh.git.branch('--track', 'master', 'hg/default')
     sh.git.reset('--hard')
     sh.git.config('core.excludesfile', p('.hgignore'))
     with p('.git/info/exclude').open('a') as f:
