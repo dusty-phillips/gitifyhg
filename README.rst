@@ -38,6 +38,7 @@ committed in git and vice versa. Try not to use mercurial at all.
 URLS
 ----
 * `source <https://github.com/buchuki/gitifyhg>`_
+* `tutorial <http://archlinux.me/dusty/2012/12/01/gitifyhg-accessing-mercurial-repos-from-git/>`_
 * `pypi package <https://pypi.python.org/pypi/indico/>`_
 * `Dusty Phillips <https://archlinux.me/dusty>`_
 
