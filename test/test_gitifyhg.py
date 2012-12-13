@@ -71,6 +71,18 @@ def write_to_test_file(message, filename='test_file'):
         file.write(message)
 
 
+def assert_git_count(count):
+    '''Assuming you are in a git repository, assert that ``count`` commits
+    have been made to that repo.'''
+    assert sh.git.log(pretty='oneline').stdout.count(b'\n') == count
+
+
+def assert_hg_count(count):
+    '''Assuming you are in an hg repository, assert that ``count`` commits
+    have been made to that repo.'''
+    assert sh.grep(sh.hg.log(), 'changeset:').stdout.count(b'\n') == count
+
+
 # THE ACTUAL TESTS
 # ================
 def test_clone(hg_repo, git_dir):
@@ -90,10 +102,10 @@ def test_clone(hg_repo, git_dir):
     assert len(git_repo.joinpath('.gitifyhg/patches/').listdir()) == 0
 
     sh.cd(git_repo)
-    assert sh.git.log(pretty='oneline').stdout.count(b'\n') == 1
+    assert_git_count(1)
     assert len(sh.git.status(short=True).stdout) == 0
 
     sh.cd(hg_clone)
-    assert sh.grep(sh.hg.log(), 'changeset:').stdout.count(b'\n') == 1
+    assert_hg_count(1)
     assert len(sh.hg.status().stdout) == 0
 
