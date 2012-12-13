@@ -41,7 +41,9 @@ def clone(hg_url):
         rev="0..default")
     sh.cd(git_repo)
     sh.git.init()
-    sh.git.am(sh.glob(patches.joinpath('*.patch')))
+    patch_files = [patches.joinpath(patch) for patch in
+        sorted(patches.listdir()) if patch.endswith('.patch')]
+    sh.git.am(*patch_files)
     sh.git.branch('hgrepo')
     with open('.gitignore', 'w') as gitignore:
         gitignore.write('.gitignore\n')
