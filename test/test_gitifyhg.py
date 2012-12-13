@@ -109,3 +109,48 @@ def test_clone(hg_repo, git_dir):
     assert_hg_count(1)
     assert len(sh.hg.status().stdout) == 0
 
+
+def test_no_clone_branches(hg_repo, git_dir):
+    '''When cloning an upstream hg repository that has branches, only clone
+    the default branch. This is probably not going to be desired behavior
+    forever and ever, but it works for now.'''
+
+    sh.cd(hg_repo)
+    sh.hg.branch('ignore_me')
+    write_to_test_file('b\n')
+    sh.hg.commit(message="b")
+    write_to_test_file('c\n')
+    sh.hg.commit(message="c")
+
+    sh.cd(git_dir)
+    clone(hg_repo)
+    git_repo = git_dir.joinpath('hg_base')
+    assert git_repo.exists()
+    with open(git_repo.joinpath('test_file')) as file:
+        assert file.read() == 'a\n'
+    assert_git_count(1)
+
+
+def test_clone_merged_branch(hg_repo, git_dir):
+    sh.cd(hg_repo)
+    sh.hg.branch('merge_me')
+    write_to_test_file('b\n')
+    sh.hg.commit(message="b")
+    write_to_test_file('c\n')
+    sh.hg.commit(message="c")
+    sh.hg.update('default')
+    sh.hg.merge('merge_me')
+    sh.hg.commit(message="merge")
+
+    sh.cd(git_dir)
+    clone(hg_repo)
+    git_repo = git_dir.joinpath('hg_base')
+    assert git_repo.exists()
+    with open(git_repo.joinpath('test_file')) as file:
+        assert file.read() == 'a\nb\nc\n'
+    assert_git_count(2)
+    # If you are a git user, you're probably wtfing now. The original commit
+    # and the merge commit are on the default branch. The other commits do
+    # not get included cause they only exist on the other branch. All their
+    # changes got blobbed into a single merge commit that is hard to read
+    # THIS IS WHY I WROTE GITIFYHG IN THE FIRST PLACE.
