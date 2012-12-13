@@ -38,7 +38,7 @@ def clone(hg_url):
     sh.hg.clone(hg_url, hg_repo)
     sh.cd(hg_repo)
     sh.hg.export(git=True, output=patches.joinpath('%R.patch'),
-        rev="0..default")
+        rev="branch(default)")
     sh.cd(git_repo)
     sh.git.init()
     patch_files = [patches.joinpath(patch) for patch in
