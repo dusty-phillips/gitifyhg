@@ -132,6 +132,8 @@ def test_no_clone_branches(hg_repo, git_dir):
 
 
 def test_clone_merged_branch(hg_repo, git_dir):
+    '''When cloning branches in upstream commits, ignore commits that happened
+    on other branches, and use only the merge commits.'''
     sh.cd(hg_repo)
     sh.hg.branch('merge_me')
     write_to_test_file('b\n')
