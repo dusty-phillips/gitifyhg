@@ -16,77 +16,44 @@
 # along with gitifyhg.  If not, see <http://www.gnu.org/licenses/>.import sh
 
 
-from path import path as p
 import sys
 import sh
-from six.moves import configparser
+from path import path as p
 
 
-def gitifyhg():
-    '''Call this function to initialize a git checkout in an existing local hg
-    repository.'''
-
-    if not p('.hg').isdir():
-        sys.exit('There is no .hg directory. Are you at the top'
-            ' of the repository?')
-
-    hgconfig = configparser.ConfigParser()
-    hgconfig.read('.hg/hgrc')
-    for section in ('git', 'extensions'):
-        if not hgconfig.has_section(section):
-            hgconfig.add_section(section)
-    hgconfig.set('git', 'intree', '1')
-    hgconfig.set('extensions', 'bookmarks', '')
-    hgconfig.set('extensions', 'hggit', '')
-    with open('.hg/hgrc', 'w') as file:
-        hgconfig.write(file)
-
+def clone(hg_url):
+    '''Set up a new git repository that is subconsciously linked to the hg
+    repository in the hg_url. The link uses an intermediate 'patches' directory
+    where patches are stored as input to/from git am/format_patch
+    and hg import/export.'''
+    repo_name = hg_url.split('/')[-1]
+    git_repo = p(repo_name).abspath()
+    git_repo.mkdir()
+    gitify_hg = git_repo.joinpath('.gitifyhg')
+    gitify_hg.mkdir()
+    patches = gitify_hg.joinpath('patches')
+    patches.mkdir()
+    hg_repo = gitify_hg.joinpath('hg_clone')
+    sh.cd(gitify_hg)
+    sh.hg.clone(hg_url, hg_repo)
+    sh.cd(hg_repo)
+    sh.hg.export(git=True, output=patches.joinpath('%R.patch'),
+        rev="0..default")
+    sh.cd(git_repo)
     sh.git.init()
-    sh.hg.bookmark('master', '-r', 'default')
-    sh.hg.gexport()
-    sh.git.reset('--hard')
-    sh.git.config('core.excludesfile', p('.hgignore'))
-    sh.git.config('alias.hgpull', '!gitifyhg hgpull')
-    sh.git.config('alias.hgpush', '!gitifyhg hgpush')
-    with p('.git/info/exclude').open('a') as f:
-        f.write('.hg*\n')
+    sh.git.am(sh.glob(patches.joinpath('*.patch')))
+    sh.git.branch('hgrepo')
+    with open('.gitignore', 'w') as gitignore:
+        gitignore.write('.gitignore\n')
+        gitignore.write('.gitifyhg')
 
-
-def hgpull():
-    '''Attempts to sync up git's master with upstream's default. This works
-    kinda like git-svn, we aren't trying to merge multiple branches and stuff,
-    yet, just trying to make those two branches coincide.
-
-    This is tricky because they are operating on the same working directory,
-    so we end up doing a series of updates and resets to get everything lined
-    up. Thus it can be potentially destructive.'''
-    sh.git.checkout('master')
-    sh.hg.pull()
-    sh.hg.bookmark('-f', '-r', 'default', 'master')
-    sh.hg.gexport()
-    sh.hg.update()
-    sh.git.reset('--hard', 'master')
-
-
-def hgpush():
-    '''Attempts to sync up upstreams default with git's master. This is less
-    tricky if you recently did an hgpull and everything is satisfactory.
-
-    One thing to watch out here is gimport imports all git branches as
-    bookmarks. Therefor, you should not have any working branches on git that
-    have commits not on master, or they will create new heads in the mercurial
-    repo. I have some ideas to use hg strip to allow branches to stay local
-    in git, but nothing is implemented yet.'''
-
-    sh.git.checkout('master')
-    sh.hg.gimport()
-    sh.hg.update()
-    sh.hg.push()
+    for file in patches.listdir():
+        patches.joinpath(file).remove()
 
 
 def main():
-    if len(sys.argv) == 1:
-        gitifyhg()
-    elif sys.argv[1] in ('hgpush', 'hgpull'):
-        globals()[sys.argv[1]]()
+    if sys.argv[1] in ('clone'):
+        globals()[sys.argv[1]](*sys.argv[1:])
 
+if __name__ == '__main__':
+    main()

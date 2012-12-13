@@ -16,25 +16,21 @@
 # along with gitifyhg.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from gitifyhg import gitifyhg, hgpull, hgpush
+from gitifyhg import clone
 from path import path as p
-
+import pytest
 import sh
 
 
-# FUNCARGS
-# ========
-def pytest_funcarg__hg_repo(request):
-    '''funcarg hg_repo that creates an hg repository in a temporary directory
-    and clones it. This allows testing of pulls and pushes between
-    repositories. The current working directory will also be set to the
-    cloned repo.
+@pytest.fixture
+def hg_repo(tmpdir):
+    '''Fixture that creates an hg repository in a temporary directory
+    gitifyhg can then be tested by cloaning that repo
 
-    :param request: The pytest_funcarg request object.
-    :return: a path object pointing at the repo that was cloned into. It also
-        has an ``hg_base`` attribute that is a path object pointing at the
-        upstream repo that was cloned from.'''
-    tmpdir = p(str(request.getfuncargvalue('tmpdir')))
+    :param tmpdir: A temporary directory for the current test
+    :return: a py.path inside the test's temporary directory that contains
+        an initialized hg repository with a single commit'''
+    tmpdir = p(tmpdir).abspath()
     hg_base = tmpdir.joinpath('hg_base')  # an hg repo to clone from
     hg_base.mkdir()
     sh.cd(hg_base)
@@ -44,28 +40,20 @@ def pytest_funcarg__hg_repo(request):
     sh.hg.commit(message="a")
     sh.cd('..')
 
-    # Now clone that repo and run gitify
-    sh.hg.clone('hg_base', 'cloned_repo')
-    cloned_repo = tmpdir.joinpath('cloned_repo')
-    cloned_repo.hg_base = hg_base
-    sh.cd('cloned_repo')
-    return cloned_repo
+    return hg_base
 
 
-# ASSERTION HELPERS
-# =================
-def assert_empty_status():
-    '''Assert that git and hg repos have no changes in them.'''
-    assert len(sh.hg.status().stdout) == 0
-    assert len(sh.git.status(short=True).stdout) == 0
+@pytest.fixture
+def git_dir(tmpdir):
+    '''Fixture that creates a subdirectory in the tmpdir to hold the git clone.
 
-
-def assert_commit_count(count):
-    '''Assert that git and hg both have exactly ``count`` commits
-    in their log.
-    :param count: the number of commits expected in the git and hg logs'''
-    assert sh.git.log(pretty='oneline').stdout.count(b'\n') == count
-    assert sh.grep(sh.hg.log(), 'changeset:').stdout.count(b'\n') == count
+    :param tmpdir: the temporary directory for the current test
+    :return: a py.path inside the test's temporary directory that is an empty
+        but existing directory.'''
+    tmpdir = p(tmpdir).abspath()
+    git_dir = tmpdir.joinpath('git_dir')
+    git_dir.mkdir()
+    return git_dir
 
 
 # HELPERS
@@ -85,87 +73,27 @@ def write_to_test_file(message, filename='test_file'):
 
 # THE ACTUAL TESTS
 # ================
-def test_gitify(hg_repo):
-    '''Ensure that gitifyhg has done it's job.'''
-    gitifyhg()
+def test_clone(hg_repo, git_dir):
+    '''Ensures that a clone of an upstream hg repository contains the
+    appropriate structure.'''
+    sh.cd(git_dir)
+    clone(hg_repo)
+    git_repo = git_dir.joinpath('hg_base')
+    hg_clone = git_repo.joinpath('.gitifyhg/hg_clone')
 
-    assert hg_repo.joinpath('.git').isdir()
-    assert sh.git.alias().stdout == (
-        b'hgpull = !gitifyhg hgpull\nhgpush = !gitifyhg hgpush\n')
-    # There is one commit in both hg and git
+    assert git_repo.exists()
+    assert git_repo.joinpath('test_file').exists()
+    assert git_repo.joinpath('.git').isdir()
+    assert hg_clone.joinpath('test_file').exists()
+    assert hg_clone.joinpath('.hg').isdir()
+    assert git_repo.joinpath('.gitifyhg/patches/').isdir()
+    assert len(git_repo.joinpath('.gitifyhg/patches/').listdir()) == 0
 
-    # both hg and git have nothing unexpected in the working directory
-    assert_empty_status()
-    assert_commit_count(1)
+    sh.cd(git_repo)
+    assert sh.git.log(pretty='oneline').stdout.count(b'\n') == 1
+    assert len(sh.git.status(short=True).stdout) == 0
 
+    sh.cd(hg_clone)
+    assert sh.grep(sh.hg.log(), 'changeset:').stdout.count(b'\n') == 1
+    assert len(sh.hg.status().stdout) == 0
 
-def test_basic_hg_pull(hg_repo):
-    '''When commits are made on the upstream repo and there is nothing
-    unexpected in the cloned hg or git repos, hg pull will sync everything up.
-    '''
-    gitifyhg()
-    # Add a commit to the upstream repo
-    sh.cd(hg_repo.hg_base)
-    write_to_test_file('b')
-    sh.hg.commit(message="b")
-
-    sh.cd(hg_repo)
-    hgpull()
-    assert_empty_status()
-    assert_commit_count(2)
-
-
-def test_basic_hg_push(hg_repo):
-    '''When commits are made to the local git master branch and there is nothing
-    unexpected upstream or in the hg repo, and there are no extra branches in
-    git, hg push will sync everything up.'''
-    gitifyhg()
-    # Add a git commit to the local git repo
-    write_to_test_file('b')
-    sh.git.commit(message='b', all=True)
-
-    hgpush()
-    assert_empty_status()
-    assert_commit_count(2)
-
-    sh.cd(hg_repo.hg_base)
-    assert sh.grep(sh.hg.log(), 'changeset:').stdout.count(b'\n') == 2
-
-
-def test_pull_push_no_merge(hg_repo):
-    '''Test the common case that commits have been made locally and upstream.
-    The local commits must be made on a separate branch, cause master gets
-    mucked around by hg-git. This test illustrates how things *should* be done
-    as much as it is testing things are working.'''
-    gitifyhg()
-
-    # make a change to the first file (upstream)
-    sh.cd(hg_repo.hg_base)
-    write_to_test_file('b')
-    sh.hg.commit(message="b")
-
-    # make a change on a new branch in the git repo
-    sh.cd(hg_repo)
-    sh.git.branch('c')
-    sh.git.checkout('c')
-    write_to_test_file('c', 'c')
-    sh.git.add('c')
-    sh.git.commit(message='c')
-
-    # At this point, git and hg are out of sync. Know about it.
-    # Know that if you ``hgpush`` now, your commits on ``c`` would
-    # end up in your hg repo on an unnamed but bookmarked branch.
-
-    hgpull()
-    # Know that hgpull checked out master and reset master hard to upstream
-    sh.git.checkout('c')
-    sh.git.rebase('master')
-    sh.git.checkout('master')
-    sh.git.merge('c')  # It's not a real merge, it's fastforward
-    hgpush()
-
-    assert_empty_status()
-    assert_commit_count(3)
-
-    sh.cd(hg_repo.hg_base)
-    assert sh.grep(sh.hg.log(), 'changeset:').stdout.count(b'\n') == 3

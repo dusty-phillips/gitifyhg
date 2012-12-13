@@ -28,7 +28,7 @@ setup(
     install_requires=[
         'path.py',
         'sh',
-        'six'
+        'six',
     ],
     entry_points={
         'console_scripts': [
