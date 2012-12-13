@@ -34,7 +34,7 @@ def hg_repo(tmpdir):
     hg_base = tmpdir.joinpath('hg_base')  # an hg repo to clone from
     hg_base.mkdir()
     sh.cd(hg_base)
-    write_to_test_file('a')
+    write_to_test_file('a\n')
     sh.hg.init()
     sh.hg.add('test_file')
     sh.hg.commit(message="a")
