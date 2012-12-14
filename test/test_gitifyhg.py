@@ -57,6 +57,25 @@ def git_dir(tmpdir):
     return git_dir
 
 
+@pytest.fixture
+def git_repo(hg_repo, git_dir):
+    '''Fixture that clones the default hg repo into the directory created
+    for it.
+
+    :param hg_repo: the directory containing the 'upstream' hg repository
+    :param git_dir: the directory to clone the repo into
+    :return: a path to the new git_dir that has hg_repo and hg_clone attributes
+    pointing to the upstream repo directory and the cloned directory in
+    .gitify_hg.
+    '''
+    sh.cd(git_dir)
+    clone(hg_repo)
+    git_repo = git_dir.joinpath('hg_base')
+    git_repo.hg_clone = git_repo.joinpath('.gitifyhg/hg_clone')
+    git_repo.hg_repo = hg_repo
+    return git_repo
+
+
 # HELPERS
 # =======
 def write_to_test_file(message, filename='test_file'):
@@ -106,19 +125,15 @@ def assert_hg_count(count):
 
 # THE ACTUAL TESTS
 # ================
-def test_clone(hg_repo, git_dir):
+def test_clone(git_repo):
     '''Ensures that a clone of an upstream hg repository contains the
     appropriate structure.'''
-    sh.cd(git_dir)
-    clone(hg_repo)
-    git_repo = git_dir.joinpath('hg_base')
-    hg_clone = git_repo.joinpath('.gitifyhg/hg_clone')
 
     assert git_repo.exists()
     assert git_repo.joinpath('test_file').exists()
     assert git_repo.joinpath('.git').isdir()
-    assert hg_clone.joinpath('test_file').exists()
-    assert hg_clone.joinpath('.hg').isdir()
+    assert git_repo.hg_clone.joinpath('test_file').exists()
+    assert git_repo.hg_clone.joinpath('.hg').isdir()
     assert git_repo.joinpath('.gitifyhg/patches/').isdir()
     assert len(git_repo.joinpath('.gitifyhg/patches/').listdir()) == 0
 
@@ -126,7 +141,7 @@ def test_clone(hg_repo, git_dir):
     assert_git_count(1)
     assert len(sh.git.status(short=True).stdout) == 0
 
-    sh.cd(hg_clone)
+    sh.cd(git_repo.hg_clone)
     assert_hg_count(1)
     assert len(sh.hg.status().stdout) == 0
 
@@ -179,15 +194,11 @@ def test_clone_merged_branch(hg_repo, git_dir):
     # THIS IS WHY I WROTE GITIFYHG IN THE FIRST PLACE.
 
 
-def test_clean_rebase(hg_repo, git_dir):
+def test_clean_rebase(git_repo):
     '''When changes have happened upstream but not in the local git repo,
     ensure that a call to rebase updates everything.'''
-    sh.cd(git_dir)
-    git_repo = git_dir.joinpath('hg_base')
-    hg_clone = git_repo.joinpath('.gitifyhg/hg_clone')
-    clone(hg_repo)
 
-    sh.cd(hg_repo)
+    sh.cd(git_repo.hg_repo)
     write_to_test_file('b\n')
     sh.hg.commit(message="b")
     write_to_test_file('c\n')
@@ -201,18 +212,13 @@ def test_clean_rebase(hg_repo, git_dir):
     assert_git_branch('master')
     assert len(git_repo.joinpath('.gitifyhg/patches/').listdir()) == 0
 
-    sh.cd(hg_clone)
+    sh.cd(git_repo.hg_clone)
     assert_hg_count(3)
 
 
-def test_rebase_with_changes(hg_repo, git_dir):
+def test_rebase_with_changes(git_repo):
     '''When changes have happened both upstream and on local master, ensure
     that a call to rebase does the right thing.'''
-
-    sh.cd(git_dir)
-    git_repo = git_dir.joinpath('hg_base')
-    hg_clone = git_repo.joinpath('.gitifyhg/hg_clone')
-    clone(hg_repo)
 
     sh.cd(git_repo)
     write_to_test_file('d', 'd')
@@ -222,7 +228,7 @@ def test_rebase_with_changes(hg_repo, git_dir):
     sh.git.add('e')
     sh.git.commit(message='e')
 
-    sh.cd(hg_repo)
+    sh.cd(git_repo.hg_repo)
     write_to_test_file('b\n')
     sh.hg.commit(message="b")
     write_to_test_file('c\n')
@@ -235,5 +241,5 @@ def test_rebase_with_changes(hg_repo, git_dir):
     assert_git_branch('master')
     assert_git_messages(['e', 'd', 'c', 'b', 'a'])
 
-    sh.cd(hg_clone)
+    sh.cd(git_repo.hg_clone)
     assert_hg_count(3)
