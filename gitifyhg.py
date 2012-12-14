@@ -25,7 +25,9 @@ def clone(hg_url):
     '''Set up a new git repository that is subconsciously linked to the hg
     repository in the hg_url. The link uses an intermediate 'patches' directory
     where patches are stored as input to/from git am/format_patch
-    and hg import/export.'''
+    and hg import/export. Once cloned the state of the master branch will be
+    the same as the state of the upstream default tip. However, the history
+    may not be identical, since merged branches are ignored.'''
     repo_name = hg_url.split('/')[-1]
     git_repo = p(repo_name).abspath()
     git_repo.mkdir()
@@ -44,7 +46,7 @@ def clone(hg_url):
     patch_files = [patches.joinpath(patch) for patch in
         sorted(patches.listdir()) if patch.endswith('.patch')]
     sh.git.am(*patch_files)
-    sh.git.branch('hgrepo')
+    sh.git.branch('hgrepo')  # hgrepo points at last commit pulled from upstream
     with open('.gitignore', 'w') as gitignore:
         gitignore.write('.gitignore\n')
         gitignore.write('.gitifyhg')
