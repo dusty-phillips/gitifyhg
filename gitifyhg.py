@@ -19,6 +19,7 @@
 import sys
 import sh
 from path import path as p
+from six.moves import configparser
 
 
 def clone(hg_url):
@@ -39,6 +40,15 @@ def clone(hg_url):
     sh.cd(gitify_hg)
     sh.hg.clone(hg_url, hg_repo)
     sh.cd(hg_repo)
+
+    # Disable colored output in all hg commands.
+    hgconfig = configparser.ConfigParser()
+    hgconfig.read('.hg/hgrc')
+    hgconfig.add_section('color')
+    hgconfig.set('color', 'mode', 'off')
+    with open('.hg/hgrc', 'w') as file:
+        hgconfig.write(file)
+
     sh.hg.export(git=True, output=patches.joinpath('%R.patch'),
         rev="branch(default)")
     sh.cd(git_repo)
