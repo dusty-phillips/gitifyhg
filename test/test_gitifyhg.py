@@ -16,10 +16,11 @@
 # along with gitifyhg.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from gitifyhg import clone
 from path import path as p
 import pytest
 import sh
+
+from gitifyhg import clone, rebase
 
 
 @pytest.fixture
@@ -156,3 +157,25 @@ def test_clone_merged_branch(hg_repo, git_dir):
     # not get included cause they only exist on the other branch. All their
     # changes got blobbed into a single merge commit that is hard to read
     # THIS IS WHY I WROTE GITIFYHG IN THE FIRST PLACE.
+
+
+def test_rebase(hg_repo, git_dir):
+    sh.cd(git_dir)
+    git_repo = git_dir.joinpath('hg_base')
+    hg_clone = git_repo.joinpath('.gitifyhg/hg_clone')
+    clone(hg_repo)
+
+    sh.cd(hg_repo)
+    write_to_test_file('b\n')
+    sh.hg.commit(message="b")
+    write_to_test_file('c\n')
+    sh.hg.commit(message="c")
+
+    sh.cd(git_repo)
+    rebase()
+
+    assert_git_count(3)
+
+    sh.cd(hg_clone)
+    assert_hg_count(3)
+

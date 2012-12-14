@@ -55,8 +55,19 @@ def clone(hg_url):
         patches.joinpath(file).remove()
 
 
+def rebase():
+    '''If commits have happened in the upstream hg default branch, rebase
+    master onto those commits. This method assumes that gitifyhg created the
+    current git repository, and therefore a .gitifyhg/hg_clone exists.'''
+
+    sh.cd('.gitifyhg/hg_clone')
+    last_pulled_commit = sh.grep(sh.hg.log(rev='default'), 'changeset').stdout
+    sh.hg.pull(update=True)
+    print(last_pulled_commit)
+
+
 def main():
-    if sys.argv[1] in ('clone'):
+    if sys.argv[1] in ('clone', 'rebase'):
         globals()[sys.argv[1]](*sys.argv[1:])
 
 if __name__ == '__main__':
