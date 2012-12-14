@@ -78,6 +78,21 @@ def assert_git_count(count):
     assert sh.git.log(pretty='oneline').stdout.count(b'\n') == count
 
 
+def assert_git_messages(expected_lines):
+    '''Assert that logging all git messages in order provides the given lines
+    of output.
+
+    :param expected_lines: The a list of str messages  that were passed into
+        git or hg when commited, in reverser order
+        (ie: most recent commits at the top or left)
+    :return True if the message lines match the git repo in the current directory
+        False otherwise.'''
+    actual_lines = sh.git('--no-pager', 'log', pretty='oneline', color='never'
+        ).strip().split('\n')
+    actual_lines = [l.partition(' ')[-1] for l in actual_lines]
+    assert actual_lines == expected_lines
+
+
 def assert_hg_count(count):
     '''Assuming you are in an hg repository, assert that ``count`` commits
     have been made to that repo.'''
@@ -160,6 +175,8 @@ def test_clone_merged_branch(hg_repo, git_dir):
 
 
 def test_rebase(hg_repo, git_dir):
+    '''When changes have happened upstream but not in the local git repo,
+    ensure that a call to rebase updates everything.'''
     sh.cd(git_dir)
     git_repo = git_dir.joinpath('hg_base')
     hg_clone = git_repo.joinpath('.gitifyhg/hg_clone')
@@ -175,6 +192,7 @@ def test_rebase(hg_repo, git_dir):
     rebase()
 
     assert_git_count(3)
+    assert_git_messages(['c', 'b', 'a'])
     assert len(git_repo.joinpath('.gitifyhg/patches/').listdir()) == 0
 
     sh.cd(hg_clone)
