@@ -58,8 +58,7 @@ def clone(hg_url):
         gitignore.write('.gitignore\n')
         gitignore.write('.gitifyhg')
 
-    for file in patches.listdir():
-        patches.joinpath(file).remove()
+    empty_directory(patches)
 
 
 def rebase():
@@ -87,6 +86,11 @@ def git_import(patch_directory):
     patch_files = [patch_directory.joinpath(patch) for patch in
         sorted(patch_directory.listdir()) if patch.endswith('.patch')]
     sh.git.am(*patch_files)
+
+
+def empty_directory(directory):
+    for file in directory.listdir():
+        directory.joinpath(file).remove()
 
 
 # MAIN
