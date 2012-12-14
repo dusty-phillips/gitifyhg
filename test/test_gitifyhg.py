@@ -179,7 +179,7 @@ def test_clone_merged_branch(hg_repo, git_dir):
     # THIS IS WHY I WROTE GITIFYHG IN THE FIRST PLACE.
 
 
-def test_rebase(hg_repo, git_dir):
+def test_clean_rebase(hg_repo, git_dir):
     '''When changes have happened upstream but not in the local git repo,
     ensure that a call to rebase updates everything.'''
     sh.cd(git_dir)
@@ -204,3 +204,36 @@ def test_rebase(hg_repo, git_dir):
     sh.cd(hg_clone)
     assert_hg_count(3)
 
+
+def test_rebase_with_changes(hg_repo, git_dir):
+    '''When changes have happened both upstream and on local master, ensure
+    that a call to rebase does the right thing.'''
+
+    sh.cd(git_dir)
+    git_repo = git_dir.joinpath('hg_base')
+    hg_clone = git_repo.joinpath('.gitifyhg/hg_clone')
+    clone(hg_repo)
+
+    sh.cd(git_repo)
+    write_to_test_file('d', 'd')
+    sh.git.add('d')
+    sh.git.commit(message='d')
+    write_to_test_file('e', 'e')
+    sh.git.add('e')
+    sh.git.commit(message='e')
+
+    sh.cd(hg_repo)
+    write_to_test_file('b\n')
+    sh.hg.commit(message="b")
+    write_to_test_file('c\n')
+    sh.hg.commit(message="c")
+
+    sh.cd(git_repo)
+    rebase()
+
+    assert_git_count(5)
+    assert_git_branch('master')
+    assert_git_messages(['e', 'd', 'c', 'b', 'a'])
+
+    sh.cd(hg_clone)
+    assert_hg_count(3)
