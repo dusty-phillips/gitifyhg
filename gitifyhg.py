@@ -49,8 +49,7 @@ def clone(hg_url):
     with open('.hg/hgrc', 'w') as file:
         hgconfig.write(file)
 
-    sh.hg.export(git=True, output=patches.joinpath('%R.patch'),
-        rev="branch(default)")
+    hg_export(patches, "branch(default)")
     sh.cd(git_repo)
     sh.git.init()
     patch_files = [patches.joinpath(patch) for patch in
@@ -75,6 +74,16 @@ def rebase():
     sh.hg.pull(update=True)
     print(last_pulled_commit)
 
+
+# HELPERS
+def hg_export(patch_directory, revision_spec):
+    '''Export all patches matching the given mercurial revspec into the
+    patches directory.'''
+    sh.hg.export(git=True, output=patch_directory.joinpath('%R.patch'),
+        rev=revision_spec)
+
+
+# MAIN
 
 def main():
     if sys.argv[1] in ('clone', 'rebase'):
