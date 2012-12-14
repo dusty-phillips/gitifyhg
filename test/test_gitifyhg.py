@@ -175,6 +175,7 @@ def test_rebase(hg_repo, git_dir):
     rebase()
 
     assert_git_count(3)
+    assert len(git_repo.joinpath('.gitifyhg/patches/').listdir()) == 0
 
     sh.cd(hg_clone)
     assert_hg_count(3)

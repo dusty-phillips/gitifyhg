@@ -17,6 +17,8 @@
 
 
 import sys
+import re
+
 import sh
 from path import path as p
 from six.moves import configparser
@@ -66,10 +68,20 @@ def rebase():
     master onto those commits. This method assumes that gitifyhg created the
     current git repository, and therefore a .gitifyhg/hg_clone exists.'''
 
+    git_dir = p('.').abspath()
+    patches = git_dir.joinpath('.gitifyhg/patches')
     sh.cd('.gitifyhg/hg_clone')
     last_pulled_commit = sh.grep(sh.hg.log(rev='default'), 'changeset').stdout
+    last_pulled_commit = int(re.match(
+        b'changeset:\s+(\d+):', last_pulled_commit).groups()[0])
     sh.hg.pull(update=True)
-    print(last_pulled_commit)
+    hg_export(patches, "{}:default and branch(default)".format(
+        last_pulled_commit + 1))
+    sh.git.checkout('hgrepo')
+    git_import(patches)
+    sh.git.checkout('master')
+    sh.git.rebase('hgrepo')
+    empty_directory(patches)
 
 
 # HELPERS
