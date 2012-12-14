@@ -93,6 +93,11 @@ def assert_git_messages(expected_lines):
     assert actual_lines == expected_lines
 
 
+def assert_git_branch(branch_name):
+    '''Assert that the git repo is on the named branch'''
+    assert '* {}'.format(branch_name) in sh.git.branch().stdout.decode('UTF-8')
+
+
 def assert_hg_count(count):
     '''Assuming you are in an hg repository, assert that ``count`` commits
     have been made to that repo.'''
@@ -193,6 +198,7 @@ def test_rebase(hg_repo, git_dir):
 
     assert_git_count(3)
     assert_git_messages(['c', 'b', 'a'])
+    assert_git_branch('master')
     assert len(git_repo.joinpath('.gitifyhg/patches/').listdir()) == 0
 
     sh.cd(hg_clone)
