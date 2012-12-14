@@ -52,9 +52,7 @@ def clone(hg_url):
     hg_export(patches, "branch(default)")
     sh.cd(git_repo)
     sh.git.init()
-    patch_files = [patches.joinpath(patch) for patch in
-        sorted(patches.listdir()) if patch.endswith('.patch')]
-    sh.git.am(*patch_files)
+    git_import(patches)
     sh.git.branch('hgrepo')  # hgrepo points at last commit pulled from upstream
     with open('.gitignore', 'w') as gitignore:
         gitignore.write('.gitignore\n')
@@ -83,8 +81,15 @@ def hg_export(patch_directory, revision_spec):
         rev=revision_spec)
 
 
-# MAIN
+def git_import(patch_directory):
+    '''Import all patches in the patch_directory onto the current branch in
+    git.'''
+    patch_files = [patch_directory.joinpath(patch) for patch in
+        sorted(patch_directory.listdir()) if patch.endswith('.patch')]
+    sh.git.am(*patch_files)
 
+
+# MAIN
 def main():
     if sys.argv[1] in ('clone', 'rebase'):
         globals()[sys.argv[1]](*sys.argv[1:])
