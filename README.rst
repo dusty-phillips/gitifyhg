@@ -58,12 +58,16 @@ gitifyhg also expects the following to be installed on your os:
 
 Supports
 --------
-gitifyhg has been tested to run on:
+``gitifyhg`` has been tested to run on:
 
 * cPython 2.6
 * cPython 2.7
 * cPython 3.3
 * pypy
+
+It has only been tested on Arch Linux. I expect all Linux operating systems
+to work fine with it and I suspect MacOS will also react well. All bets are
+off with Windows, but please let me know if it works or you fixed it.
 
 Install
 -------
