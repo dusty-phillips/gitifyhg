@@ -58,6 +58,8 @@ def clone(hg_url):
     hg_export(patches, "branch(default)")
     sh.cd(git_repo)
     sh.git.init()
+    sh.git.config('alias.hgrebase', '!gitifyhg rebase')
+    sh.git.config('alias.hgpush', '!gitifyhg push')
     git_import(patches)
     sh.git.branch('hgrepo')  # hgrepo points at last commit pulled from upstream
     with open('.gitignore', 'w') as gitignore:
@@ -146,7 +148,7 @@ def empty_directory(directory):
 
 # MAIN
 def main():
-    if sys.argv[1] in ('clone', 'rebase'):
+    if sys.argv[1] in ('clone', 'rebase', 'push'):
         globals()[sys.argv[1]](*sys.argv[1:])
 
 if __name__ == '__main__':
