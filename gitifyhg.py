@@ -149,7 +149,8 @@ def empty_directory(directory):
 # MAIN
 def main():
     if sys.argv[1] in ('clone', 'rebase', 'push'):
-        globals()[sys.argv[1]](*sys.argv[1:])
+        print(sys.argv[1:])
+        globals()[sys.argv[1]](*sys.argv[2:])
 
 if __name__ == '__main__':
     main()
