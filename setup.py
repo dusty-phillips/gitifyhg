@@ -43,6 +43,7 @@ setup(
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Programming Language :: Python :: Implementation :: PyPy',
-
+        'Topic :: Software Development :: Version Control',
+        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
     ]
 )
