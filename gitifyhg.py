@@ -24,6 +24,10 @@ from path import path as p
 from six.moves import configparser
 
 
+class GitifyHGError(Exception):
+    pass
+
+
 def clone(hg_url):
     '''Set up a new git repository that is subconsciously linked to the hg
     repository in the hg_url. The link uses an intermediate 'patches' directory
@@ -84,12 +88,47 @@ def rebase():
     empty_directory(patches)
 
 
+def push():
+    '''If commits have not happened upstream hg repo, but they have happened
+    in the local master, push the new commits to upstream.'''
+    git_dir = p('.').abspath()
+    patches = git_dir.joinpath('.gitifyhg/patches')
+    hg_clone = git_dir.joinpath('.gitifyhg/hg_clone')
+    sh.cd(hg_clone)
+    try:
+        sh.hg.incoming()
+    except sh.ErrorReturnCode:
+        # Raises an exception when there are NO incoming patches, so we invert
+        # the exception in else
+        pass
+    else:
+        raise GitifyHGError("Refusing to push: upstream changes. Rebase first")
+
+    sh.cd(git_dir)
+    sh.git('format-patch', 'hgrepo..master', output_directory=patches)
+    sh.cd(hg_clone)
+    hg_import(patches)
+    sh.hg.push()
+    sh.cd(git_dir)
+    sh.git.checkout('hgrepo')
+    sh.git.merge('master')
+    sh.git.checkout('master')
+
+
 # HELPERS
 def hg_export(patch_directory, revision_spec):
     '''Export all patches matching the given mercurial revspec into the
     patches directory.'''
     sh.hg.export(git=True, output=patch_directory.joinpath('%R.patch'),
         rev=revision_spec)
+
+
+def hg_import(patch_directory):
+    '''Import all patches in the patch_directory onto the current branch in
+    hg'''
+    patch_files = [patch_directory.joinpath(patch) for patch in
+        sorted(patch_directory.listdir()) if patch.endswith('.patch')]
+    sh.hg('import', patch_files)
 
 
 def git_import(patch_directory):

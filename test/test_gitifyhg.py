@@ -20,7 +20,7 @@ from path import path as p
 import pytest
 import sh
 
-from gitifyhg import clone, rebase
+from gitifyhg import clone, rebase, push, GitifyHGError
 
 
 @pytest.fixture
@@ -242,4 +242,45 @@ def test_rebase_with_changes(git_repo):
     assert_git_messages(['e', 'd', 'c', 'b', 'a'])
 
     sh.cd(git_repo.hg_clone)
+    assert_hg_count(3)
+
+
+def test_no_push_conflict(git_repo):
+    '''If there are changes in the upstream hg repository, ensure a push is
+    not initiated.'''
+    sh.cd(git_repo.hg_repo)
+    write_to_test_file('b\n')
+    sh.hg.commit(message="b")
+
+    sh.cd(git_repo)
+    write_to_test_file('c\n', "c")
+    sh.git.add('c')
+    sh.git.commit(message="c")
+
+    with pytest.raises(GitifyHGError) as e:
+        push()
+    assert e.value.args[0] == "Refusing to push: upstream changes. Rebase first"
+
+
+def test_push(git_repo):
+    sh.cd(git_repo)
+    write_to_test_file('b', 'b')
+    sh.git.add('b')
+    sh.git.commit(message='b')
+    write_to_test_file('c', 'c')
+    sh.git.add('c')
+    sh.git.commit(message='c')
+
+    push()
+
+    assert_git_count(3)
+    assert_git_branch('master')
+    assert_git_messages(['c', 'b', 'a'])
+    print(sh.git.diff('master', 'hgrepo', color='never'))
+    assert sh.git('--no-pager', 'diff', 'master', 'hgrepo').stdout == b''
+
+    sh.cd(git_repo.hg_clone)
+    assert_hg_count(3)
+
+    sh.cd(git_repo.hg_repo)
     assert_hg_count(3)
