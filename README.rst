@@ -80,7 +80,7 @@ or ::
 
   easy_install gitifyhg
 
-gitifyhg works in a `virtualenv `http://www.virtualenv.org/>`_, but you're
+gitifyhg works in a `virtualenv http://www.virtualenv.org/>`_, but you're
 probably just as well off to install it at the system level.
 
 You can also install manually with ::
