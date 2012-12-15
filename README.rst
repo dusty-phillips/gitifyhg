@@ -96,19 +96,30 @@ Instructions
 * Get your Mercurial default branch into a reasonable state and push all your
   changes.
 * Run ``gitifyhg clone <mercurial repository url>``. This will create a new
-  git repository just like git clone.
+  git repository just like ``git clone``. There will be a hidden ``.gitifyhg``
+  directory in there that holds a working mercurial clone of the upstream repo
+  and an intermediate directory for patches.
 * ``cd repo_name``
+* Set up your ``.gitignore``. You'll probably want to add ``.gitignore`` itself
+  to the list of ignored files, as you don't want to tip upstream off that you
+  are using a superior DVCS. You'll also want to add ``.gitifyhg``, as well
+  as any patterns that are in the ``.hgignore`` from the original repo. You
+  *can* symlink ``.gitignore`` to ``.hgignore`` provided the ``.hgignore``
+  uses glob syntax. See http://www.selenic.com/mercurial/hgignore.5.html for
+  more information.
 * ``git checkout -b working_branch_name``. You *can* work directly on master,
-  but I would avoid it, as it makes recovering from problems easier.
-* Use git however you see fit. Use git flow, use ``rebase -i``,
-  use ``commit --amend``, use ``add -p``. Use all the wonderful git tools that
+  but I would avoid it to makes recovering from problems easier.
+* Use git however you see fit. Use
+  `git flow <http://jeffkreeftmeijer.com/2010/why-arent-you-using-git-flow/>`_,
+  use ``rebase -i``, use ``commit --amend``, use ``add -p``.
+  Use all the wonderful git tools that
   you have been aching to have available while being forced to work on mercurial
   repositories.
 * At some point, you'll be ready to publish your changes to the hg repository.
-  First run ``git hgrebase`` to pull in changes from mercurial default and
-  have them appended to master. If you have patches on master, then they will
-  be rebased onto the new patches.
-* Rebase your working branch onto master and then merge it into master (or
+  First run ``git hgrebase`` to pull in changes from mercurial ``default`` and
+  have them appended to git ``master``. If you have patches on master,
+  they will be rebased onto the new patches from upstream.
+* Rebase your working branch onto ``master`` and then merge it into master (or
   use git-flow for more sensible commands)::
     
     git checkout working_branch_name
@@ -116,7 +127,7 @@ Instructions
     git checkout master
     git merge master
 
-* ``git hgpush`` to push your master upstream. It will present an error if
+* ``git hgpush`` to push your patches upstream. It will present an error if
   there were upstream changes while you were doing the rebase step, so you
   don't have to worry too much about merge fail.
 
