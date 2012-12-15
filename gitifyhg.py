@@ -79,7 +79,7 @@ def rebase():
     last_pulled_commit = int(re.match(
         b'changeset:\s+(\d+):', last_pulled_commit).groups()[0])
     sh.hg.pull(update=True)
-    hg_export(patches, "{}:default and branch(default)".format(
+    hg_export(patches, "{0}:default and branch(default)".format(
         last_pulled_commit + 1))
     sh.git.checkout('hgrepo')
     git_import(patches)
