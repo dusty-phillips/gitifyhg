@@ -61,7 +61,7 @@ def clone(hg_url):
     sh.git.config('alias.hgrebase', '!gitifyhg rebase')
     sh.git.config('alias.hgpush', '!gitifyhg push')
     git_import(patches)
-    sh.git.branch('hgrepo')  # hgrepo points at last commit pulled from upstream
+    sh.git.branch('hgdefault')  # hgdefault points at last commit from upstream
     with open('.gitignore', 'w') as gitignore:
         gitignore.write('.gitignore\n')
         gitignore.write('.gitifyhg')
@@ -83,10 +83,10 @@ def rebase():
     sh.hg.pull(update=True)
     hg_export(patches, "{0}:default and branch(default)".format(
         last_pulled_commit + 1))
-    sh.git.checkout('hgrepo')
+    sh.git.checkout('hgdefault')
     git_import(patches)
     sh.git.checkout('master')
-    sh.git.rebase('hgrepo')
+    sh.git.rebase('hgdefault')
     empty_directory(patches)
 
 
@@ -107,12 +107,12 @@ def push():
         raise GitifyHGError("Refusing to push: upstream changes. Rebase first")
 
     sh.cd(git_dir)
-    sh.git('format-patch', 'hgrepo..master', output_directory=patches)
+    sh.git('format-patch', 'hgdefault..master', output_directory=patches)
     sh.cd(hg_clone)
     hg_import(patches)
     sh.hg.push()
     sh.cd(git_dir)
-    sh.git.checkout('hgrepo')
+    sh.git.checkout('hgdefault')
     sh.git.merge('master')
     sh.git.checkout('master')
 

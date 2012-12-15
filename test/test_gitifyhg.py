@@ -276,8 +276,7 @@ def test_push(git_repo):
     assert_git_count(3)
     assert_git_branch('master')
     assert_git_messages(['c', 'b', 'a'])
-    print(sh.git.diff('master', 'hgrepo', color='never'))
-    assert sh.git('--no-pager', 'diff', 'master', 'hgrepo').stdout == b''
+    assert sh.git('--no-pager', 'diff', 'master', 'hgdefault').stdout == b''
 
     sh.cd(git_repo.hg_clone)
     assert_hg_count(3)
