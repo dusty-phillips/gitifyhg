@@ -28,15 +28,21 @@ class GitifyHGError(Exception):
     pass
 
 
-def clone(hg_url):
+def clone(hg_url, dir=None):
     '''Set up a new git repository that is subconsciously linked to the hg
     repository in the hg_url. The link uses an intermediate 'patches' directory
     where patches are stored as input to/from git am/format_patch
     and hg import/export. Once cloned the state of the master branch will be
     the same as the state of the upstream default tip. However, the history
-    may not be identical, since merged branches are ignored.'''
-    repo_name = hg_url.split('/')[-1]
-    git_repo = p(repo_name).abspath()
+    may not be identical, since merged branches are ignored.
+
+    :param hg_url: the mercurial repository to clone from
+    :param dir: the optional path to clone into. If not specified, the dir is
+        set to the basename of the hg_url.'''
+    if dir is not None:
+        git_repo = p(dir).abspath()
+    else:
+        git_repo = p(hg_url.split('/')[-1]).abspath()
     git_repo.mkdir()
     gitify_hg = git_repo.joinpath('.gitifyhg')
     gitify_hg.mkdir()

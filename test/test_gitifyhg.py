@@ -146,6 +146,22 @@ def test_clone(git_repo):
     assert len(sh.hg.status().stdout) == 0
 
 
+def test_clone_path(hg_repo, git_dir):
+    '''When a clone is made to a specific directory, make sure the directory
+    contains the new repo.'''
+    sh.cd(git_dir)
+    git_dir.joinpath("somesubdir").mkdir()
+    clone(hg_repo, "somesubdir/thegit_dir")
+    git_repo = git_dir.joinpath("somesubdir/thegit_dir")
+    hg_clone = git_repo.joinpath('.gitifyhg/hg_clone')
+
+    assert git_repo.exists()
+    assert git_repo.joinpath('test_file').exists()
+    assert git_repo.joinpath('.git').isdir()
+    assert hg_clone.joinpath('test_file').exists()
+    assert hg_clone.joinpath('.hg').isdir()
+
+
 def test_no_clone_branches(hg_repo, git_dir):
     '''When cloning an upstream hg repository that has branches, only clone
     the default branch. This is probably not going to be desired behavior
