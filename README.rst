@@ -47,8 +47,8 @@ gitifyhg explicitly depends on:
 * `sh <http://amoffat.github.com/sh/>`_
 * `six <http://packages.python.org/six/>`_
 
-These packages will be installed automatically by `easy_install`, 
-`pip`, `setup.py install`, or `setup.py develop`.
+These packages will be installed automatically by ``easy_install``, 
+``pip``, ``setup.py install``, or ``setup.py develop``.
 
 gitifyhg also expects the following to be installed on your os:
 
