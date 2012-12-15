@@ -52,6 +52,7 @@ These packages will be installed automatically by `easy_install`,
 
 gitifyhg also expects the following to be installed on your os:
 
+* `python <http://python.org/>`_
 * `Mercurial <http://mercurial.selenic.com/>`_
 * `git <http://git-scm.com/>`_
 
