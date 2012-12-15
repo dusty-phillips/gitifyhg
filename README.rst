@@ -18,28 +18,25 @@
 
 gitifyhg
 ========
-
-This tiny app does the dirty work of setting up a git repo inside an existing
-hg repo so that you can work in git and push to remote hg repositories.
-
-``gitifyhg`` has been tested on Python 3.3, 2.7, and 2.6. It might work on other
-interpreters.
+This app allows you to do local development in a git repository and push your
+changes to an upstream mercurial repository.
 
 It tries not to affect the upstream mercurial repo in any way. Thus, only a
-restricted git workflow is available to you. Right now, only the most basic
-tasks can be accomplished; you can sync up mercurial default with git master.
-This allows a similar pipeline to ``git-svn``, but I'm still testing things with
-branches and the like.
+restricted git workflow is available to you. 
 
-The git and hg repositories operate on the same working files. This can allow
-stuff to get out of sync, where ``hg status`` shows changes that are already
-committed in git and vice versa. Try not to use mercurial at all.
+``gitifyhg`` communicates between the two repos using patches. These are
+applied using ``hg export``, ``hg import``, ``git format-patch``,
+and ``git am``.
+
+Currently, gitifyhg does import upstream hg branches at all and it's primary
+purpose is to keep master synced up with default in the mercurial repository.
+It can rebase master onto the hg upstream, and it can push patches from master
+to upstream.
 
 URLS
 ----
 * `source <https://github.com/buchuki/gitifyhg>`_
-* `tutorial <http://archlinux.me/dusty/2012/12/01/gitifyhg-accessing-mercurial-repos-from-git/>`_
-* `pypi package <https://pypi.python.org/pypi/indico/>`_
+* `pypi package <https://pypi.python.org/pypi/gitifyhg/>`_
 * `Dusty Phillips <https://archlinux.me/dusty>`_
 
 Dependencies
@@ -51,18 +48,24 @@ gitifyhg explicitly depends on:
 * `six <http://packages.python.org/six/>`_
 
 These packages will be installed automatically by `easy_install`, 
-`pip`, or `setup.py install`.
+`pip`, `setup.py install`, or `setup.py develop`.
 
 gitifyhg also expects the following to be installed on your os:
 
 * `Mercurial <http://mercurial.selenic.com/>`_
 * `git <http://git-scm.com/>`_
-* `hg-git <http://hg-git.github.com/>`_
 
+Supports
+--------
+gitifyhg has been tested to run on:
+
+* cPython 2.6
+* cPython 2.7
+* cPython 3.3
+* pypy
 
 Install
 -------
-
 ``gitifyhg`` is a properly designed Python package. You can get it from
 `pypi <https://pypi.python.org>`_ using either ::
 
@@ -85,59 +88,32 @@ probably **are** better off using a ``virtualenv``.
 
 Instructions
 ------------
+* Get your Mercurial default branch into a reasonable state and push all your
+  changes.
+* Run ``gitifyhg clone <mercurial repository url>``. This will create a new
+  git repository just like git clone.
+* ``cd repo_name``
+* ``git checkout -b working_branch_name``. You *can* work directly on master,
+  but I would avoid it, as it makes recovering from problems easier.
+* Use git however you see fit. Use git flow, use ``rebase -i``,
+  use ``commit --amend``, use ``add -p``. Use all the wonderful git tools that
+  you have been aching to have available while being forced to work on mercurial
+  repositories.
+* At some point, you'll be ready to publish your changes to the hg repository.
+  First run ``git hgrebase`` to pull in changes from mercurial default and
+  have them appended to master. If you have patches on master, then they will
+  be rebased onto the new patches.
+* Rebase your working branch onto master and then merge it into master (or
+  use git-flow for more sensible commands)::
+    
+    git checkout working_branch_name
+    git rebase master
+    git checkout master
+    git merge master
 
-In addition to installing the hg-git dependency (I expect you have hg and 
-git installed already), you'll want to perform these steps before running
-gitifyhg:
-
-* Tell your ``~/.hgignore`` to ignore ``.git``. I suggest doing this in the
-  global ignore so sensitive mercurial users don't get too tetchy about the
-  fact that you think it's good to rewrite history. It would be possible to
-  make ``gitifyhg`` automatically add .git to the repo's .hgignore, but I have
-  tried to keep gitifyhg from requiring major changes to the repo.
-
-* Clone an hg repo if you don't have one you want to work in.
-
-* Add ``syntax: glob`` to the top of your ``.hgignore`` file and change
-  patterns to glob format. ``gitifyhg`` will link your .hgignore to your
-  ``.gitignore``, and git prefers the glob syntax. If you choose not to do this,
-  you may have to unlink the gitignore
-
-Now you can run ``gitifyhg`` in any hg directory and a local git repo is
-created. You can use the ``git hgpull`` and ``git hgpush`` commands to push
-your changes into the remote hg repository.
-
-These commands are rather dangerous. They basically try to sync up the hg
-default and git master branches. When you run ``git hgpull`` changes are pulled
-into ``default`` from the upstream mercurial repository and git master is
-hard reset to point at it. It's probably better if you don't have changes on
-master that you didn't want obliterated.
-
-``git hgpush`` does basically the opposite, it tries to sync up the hg default
-branch with whatever commits have been pushed onto master, and then pushes it
-to the remote repository.
-
-A good workflow is to:
-
-* Never commit to master. Create a new branch in git.
-* When you are ready to merge that branch, first ``git hgpull`` to sync master
-  with the upstream mercurial repository.
-* Rebase your working branch onto master. If you don't know about
-  ``git rebase -i``, learn.
-* Merge your working branch into master and delete the working branch. If you
-  don't delete it, hg-git will create a new bookmark for that git branch. That
-  won't hurt anything, but if you have git branches that have changes on them
-  that are not merged into master, those changes will also be pulled into
-  mercurial. This is probably not good because you probably don't want those
-  commits pushed upstream as an unnamed branch.
-* ``git hpush`` to push your changes upstream.
-* `hgview <http://www.logilab.org/project/hgview/>`_ is a terrific extension
-  for viewing hg history. It even shows your hggit branch location.
-  I recommend it over the git browsers because your colleagues are probably
-  using hg branches.
-* ``hg strip`` from the mercurial queues extension is useful if your git
-  commits foul up your hg repository. ``git reset --hard master`` is also
-  necessary sometimes. I'm hoping to make this more seamless in the future.
+* ``git hgpush`` to push your master upstream. It will present an error if
+  there were upstream changes while you were doing the rebase step, so you
+  don't have to worry too much about merge fail.
 
 License
 -------
