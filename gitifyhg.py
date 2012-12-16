@@ -18,6 +18,7 @@
 
 import sys
 import re
+import json
 
 import sh
 from path import path as p
@@ -28,17 +29,22 @@ class GitifyHGError(Exception):
     pass
 
 
-def clone(hg_url, dir=None):
+def clone(hg_url, dir=None, branch_name="default"):
     '''Set up a new git repository that is subconsciously linked to the hg
     repository in the hg_url. The link uses an intermediate 'patches' directory
     where patches are stored as input to/from git am/format_patch
     and hg import/export. Once cloned the state of the master branch will be
-    the same as the state of the upstream default tip. However, the history
-    may not be identical, since merged branches are ignored.
+    the same as the state of the upstream tip for the chosen branch
+    (defaults to branch_name).
+
+    It is only possible to follow one upstream branch. Normally this will be
+    ``default``. If you need to work on a different branch, you'll need to
+    reclone the repository.
 
     :param hg_url: the mercurial repository to clone from
     :param dir: the optional path to clone into. If not specified, the dir is
-        set to the basename of the hg_url.'''
+        set to the basename of the hg_url.
+    :param branch_name: the name of the upstream branch you want to follow'''
     if dir is not None:
         git_repo = p(dir).abspath()
     else:
@@ -61,16 +67,19 @@ def clone(hg_url, dir=None):
     with open('.hg/hgrc', 'w') as file:
         hgconfig.write(file)
 
-    hg_export(patches, "branch(default)")
+    hg_export(patches,
+        "ancestors(min(branch({0}))) or branch({0})".format(branch_name))
     sh.cd(git_repo)
     sh.git.init()
     sh.git.config('alias.hgrebase', '!gitifyhg rebase')
     sh.git.config('alias.hgpush', '!gitifyhg push')
     git_import(patches)
-    sh.git.branch('hgdefault')  # hgdefault points at last commit from upstream
+    sh.git.branch('hg{0}'.format(branch_name))  # last commit from upstream
     with open('.gitignore', 'w') as gitignore:
         gitignore.write('.gitignore\n')
         gitignore.write('.gitifyhg')
+    with open('.gitifyhg/config.json', 'w') as file:
+        json.dump({'upstream_branch': branch_name}, file)
 
     empty_directory(patches)
 
@@ -80,25 +89,31 @@ def rebase():
     master onto those commits. This method assumes that gitifyhg created the
     current git repository, and therefore a .gitifyhg/hg_clone exists.'''
 
+    with open('.gitifyhg/config.json') as file:
+        upstream_branch = json.load(file)['upstream_branch']
+
     git_dir = p('.').abspath()
     patches = git_dir.joinpath('.gitifyhg/patches')
     sh.cd('.gitifyhg/hg_clone')
-    last_pulled_commit = sh.grep(sh.hg.log(rev='default'), 'changeset').stdout
+    last_pulled_commit = sh.grep(sh.hg.log(rev=upstream_branch), 'changeset').stdout
     last_pulled_commit = int(re.match(
         b'changeset:\s+(\d+):', last_pulled_commit).groups()[0])
     sh.hg.pull(update=True)
-    hg_export(patches, "{0}:default and branch(default)".format(
-        last_pulled_commit + 1))
-    sh.git.checkout('hgdefault')
+    hg_export(patches, "{0}:{1} and branch({1})".format(
+        last_pulled_commit + 1, upstream_branch))
+    sh.git.checkout('hg{0}'.format(upstream_branch))
     git_import(patches)
     sh.git.checkout('master')
-    sh.git.rebase('hgdefault')
+    sh.git.rebase('hg{0}'.format(upstream_branch))
     empty_directory(patches)
 
 
 def push():
     '''If commits have not happened upstream hg repo, but they have happened
     in the local master, push the new commits to upstream.'''
+    with open('.gitifyhg/config.json') as file:
+        upstream_branch = json.load(file)['upstream_branch']
+
     git_dir = p('.').abspath()
     patches = git_dir.joinpath('.gitifyhg/patches')
     hg_clone = git_dir.joinpath('.gitifyhg/hg_clone')
@@ -113,12 +128,13 @@ def push():
         raise GitifyHGError("Refusing to push: upstream changes. Rebase first")
 
     sh.cd(git_dir)
-    sh.git('format-patch', 'hgdefault..master', output_directory=patches)
+    sh.git('format-patch', 'hg{0}..master'.format(upstream_branch),
+        output_directory=patches)
     sh.cd(hg_clone)
     hg_import(patches)
     sh.hg.push()
     sh.cd(git_dir)
-    sh.git.checkout('hgdefault')
+    sh.git.checkout('hg{0}'.format(upstream_branch))
     sh.git.merge('master')
     sh.git.checkout('master')
     empty_directory(patches)
