@@ -300,3 +300,63 @@ def test_push(git_repo):
     sh.cd(git_repo.hg_repo)
     assert_hg_count(3)
     assert len(git_repo.joinpath('.gitifyhg/patches/').listdir()) == 0
+
+
+def test_follow_different_branch(hg_repo, git_dir):
+    '''gitifyhg can only follow one upstream mercurial branch, but that branch
+    does not have to be default.'''
+    sh.cd(hg_repo)
+    sh.hg.branch('other_branch')
+    write_to_test_file('b\n')
+    sh.hg.commit(message="b")
+    write_to_test_file('c\n')
+    sh.hg.commit(message="c")
+    sh.hg.update('default')
+    write_to_test_file('default-merged', 'default-merged')
+    sh.hg.add('default-merged')
+    sh.hg.commit(message='default-merged')
+    sh.hg.update('other_branch')
+    sh.hg.merge('default')
+    sh.hg.commit(message='d')
+    sh.hg.update('default')
+    write_to_test_file('1', 'default')
+    sh.hg.add('default')
+    sh.hg.commit(message='default-1')
+    sh.hg.update('other_branch')
+    write_to_test_file('e', 'e')
+    sh.hg.add('e')
+    sh.hg.commit(message='e')
+
+    sh.cd(git_dir)
+    clone(hg_repo, 'git_clone', 'other_branch')
+    git_repo = git_dir.joinpath('git_clone')
+    assert git_repo.exists()
+    assert_git_messages(['e', 'd', 'c', 'b', 'a'])
+
+    # add a commit to the hg repo
+    sh.cd(hg_repo)
+    write_to_test_file('f', 'f')
+    sh.hg.add('f')
+    sh.hg.commit(message='f')
+
+    # add a commit to the git repo
+    sh.cd(git_repo)
+    write_to_test_file('g', 'g')
+    sh.git.add('g')
+    sh.git.commit(message='g')
+
+    rebase()
+    assert_git_count(7)
+    assert_git_messages(['g', 'f', 'e', 'd', 'c', 'b', 'a'])
+    sh.git.checkout('hgother_branch')
+    assert_git_messages(['f', 'e', 'd', 'c', 'b', 'a'])
+    sh.cd(hg_repo)
+    assert_hg_count(8)
+
+    sh.cd(git_repo)
+    sh.git.checkout('master')
+    push()
+    sh.git.checkout('hgother_branch')
+    assert_git_messages(['g', 'f', 'e', 'd', 'c', 'b', 'a'])
+    sh.cd(hg_repo)
+    assert_hg_count(9)
