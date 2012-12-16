@@ -19,19 +19,19 @@
 gitifyhg
 ========
 This app allows you to do local development in a git repository and push your
-changes to an upstream mercurial repository.
+changes to a specific branch in an upstream mercurial repository.
 
 It tries not to affect the upstream mercurial repo in any way. Thus, only a
 restricted git workflow is available to you. 
 
 ``gitifyhg`` communicates between the two repos using patches. These are
-applied using ``hg export``, ``hg import``, ``git format-patch``,
+applied internally using ``hg export``, ``hg import``, ``git format-patch``,
 and ``git am``.
 
-Currently, gitifyhg does import upstream hg branches at all and it's primary
-purpose is to keep master synced up with default in the mercurial repository.
-It can rebase master onto the hg upstream, and it can push patches from master
-to upstream.
+Currently, gitifyhg does not import upstream hg branches at all and it's primary
+purpose is to keep master synced up with a single branch (normally default)
+in the mercurial repository. It can rebase master onto the hg upstream,
+and it can push patches from master to upstream.
 
 URLS
 ----
@@ -98,7 +98,10 @@ Instructions
 * Run ``gitifyhg clone <mercurial repository url>``. This will create a new
   git repository just like ``git clone``. There will be a hidden ``.gitifyhg``
   directory in there that holds a working mercurial clone of the upstream repo
-  and an intermediate directory for patches.
+  and an intermediate directory for patches. If you want to change the local
+  repo name you can use ``gitifyhg clone <url> <local_name>``. If you want to
+  follow a different mercurial branch you can use
+  ``gitifyhg clone <url> <local>
 * ``cd repo_name``
 * Set up your ``.gitignore``. You'll probably want to add ``.gitignore`` itself
   to the list of ignored files, as you don't want to tip upstream off that you
