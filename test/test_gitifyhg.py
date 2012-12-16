@@ -299,3 +299,4 @@ def test_push(git_repo):
 
     sh.cd(git_repo.hg_repo)
     assert_hg_count(3)
+    assert len(git_repo.joinpath('.gitifyhg/patches/').listdir()) == 0

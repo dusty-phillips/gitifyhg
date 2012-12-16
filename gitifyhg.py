@@ -121,6 +121,7 @@ def push():
     sh.git.checkout('hgdefault')
     sh.git.merge('master')
     sh.git.checkout('master')
+    empty_directory(patches)
 
 
 # HELPERS
