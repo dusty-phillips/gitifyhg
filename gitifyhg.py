@@ -19,6 +19,7 @@
 import sys
 import re
 import json
+from distutils.version import LooseVersion
 
 import sh
 from path import path as p
@@ -141,6 +142,15 @@ def push():
 
 
 # HELPERS
+def patch_files(patch_directory):
+    '''List the files to be applied in order. Used by both hg and git import'''
+    print(patch_directory.listdir())
+    patches = [p for p in patch_directory.listdir()
+        if p.endswith('.patch')]
+    patches.sort(key=LooseVersion)
+    return patches
+
+
 def hg_export(patch_directory, revision_spec):
     '''Export all patches matching the given mercurial revspec into the
     patches directory.'''
@@ -151,17 +161,13 @@ def hg_export(patch_directory, revision_spec):
 def hg_import(patch_directory):
     '''Import all patches in the patch_directory onto the current branch in
     hg'''
-    patch_files = [patch_directory.joinpath(patch) for patch in
-        sorted(patch_directory.listdir()) if patch.endswith('.patch')]
-    sh.hg('import', patch_files)
+    sh.hg('import', patch_files(patch_directory))
 
 
 def git_import(patch_directory):
     '''Import all patches in the patch_directory onto the current branch in
     git.'''
-    patch_files = [patch_directory.joinpath(patch) for patch in
-        sorted(patch_directory.listdir()) if patch.endswith('.patch')]
-    sh.git.am(*patch_files)
+    sh.git.am(*patch_files(patch_directory))
 
 
 def empty_directory(directory):

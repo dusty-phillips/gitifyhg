@@ -237,7 +237,7 @@ def test_clone_several_commits(hg_repo, git_dir):
     clone(hg_repo)
     git_repo = git_dir.joinpath('hg_base')
     with open(git_repo.joinpath('test_file')) as file:
-        assert file.read() == 'abcdefghijk'
+        assert file.read() == 'a\nbcdefghijk'
     assert_git_count(11)
 
 
