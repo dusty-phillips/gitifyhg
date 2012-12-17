@@ -23,7 +23,7 @@ setup(
     author_email="dusty@buchuki.com",
     url="https://github.com/buchuki/gitifyhg",
     description="Tools to facilitate using git as client for hg repos",
-    version="0.4",
+    version="0.5b1",
     py_modules=["gitifyhg"],
     install_requires=[
         'path.py',
