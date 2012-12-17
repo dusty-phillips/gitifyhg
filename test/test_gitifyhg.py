@@ -210,6 +210,37 @@ def test_clone_merged_branch(hg_repo, git_dir):
     # THIS IS WHY I WROTE GITIFYHG IN THE FIRST PLACE.
 
 
+def test_clone_several_commits(hg_repo, git_dir):
+    sh.cd(hg_repo)
+    write_to_test_file('b')
+    sh.hg.commit(message='b')
+    write_to_test_file('c')
+    sh.hg.commit(message='c')
+    write_to_test_file('d')
+    sh.hg.commit(message='d')
+    write_to_test_file('e')
+    sh.hg.commit(message='e')
+    write_to_test_file('f')
+    sh.hg.commit(message='f')
+    write_to_test_file('g')
+    sh.hg.commit(message='g')
+    write_to_test_file('h')
+    sh.hg.commit(message='h')
+    write_to_test_file('i')
+    sh.hg.commit(message='i')
+    write_to_test_file('j')
+    sh.hg.commit(message='j')
+    write_to_test_file('k')
+    sh.hg.commit(message='k')
+
+    sh.cd(git_dir)
+    clone(hg_repo)
+    git_repo = git_dir.joinpath('hg_base')
+    with open(git_repo.joinpath('test_file')) as file:
+        assert file.read() == 'abcdefghijk'
+    assert_git_count(11)
+
+
 def test_clean_rebase(git_repo):
     '''When changes have happened upstream but not in the local git repo,
     ensure that a call to rebase updates everything.'''
