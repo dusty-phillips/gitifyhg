@@ -27,7 +27,6 @@ setup(
     py_modules=["gitifyhg"],
     install_requires=[
         'path.py',
-        'sh',
         'Mercurial',
     ],
     entry_points={
