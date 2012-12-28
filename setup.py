@@ -22,17 +22,17 @@ setup(
     author="Dusty Phillips",
     author_email="dusty@buchuki.com",
     url="https://github.com/buchuki/gitifyhg",
-    description="Tools to facilitate using git as client for hg repos",
-    version="0.5b1",
+    description="Use git as client for hg repos",
+    version="0.6b1",
     py_modules=["gitifyhg"],
     install_requires=[
         'path.py',
         'sh',
-        'six',
+        'Mercurial',
     ],
     entry_points={
         'console_scripts': [
-            'gitifyhg = gitifyhg:main',
+            'git-remote-gitifyhg = gitifyhg:main',
         ],
     },
     classifiers=[
@@ -40,9 +40,6 @@ setup(
         'Intended Audience :: Developers',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: Implementation :: PyPy',
-        'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Software Development :: Version Control',
         'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
     ]
