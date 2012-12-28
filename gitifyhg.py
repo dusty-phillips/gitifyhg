@@ -13,172 +13,184 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with gitifyhg.  If not, see <http://www.gnu.org/licenses/>.import sh
+# along with gitifyhg.  If not, see <http://www.gnu.org/licenses/>.
+
+# Some of this code comes from https://github.com/felipec/git/tree/fc/remote/hg
+# but much of it has been rewritten.
 
 
 import sys
-import re
-import json
-from distutils.version import LooseVersion
-
-import sh
+import os
 from path import path as p
-from six.moves import configparser
+
+from mercurial.ui import ui
+from mercurial.bookmarks import listbookmarks, readcurrent
+from mercurial.util import sha1
+from mercurial import hg
 
 
-class GitifyHGError(Exception):
-    pass
+def log(msg, level="DEBUG", *args):
+    sys.stderr.write('%s: %s\n' % (level, str(msg) % args))
 
 
-def clone(hg_url, dir=None, branch_name="default"):
-    '''Set up a new git repository that is subconsciously linked to the hg
-    repository in the hg_url. The link uses an intermediate 'patches' directory
-    where patches are stored as input to/from git am/format_patch
-    and hg import/export. Once cloned the state of the master branch will be
-    the same as the state of the upstream tip for the chosen branch
-    (defaults to branch_name).
-
-    It is only possible to follow one upstream branch. Normally this will be
-    ``default``. If you need to work on a different branch, you'll need to
-    reclone the repository.
-
-    :param hg_url: the mercurial repository to clone from
-    :param dir: the optional path to clone into. If not specified, the dir is
-        set to the basename of the hg_url.
-    :param branch_name: the name of the upstream branch you want to follow'''
-    if dir is not None:
-        git_repo = p(dir).abspath()
-    else:
-        git_repo = p(hg_url.split('/')[-1]).abspath()
-    git_repo.mkdir()
-    gitify_hg = git_repo.joinpath('.gitifyhg')
-    gitify_hg.mkdir()
-    patches = gitify_hg.joinpath('patches')
-    patches.mkdir()
-    hg_repo = gitify_hg.joinpath('hg_clone')
-    sh.cd(gitify_hg)
-    sh.hg.clone(hg_url, hg_repo)
-    sh.cd(hg_repo)
-
-    # Disable colored output in all hg commands.
-    hgconfig = configparser.ConfigParser()
-    hgconfig.read('.hg/hgrc')
-    hgconfig.add_section('color')
-    hgconfig.set('color', 'mode', 'off')
-    with open('.hg/hgrc', 'w') as file:
-        hgconfig.write(file)
-
-    hg_export(patches,
-        "ancestors(min(branch({0}))) or branch({0})".format(branch_name))
-    sh.cd(git_repo)
-    sh.git.init()
-    sh.git.config('alias.hgrebase', '!gitifyhg rebase')
-    sh.git.config('alias.hgpush', '!gitifyhg push')
-    git_import(patches)
-    sh.git.branch('hg{0}'.format(branch_name))  # last commit from upstream
-    with open('.gitignore', 'w') as gitignore:
-        gitignore.write('.gitignore\n')
-        gitignore.write('.gitifyhg')
-    with open('.gitifyhg/config.json', 'w') as file:
-        json.dump({'upstream_branch': branch_name}, file)
-
-    empty_directory(patches)
+def die(msg, *args):
+    log(msg, 'ERROR', *args)
+    sys.exit(1)
 
 
-def rebase():
-    '''If commits have happened in the upstream hg default branch, rebase
-    master onto those commits. This method assumes that gitifyhg created the
-    current git repository, and therefore a .gitifyhg/hg_clone exists.'''
+class GitRemoteParser(object):
+    '''Parser for stdin that processes the git-remote protocol.'''
 
-    with open('.gitifyhg/config.json') as file:
-        upstream_branch = json.load(file)['upstream_branch']
+    def __init__(self, hgrepo):
+        '''
+        :param hgrepo: The mercurial repository object that contains the actual
+            upstream remote that the parser needs to import and export from/to.
+        '''
+        self.hgrepo = hgrepo
+        self.line = self.read_line()
 
-    git_dir = p('.').abspath()
-    patches = git_dir.joinpath('.gitifyhg/patches')
-    sh.cd('.gitifyhg/hg_clone')
-    last_pulled_commit = sh.grep(sh.hg.log(rev=upstream_branch), 'changeset').stdout
-    last_pulled_commit = int(re.match(
-        b'changeset:\s+(\d+):', last_pulled_commit).groups()[0])
-    sh.hg.pull(update=True)
-    hg_export(patches, "{0}:{1} and branch({1})".format(
-        last_pulled_commit + 1, upstream_branch))
-    sh.git.checkout('hg{0}'.format(upstream_branch))
-    git_import(patches)
-    sh.git.checkout('master')
-    sh.git.rebase('hg{0}'.format(upstream_branch))
-    empty_directory(patches)
+    def read_line(self):
+        '''Read a line from the standard input.'''
+        return sys.stdin.readline().strip()
 
+    def read_mark(self):
+        '''The remote protocol contains lines of the format mark: number.
+        Return the mark.'''
+        return self.line.partition(':')[-1]
 
-def push():
-    '''If commits have not happened upstream hg repo, but they have happened
-    in the local master, push the new commits to upstream.'''
-    with open('.gitifyhg/config.json') as file:
-        upstream_branch = json.load(file)['upstream_branch']
+    def read_data(self):
+        '''Read all data following a data line for the given number of bytes'''
+        if not self.line.startswith('data'):
+            return None
+        size = int(self.linepartition(':')[-1])
+        return sys.stdin.read(size)
 
-    git_dir = p('.').abspath()
-    patches = git_dir.joinpath('.gitifyhg/patches')
-    hg_clone = git_dir.joinpath('.gitifyhg/hg_clone')
-    sh.cd(hg_clone)
-    try:
-        sh.hg.incoming()
-    except sh.ErrorReturnCode:
-        # Raises an exception when there are NO incoming patches, so we invert
-        # the exception in else
-        pass
-    else:
-        raise GitifyHGError("Refusing to push: upstream changes. Rebase first")
+    def read_block(self, sentinel):
+        '''Yield a block of lines one by one until the sentinel value
+        is returned. Sentinel may be an empty string, 'done', or other values
+        depending on what block is being read.'''
+        while self.line != sentinel:
+            yield self.line
+            self.line = self.read_line()
 
-    sh.cd(git_dir)
-    sh.git('format-patch', 'hg{0}..master'.format(upstream_branch),
-        output_directory=patches)
-    sh.cd(hg_clone)
-    hg_import(patches)
-    sh.hg.push()
-    sh.cd(git_dir)
-    sh.git.checkout('hg{0}'.format(upstream_branch))
-    sh.git.merge('master')
-    sh.git.checkout('master')
-    empty_directory(patches)
+    def __iter__(self):
+        '''Loop over lines in a single block.'''
+        return self.read_block('')
 
 
-# HELPERS
-def patch_files(patch_directory):
-    '''List the files to be applied in order. Used by both hg and git import'''
-    print(patch_directory.listdir())
-    patches = [p for p in patch_directory.listdir()
-        if p.endswith('.patch')]
-    patches.sort(key=LooseVersion)
-    return patches
+class HGRemote(object):
+    def __init__(self, alias, url):
+        gitdir = p(os.environ['GIT_DIR'])
+        self.remotedir = gitdir.joinpath('hg', alias)
+        self.branches = {}
+        self.bookmarks = {}
+
+        if alias[8:] == url:  # strips off 'gitifyhg::'
+            alias = sha1(alias).hexdigest()
+        self.prefix = 'refs/hg/%s' % alias
+        self.build_repo(url, alias)
+
+    def build_repo(self, url, alias):
+        '''Make the Mercurial repo object self.repo available. If the local
+        clone does not exist, clone it, otherwise, ensure it is fetched.'''
+        myui = ui()
+        myui.setconfig('ui', 'interactive', 'off')
+
+        local_path = os.path.join(self.remotedir, 'clone')
+        if not os.path.exists(local_path):
+            self.peer, dstpeer = hg.clone(myui, {}, url,
+                local_path, update=False, pull=True)
+            self.repo = dstpeer.local()
+        else:
+            self.repo = hg.repository(myui, local_path)
+            self.peer = hg.peer(myui, {}, url)
+            self.repo.pull(self.peer, heads=None, force=True)
+
+    def process(self):
+        '''Process the messages coming in on stdin using the git-remote
+        protocol and respond appropriately'''
+        parser = GitRemoteParser(self.repo)
+
+        for line in parser:
+            command = line.split()[0]
+            if command not in ('capabilities', 'list', 'import', 'export'):
+                die('unhandled command: %s' % line)
+            getattr(self, 'do_%s' % command)(parser)
+            sys.stdout.flush()
+
+    def do_capabilities(self, parser):
+        '''Process the capabilities request when incoming from git-remote.
+        '''
+        print "import"
+        print "export"
+        print "refspec refs/heads/branches/*:%s/branches/*" % self.prefix
+        print "refspec refs/heads/*:%s/bookmarks/*" % self.prefix
+        print "refspec refs/tags/*:%s/tags/*" % self.prefix
+
+        path = self.remotedir.joinpath('marks-git')
+
+        if os.path.exists(path):
+            print "*import-marks %s" % path
+        print "*export-marks %s" % path
+
+        print
+
+    def do_list(self, parser):
+        '''List all references in the mercurial repository. This includes
+        the current head, all branches, and bookmarks.'''
+
+        current_branch = self.repo.dirstate.branch()
+
+        # Update the head reference
+        head = readcurrent(self.repo)
+        if head:
+            node = self.repo[head]
+        else:
+            # If there is no bookmark for head, mock one
+            head = current_branch
+            node = self.repo['.'] or self.repo['tip']
+            if not node:
+                return
+            head = head if head != 'default' else 'master'
+            self.bookmarks[head] = node
+
+        self.headnode = (head, node)
+
+        # Update the bookmark references
+        for bookmark, node in listbookmarks(self.repo).iteritems():
+            self.bookmarks[bookmark] = self.repo[node]
+
+        # update the named branch references
+        for branch in self.repo.branchmap():
+            heads = self.repo.branchheads(branch)
+            if heads:
+                self.branches[branch] = heads  # FIXME: will it fail for multiple anonymous branches on a named branch?
+
+        # list the head reference
+        print "@refs/heads/%s HEAD" % self.headnode[0]
+
+        # list the named branch references
+        for branch in self.branches:
+            print "? refs/heads/branches/%s" % branch
+
+        # list the bookmark references
+        for bookmark in self.bookmarks:
+            print "? refs/heads/%s" % bookmark
+
+        # list the tags
+        for tag, node in self.repo.tagslist():
+            if tag != "tip":
+                print "? refs/tags/%s" % tag
+
+        print
 
 
-def hg_export(patch_directory, revision_spec):
-    '''Export all patches matching the given mercurial revspec into the
-    patches directory.'''
-    sh.hg.export(git=True, output=patch_directory.joinpath('%R.patch'),
-        rev=revision_spec)
-
-
-def hg_import(patch_directory):
-    '''Import all patches in the patch_directory onto the current branch in
-    hg'''
-    sh.hg('import', patch_files(patch_directory))
-
-
-def git_import(patch_directory):
-    '''Import all patches in the patch_directory onto the current branch in
-    git.'''
-    sh.git.am(*patch_files(patch_directory))
-
-
-def empty_directory(directory):
-    for file in directory.listdir():
-        directory.joinpath(file).remove()
-
-
-# MAIN
 def main():
-    if sys.argv[1] in ('clone', 'rebase', 'push'):
-        globals()[sys.argv[1]](*sys.argv[2:])
+    '''Main entry point for the git-remote-gitifyhg command. Parses sys.argv
+    and constructs a parser from the result.
+    '''
+    HGRemote(*sys.argv[1:3]).process()
+
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

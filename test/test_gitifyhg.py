@@ -20,8 +20,6 @@ from path import path as p
 import pytest
 import sh
 
-from gitifyhg import clone, rebase, push, GitifyHGError
-
 
 @pytest.fixture
 def hg_repo(tmpdir):
@@ -55,25 +53,6 @@ def git_dir(tmpdir):
     git_dir = tmpdir.joinpath('git_dir')
     git_dir.mkdir()
     return git_dir
-
-
-@pytest.fixture
-def git_repo(hg_repo, git_dir):
-    '''Fixture that clones the default hg repo into the directory created
-    for it.
-
-    :param hg_repo: the directory containing the 'upstream' hg repository
-    :param git_dir: the directory to clone the repo into
-    :return: a path to the new git_dir that has hg_repo and hg_clone attributes
-    pointing to the upstream repo directory and the cloned directory in
-    .gitify_hg.
-    '''
-    sh.cd(git_dir)
-    clone(hg_repo)
-    git_repo = git_dir.joinpath('hg_base')
-    git_repo.hg_clone = git_repo.joinpath('.gitifyhg/hg_clone')
-    git_repo.hg_repo = hg_repo
-    return git_repo
 
 
 # HELPERS
@@ -125,17 +104,20 @@ def assert_hg_count(count):
 
 # THE ACTUAL TESTS
 # ================
-def test_clone(git_repo):
+def test_basic_clone(git_dir, hg_repo):
     '''Ensures that a clone of an upstream hg repository contains the
     appropriate structure.'''
+
+    sh.cd(git_dir)
+    print hg_repo
+    sh.git.clone("gitifyhg::" + hg_repo)
+    git_repo = git_dir.joinpath('hg_base')
 
     assert git_repo.exists()
     assert git_repo.joinpath('test_file').exists()
     assert git_repo.joinpath('.git').isdir()
     assert git_repo.hg_clone.joinpath('test_file').exists()
     assert git_repo.hg_clone.joinpath('.hg').isdir()
-    assert git_repo.joinpath('.gitifyhg/patches/').isdir()
-    assert len(git_repo.joinpath('.gitifyhg/patches/').listdir()) == 0
 
     sh.cd(git_repo)
     assert_git_count(1)
@@ -144,6 +126,15 @@ def test_clone(git_repo):
     sh.cd(git_repo.hg_clone)
     assert_hg_count(1)
     assert len(sh.hg.status().stdout) == 0
+
+
+# Need to test:
+    # cloning named branches
+    # cloning named branches with anonymous branches inside
+    # cloning bookmarks
+    # cloning to a named repository
+
+# tests below here are from old gitifyhg
 
 
 def test_clone_path(hg_repo, git_dir):
