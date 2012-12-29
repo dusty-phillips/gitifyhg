@@ -82,6 +82,7 @@ class HGRemote(object):
     def __init__(self, alias, url):
         gitdir = p(os.environ['GIT_DIR'])
         self.remotedir = gitdir.joinpath('hg', alias)
+        self.marks_git_path = self.remotedir.joinpath('marks-git')
         self.branches = {}
         self.bookmarks = {}
 
@@ -127,11 +128,9 @@ class HGRemote(object):
         print "refspec refs/heads/*:%s/bookmarks/*" % self.prefix
         print "refspec refs/tags/*:%s/tags/*" % self.prefix
 
-        path = self.remotedir.joinpath('marks-git')
-
-        if os.path.exists(path):
-            print "*import-marks %s" % path
-        print "*export-marks %s" % path
+        if self.marks_git_path.exists():
+            print "*import-marks %s" % self.marks_git_path
+        print "*export-marks %s" % self.marks_git_path
 
         print
 
