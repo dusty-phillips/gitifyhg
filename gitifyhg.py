@@ -24,6 +24,7 @@ import os
 from path import path as p
 
 from mercurial.ui import ui
+from mercurial import encoding
 from mercurial.bookmarks import listbookmarks, readcurrent
 from mercurial.util import sha1
 from mercurial import hg
@@ -47,11 +48,12 @@ class GitRemoteParser(object):
             upstream remote that the parser needs to import and export from/to.
         '''
         self.hgrepo = hgrepo
-        self.line = self.read_line()
+        self.read_line()
 
     def read_line(self):
         '''Read a line from the standard input.'''
-        return sys.stdin.readline().strip()
+        self.line = sys.stdin.readline().strip()
+        return self.line
 
     def read_mark(self):
         '''The remote protocol contains lines of the format mark: number.
@@ -182,6 +184,53 @@ class HGRemote(object):
                 print "? refs/tags/%s" % tag
 
         print
+
+    def do_import(self, parser):
+        HGImporter(self, parser).process()
+
+
+class HGImporter(object):
+    '''A processor when the remote receives a git-remote import command.
+    Provides import information from the mercurial repository to git.'''
+    def __init__(self, hgremote, parser):
+        self.hgremote = hgremote
+        self.parser = parser
+
+    def process(self):
+        print "feature done"
+        if self.hgremote.marks_git_path.exists():
+            print "feature import-marks=%s" % self.hgremote.marks_git_path
+        print "feature export-marks=%s" % self.hgremote.marks_git_path
+        sys.stdout.flush()
+
+        tmp = encoding.encoding
+        encoding.encoding = 'utf-8'
+
+        while self.parser.line.startswith('import'):
+            ref = self.parser.line.split()[1]
+
+            if (ref == 'HEAD'):
+                self.process_ref(
+                    self.hgremote.headnode[0],
+                    'bookmarks',
+                    self.hgremote.headnode[1])
+            elif ref.startswith('refs/heads/branches/'):
+                branch = ref[len('refs/heads/branches/'):]
+                self.do_branch(branch)  # FIXME: Call process_ref directly
+            elif ref.startswith('refs/heads/'):
+                bmark = ref[len('refs/heads/'):]
+                self.do_bookmark(bmark)  # FIXME: Call process_ref directly
+            elif ref.startswith('refs/tags/'):
+                tag = ref[len('refs/tags/'):]
+                self.do_tag(tag)  # FIXME: Call process_ref directly
+
+            self.parser.read_line()
+
+        encoding.encoding = tmp
+        print 'done'
+
+    def process_ref(self, name, kind, head):
+        pass
 
 
 def main():
