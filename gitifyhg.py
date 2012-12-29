@@ -49,43 +49,46 @@ class HGMarks(object):
         self.storage_path = storage_path
         self.load()
 
-        def load(self):
-            '''Load the marks from the storage file'''
-            if self.storage_path.exists():
-                with self.storage_path.open() as file:
-                    loaded = json.load(file)
+    def load(self):
+        '''Load the marks from the storage file'''
+        if self.storage_path.exists():
+            with self.storage_path.open() as file:
+                loaded = json.load(file)
 
-                self.tips = loaded['tips']
-                self.revisions_to_marks = loaded['revisions_to_marks']
-                self.last_mark = loaded['last-mark']
-                self.marks_to_revisions = {int(v): k for k, v in
-                        self.marks_to_revisions.iteritems()}
-            else:
-                self.tips = {}
-                self.revisions_to_marks = {}
-                self.marks_to_revisions = {}
-                self.last_mark = 0
+            self.tips = loaded['tips']
+            self.revisions_to_marks = loaded['revisions_to_marks']
+            self.last_mark = loaded['last-mark']
+            self.marks_to_revisions = {int(v): k for k, v in
+                    self.marks_to_revisions.iteritems()}
+        else:
+            self.tips = {}
+            self.revisions_to_marks = {}
+            self.marks_to_revisions = {}
+            self.last_mark = 0
 
-        def store(self):
-            '''Save marks to the storage file.'''
-            with self.storage_path.open('w') as file:
-                json.dump({
-                    'tips': self.tips,
-                    'revisions_to_marks': self.revisions_to_marks,
-                    'last-mark': self.last_mark},
-                file)
+    def store(self):
+        '''Save marks to the storage file.'''
+        with self.storage_path.open('w') as file:
+            json.dump({
+                'tips': self.tips,
+                'revisions_to_marks': self.revisions_to_marks,
+                'last-mark': self.last_mark},
+            file)
 
-        def mark_to_revision(self, mark):
-            '''Returns an integer'''
-            return self.marks_to_revisions[mark]
+    def mark_to_revision(self, mark):
+        '''Returns an integer'''
+        return self.marks_to_revisions[mark]
 
-        def revision_to_mark(self, revision):
-            return self.revisions_to_marks[str(revision)]
+    def revision_to_mark(self, revision):
+        return self.revisions_to_marks[str(revision)]
 
-        def new_mark(self, revision, mark):
-            self.revisions_to_marks[str(revision)] = mark
-            self.marks_to_revisions[mark] = int(revision)
-            self.last_mark = mark
+    def new_mark(self, revision, mark):
+        self.revisions_to_marks[str(revision)] = mark
+        self.marks_to_revisions[mark] = int(revision)
+        self.last_mark = mark
+
+    def is_marked(self, revision):
+        return str(revision) in self.revisions_to_marks
 
 
 class GitRemoteParser(object):
@@ -134,6 +137,7 @@ class HGRemote(object):
         gitdir = p(os.environ['GIT_DIR'])
         self.remotedir = gitdir.joinpath('hg', alias)
         self.marks_git_path = self.remotedir.joinpath('marks-git')
+        self.marks = HGMarks(self.remotedir.joinpath('marks-hg'))
         self.branches = {}
         self.bookmarks = {}
 
