@@ -21,6 +21,7 @@
 
 import sys
 import os
+import json
 from path import path as p
 
 from mercurial.ui import ui
@@ -37,6 +38,54 @@ def log(msg, level="DEBUG", *args):
 def die(msg, *args):
     log(msg, 'ERROR', *args)
     sys.exit(1)
+
+
+class HGMarks(object):
+    '''Maps integer marks to specific string mercurial revision identifiers.'''
+
+    def __init__(self, storage_path):
+        ''':param storage_path: The file that marks are stored in between calls.
+        Marks are stored in json format.'''
+        self.storage_path = storage_path
+        self.load()
+
+        def load(self):
+            '''Load the marks from the storage file'''
+            if self.storage_path.exists():
+                with self.storage_path.open() as file:
+                    loaded = json.load(file)
+
+                self.tips = loaded['tips']
+                self.revisions_to_marks = loaded['revisions_to_marks']
+                self.last_mark = loaded['last-mark']
+                self.marks_to_revisions = {int(v): k for k, v in
+                        self.marks_to_revisions.iteritems()}
+            else:
+                self.tips = {}
+                self.revisions_to_marks = {}
+                self.marks_to_revisions = {}
+                self.last_mark = 0
+
+        def store(self):
+            '''Save marks to the storage file.'''
+            with self.storage_path.open('w') as file:
+                json.dump({
+                    'tips': self.tips,
+                    'revisions_to_marks': self.revisions_to_marks,
+                    'last-mark': self.last_mark},
+                file)
+
+        def mark_to_revision(self, mark):
+            '''Returns an integer'''
+            return self.marks_to_revisions[mark]
+
+        def revision_to_mark(self, revision):
+            return self.revisions_to_marks[str(revision)]
+
+        def new_mark(self, revision, mark):
+            self.revisions_to_marks[str(revision)] = mark
+            self.marks_to_revisions[mark] = int(revision)
+            self.last_mark = mark
 
 
 class GitRemoteParser(object):
