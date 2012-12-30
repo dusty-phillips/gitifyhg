@@ -40,6 +40,10 @@ def die(msg, *args):
     sys.exit(1)
 
 
+def gittz(tz):
+    return '%+03d%02d' % (-tz / 3600, -tz % 3600 / 60)
+
+
 class HGMarks(object):
     '''Maps integer marks to specific string mercurial revision identifiers.'''
 
