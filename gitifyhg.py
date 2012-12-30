@@ -292,7 +292,49 @@ class HGImporter(object):
         print 'done'
 
     def process_ref(self, name, kind, head):
-        pass
+
+        kind_name = "%s/%s" % (kind, name)
+        tip = self.hgremote.marks.tips.get(kind_name, 0)
+
+        if tip and tip == head.rev():
+            return  # shortcut for no changes
+
+        revs = [r for r in xrange(tip, head.rev() + 1
+            ) if not self.hgremote.marks.is_marked(r)]
+
+        for rev in revs:
+            (manifest, user, (time, tz), files, description, extra
+                ) = self.hgremote.repo.changelog.read(self.hgremote.repo[rev].node())
+
+            rev_branch = extra['branch']
+
+            author = "%s %d %s" % (user, time, gittz(tz))
+
+            if 'committer' in extra:
+                user, time, tz = extra['committer'].rsplit(' ', 2)
+                committer = "%s %s %s" % (user, time, gittz(int(tz)))
+            else:
+                committer = author
+
+            parents = [p for p in self.hgremote.repo.changelog.parentrevs(rev) if p >= 0]
+
+            if parents:
+                modified, removed = self.hgremote.get_filechanges(repo, c, parents[0])
+            else:
+                modified, removed = self.hgremote.repo[rev].manifest().keys(), []
+
+            if not parents and rev:
+                print 'reset %s/%s' % (self.hgremote.prefix, kind_name)
+
+            print "commit %s/%s" % (self.hgremote.prefix, kind_name)
+            print "mark :%d" % (self.hgremote.marks.get_mark(rev))
+            print "author %s" % (author)
+            print "committer %s" % (committer)
+            print "data %d" % (len(description))
+            print description
+
+
+
 
 
 def main():
