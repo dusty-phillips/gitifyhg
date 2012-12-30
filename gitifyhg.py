@@ -212,6 +212,7 @@ class HGRemote(object):
         output("*export-marks %s" % self.marks_git_path)
 
         output()
+
     def do_list(self, parser):
         '''List all references in the mercurial repository. This includes
         the current head, all branches, and bookmarks.'''
@@ -260,6 +261,7 @@ class HGRemote(object):
                 output("? refs/tags/%s" % tag)
 
         output()
+
     def do_import(self, parser):
         HGImporter(self, parser).process()
 
@@ -357,7 +359,8 @@ class HGImporter(object):
             parents = [p for p in self.repo.changelog.parentrevs(rev) if p >= 0]
 
             if parents:
-                modified, removed = self.get_filechanges(repo, c, parents[0])
+                modified, removed = self.get_filechanges(self.repo[rev],
+                    parents[0])
             else:
                 modified, removed = self.repo[rev].manifest().keys(), []
 
@@ -400,6 +403,25 @@ class HGImporter(object):
         output()
 
         self.marks.tips[kind_name] = rev
+
+    def get_filechanges(self, context, parent):
+        modified = set()
+        added = set()
+        removed = set()
+
+        current = context.manifest()
+        previous = self.repo[parent].manifest().copy()
+
+        for fn in current:
+            if fn in previous:
+                if (current.flags(fn) != previous.flags(fn) or current[fn] != previous[fn]):
+                    modified.add(fn)
+                del previous[fn]
+            else:
+                added.add(fn)
+        removed |= set(previous.keys())
+
+        return added | modified, removed
 
 
 def main():

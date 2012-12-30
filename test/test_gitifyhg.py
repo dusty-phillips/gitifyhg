@@ -105,8 +105,12 @@ def assert_hg_count(count):
 # THE ACTUAL TESTS
 # ================
 def test_basic_clone(git_dir, hg_repo):
-    '''Ensures that a clone of an upstream hg repository contains the
-    appropriate structure.'''
+    '''Ensures that a clone of an upstream hg repository with only one branch
+    and a couple commits contains the appropriate structure.'''
+
+    sh.cd(hg_repo)
+    write_to_test_file("b")
+    sh.hg.commit(message="b")
 
     sh.cd(git_dir)
     sh.git.clone("gitifyhg::" + hg_repo)
@@ -115,17 +119,11 @@ def test_basic_clone(git_dir, hg_repo):
     assert git_repo.exists()
     assert git_repo.joinpath('test_file').exists()
     assert git_repo.joinpath('.git').isdir()
-    assert git_repo.hg_clone.joinpath('test_file').exists()
-    assert git_repo.hg_clone.joinpath('.hg').isdir()
 
     sh.cd(git_repo)
-    assert_git_count(1)
+    assert_git_count(2)
+    assert_git_messages(['b', 'a'])
     assert len(sh.git.status(short=True).stdout) == 0
-
-    sh.cd(git_repo.hg_clone)
-    assert_hg_count(1)
-    assert len(sh.hg.status().stdout) == 0
-
 
 # Need to test:
     # cloning named branches
