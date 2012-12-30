@@ -280,8 +280,7 @@ class HGImporter(object):
                     'bookmarks',
                     self.hgremote.headnode[1])
             elif ref.startswith('refs/heads/branches/'):
-                branch = ref[len('refs/heads/branches/'):]
-                self.do_branch(branch)  # FIXME: Call process_ref directly
+                self.do_branch(ref[len('refs/heads/branches/'):])
             elif ref.startswith('refs/heads/'):
                 bmark = ref[len('refs/heads/'):]
                 self.do_bookmark(bmark)  # FIXME: Call process_ref directly
@@ -293,6 +292,21 @@ class HGImporter(object):
 
         encoding.encoding = tmp
         print 'done'
+
+    def do_branch(self, branch):
+        try:
+            heads = self.hgremote.branches[branch]
+        except KeyError:
+            tip = None
+
+        if len(heads) > 1:
+            log("Branch '%s' has more than one head, consider merging", "WARNING", branch)
+            tip = self.repo.branchtip(branch)
+        else:
+            tip = heads[0]
+
+        head = self.repo[tip]
+        self.process_ref(branch, 'branches', head)
 
     def process_ref(self, name, kind, head):
 
