@@ -288,7 +288,7 @@ class HGImporter(object):
                     self.hgremote.bookmarks[bookmark])
             elif ref.startswith('refs/tags/'):
                 tag = ref[len('refs/tags/'):]
-                self.do_tag(tag)  # FIXME: Call process_ref directly
+                self.process_ref(tag, 'tags', self.repo[tag])
 
             self.parser.read_line()
 
