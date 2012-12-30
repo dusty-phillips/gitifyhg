@@ -125,6 +125,33 @@ def test_basic_clone(git_dir, hg_repo):
     assert_git_messages(['b', 'a'])
     assert len(sh.git.status(short=True).stdout) == 0
 
+
+def test_clone_linear_branch(git_dir, hg_repo):
+    '''One branch after the other, no multiple parents.'''
+    sh.cd(hg_repo)
+    sh.hg.branch("featurebranch")
+    write_to_test_file("b")
+    sh.hg.commit(message="b")
+
+    sh.cd(git_dir)
+    sh.git.clone("gitifyhg::" + hg_repo)
+    git_repo = git_dir.joinpath('hg_base')
+    assert git_repo.exists()
+    assert git_repo.joinpath('test_file').exists()
+    with git_repo.joinpath('test_file').open() as file:
+        assert file.read() == "a\nb"
+
+    sh.cd(git_repo)
+    assert_git_count(2)
+    assert_git_messages(['b', 'a'])
+    print sh.git.branch(remote=True)
+    assert sh.git.branch(remote=True).stdout == """  origin/HEAD -> origin/master
+  origin/branches/default
+  origin/branches/featurebranch
+  origin/master
+"""
+
+
 # Need to test:
     # cloning named branches
     # cloning named branches with anonymous branches inside
