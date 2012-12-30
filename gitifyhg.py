@@ -86,6 +86,11 @@ class HGMarks(object):
     def revision_to_mark(self, revision):
         return self.revisions_to_marks[str(revision)]
 
+    def get_mark(self, revision):
+        self. last_mark += 1
+        self.revisions_to_marks[str(revision)] = self.last_mark
+        return self.last_mark
+
     def new_mark(self, revision, mark):
         self.revisions_to_marks[str(revision)] = mark
         self.marks_to_revisions[mark] = int(revision)
