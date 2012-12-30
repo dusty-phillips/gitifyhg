@@ -256,6 +256,9 @@ class HGImporter(object):
     Provides import information from the mercurial repository to git.'''
     def __init__(self, hgremote, parser):
         self.hgremote = hgremote
+        self.marks = self.hgremote.marks
+        self.prefix = self.hgremote.prefix
+        self.repo = self.hgremote.repo
         self.parser = parser
 
     def process(self):
@@ -294,17 +297,17 @@ class HGImporter(object):
     def process_ref(self, name, kind, head):
 
         kind_name = "%s/%s" % (kind, name)
-        tip = self.hgremote.marks.tips.get(kind_name, 0)
+        tip = self.marks.tips.get(kind_name, 0)
 
         if tip and tip == head.rev():
             return  # shortcut for no changes
 
         revs = [r for r in xrange(tip, head.rev() + 1
-            ) if not self.hgremote.marks.is_marked(r)]
+            ) if not self.marks.is_marked(r)]
 
         for rev in revs:
             (manifest, user, (time, tz), files, description, extra
-                ) = self.hgremote.repo.changelog.read(self.hgremote.repo[rev].node())
+                ) = self.repo.changelog.read(self.repo[rev].node())
 
             rev_branch = extra['branch']
 
@@ -316,18 +319,18 @@ class HGImporter(object):
             else:
                 committer = author
 
-            parents = [p for p in self.hgremote.repo.changelog.parentrevs(rev) if p >= 0]
+            parents = [p for p in self.repo.changelog.parentrevs(rev) if p >= 0]
 
             if parents:
-                modified, removed = self.hgremote.get_filechanges(repo, c, parents[0])
+                modified, removed = self.get_filechanges(repo, c, parents[0])
             else:
-                modified, removed = self.hgremote.repo[rev].manifest().keys(), []
+                modified, removed = self.repo[rev].manifest().keys(), []
 
             if not parents and rev:
-                print 'reset %s/%s' % (self.hgremote.prefix, kind_name)
+                print 'reset %s/%s' % (self.prefix, kind_name)
 
-            print "commit %s/%s" % (self.hgremote.prefix, kind_name)
-            print "mark :%d" % (self.hgremote.marks.get_mark(rev))
+            print "commit %s/%s" % (self.prefix, kind_name)
+            print "mark :%d" % (self.marks.get_mark(rev))
             print "author %s" % (author)
             print "committer %s" % (committer)
             print "data %d" % (len(description))
