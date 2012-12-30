@@ -40,8 +40,22 @@ def die(msg, *args):
     sys.exit(1)
 
 
+def output(msg=''):
+    log("OUT: %s" % msg)
+    print(msg)
+
+
 def gittz(tz):
     return '%+03d%02d' % (-tz / 3600, -tz % 3600 / 60)
+
+
+def gitmode(flags):
+    if 'l' in flags:
+        return '120000'
+    elif 'x' in flags:
+        return '100755'
+    else:
+        return '100644'
 
 
 class HGMarks(object):
@@ -114,6 +128,7 @@ class GitRemoteParser(object):
     def read_line(self):
         '''Read a line from the standard input.'''
         self.line = sys.stdin.readline().strip()
+        log("INPUT: %s" % self.line)
         return self.line
 
     def read_mark(self):
@@ -186,18 +201,17 @@ class HGRemote(object):
     def do_capabilities(self, parser):
         '''Process the capabilities request when incoming from git-remote.
         '''
-        print "import"
-        print "export"
-        print "refspec refs/heads/branches/*:%s/branches/*" % self.prefix
-        print "refspec refs/heads/*:%s/bookmarks/*" % self.prefix
-        print "refspec refs/tags/*:%s/tags/*" % self.prefix
+        output("import")
+        output("export")
+        output("refspec refs/heads/branches/*:%s/branches/*" % self.prefix)
+        output("refspec refs/heads/*:%s/bookmarks/*" % self.prefix)
+        output("refspec refs/tags/*:%s/tags/*" % self.prefix)
 
         if self.marks_git_path.exists():
-            print "*import-marks %s" % self.marks_git_path
-        print "*export-marks %s" % self.marks_git_path
+            output("*import-marks %s" % self.marks_git_path)
+        output("*export-marks %s" % self.marks_git_path)
 
-        print
-
+        output()
     def do_list(self, parser):
         '''List all references in the mercurial repository. This includes
         the current head, all branches, and bookmarks.'''
@@ -230,23 +244,22 @@ class HGRemote(object):
                 self.branches[branch] = heads  # FIXME: will it fail for multiple anonymous branches on a named branch?
 
         # list the head reference
-        print "@refs/heads/%s HEAD" % self.headnode[0]
+        output("@refs/heads/%s HEAD" % self.headnode[0])
 
         # list the named branch references
         for branch in self.branches:
-            print "? refs/heads/branches/%s" % branch
+            output("? refs/heads/branches/%s" % branch)
 
         # list the bookmark references
         for bookmark in self.bookmarks:
-            print "? refs/heads/%s" % bookmark
+            output("? refs/heads/%s" % bookmark)
 
         # list the tags
         for tag, node in self.repo.tagslist():
             if tag != "tip":
-                print "? refs/tags/%s" % tag
+                output("? refs/tags/%s" % tag)
 
-        print
-
+        output()
     def do_import(self, parser):
         HGImporter(self, parser).process()
 
@@ -262,10 +275,10 @@ class HGImporter(object):
         self.parser = parser
 
     def process(self):
-        print "feature done"
+        output("feature done")
         if self.hgremote.marks_git_path.exists():
-            print "feature import-marks=%s" % self.hgremote.marks_git_path
-        print "feature export-marks=%s" % self.hgremote.marks_git_path
+            output("feature import-marks=%s" % self.hgremote.marks_git_path)
+        output("feature export-marks=%s" % self.hgremote.marks_git_path)
         sys.stdout.flush()
 
         tmp = encoding.encoding
@@ -293,7 +306,7 @@ class HGImporter(object):
             self.parser.read_line()
 
         encoding.encoding = tmp
-        print 'done'
+        output('done')
 
     def do_branch(self, branch):
         try:
@@ -315,11 +328,17 @@ class HGImporter(object):
         kind_name = "%s/%s" % (kind, name)
         tip = self.marks.tips.get(kind_name, 0)
 
+        log(tip)
+        log(head.rev())
+
         if tip and tip == head.rev():
             return  # shortcut for no changes
 
         revs = [r for r in xrange(tip, head.rev() + 1
             ) if not self.marks.is_marked(r)]
+        rev = 0
+        count = 0
+        log(revs)
 
         for rev in revs:
             (manifest, user, (time, tz), files, description, extra
@@ -343,14 +362,44 @@ class HGImporter(object):
                 modified, removed = self.repo[rev].manifest().keys(), []
 
             if not parents and rev:
-                print 'reset %s/%s' % (self.prefix, kind_name)
+                output('reset %s/%s' % (self.prefix, kind_name))
 
-            print "commit %s/%s" % (self.prefix, kind_name)
-            print "mark :%d" % (self.marks.get_mark(rev))
-            print "author %s" % (author)
-            print "committer %s" % (committer)
-            print "data %d" % (len(description))
-            print description
+            output("commit %s/%s" % (self.prefix, kind_name))
+            output("mark :%d" % (self.marks.get_mark(rev)))
+            output("author %s" % (author))
+            output("committer %s" % (committer))
+            output("data %d" % (len(description)))
+            output(description)
+
+            if parents:
+                output("from :%s" % (self.marks.revision_to_mark(parents[0])))
+                if len(parents) > 1:
+                    output("merge :%s" % (self.marks.revision_to_mark(parents[1])))
+
+            for file in modified:
+                filecontext = self.repo[rev].filectx(file)
+                data = filecontext.data()
+                output("M %s inline %s" % (
+                    gitmode(filecontext.flags()), filecontext.path()))
+                output("data %d" % len(data))
+                output(data)
+            for file in removed:
+                output("D %s" % (file))
+            output()
+
+            count += 1
+            if (count % 100 == 0):
+                output("progress revision %d '%s' (%d/%d)" % (
+                    rev, name, count, len(revs)))
+                output("#############################################################")
+
+        log("BREAK AT %s" % rev)
+        # make sure the ref is updated
+        output("reset %s/%s" % (self.prefix, kind_name))
+        output("from :%u" % self.marks.revision_to_mark(rev))
+        output()
+
+        self.marks.tips[kind_name] = rev
 
 
 def main():
