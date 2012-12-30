@@ -282,8 +282,10 @@ class HGImporter(object):
             elif ref.startswith('refs/heads/branches/'):
                 self.do_branch(ref[len('refs/heads/branches/'):])
             elif ref.startswith('refs/heads/'):
-                bmark = ref[len('refs/heads/'):]
-                self.do_bookmark(bmark)  # FIXME: Call process_ref directly
+                bookmark = ref[len('refs/heads/'):]
+                self.process_ref(bookmark,
+                    'bookmarks',
+                    self.hgremote.bookmarks[bookmark])
             elif ref.startswith('refs/tags/'):
                 tag = ref[len('refs/tags/'):]
                 self.do_tag(tag)  # FIXME: Call process_ref directly
