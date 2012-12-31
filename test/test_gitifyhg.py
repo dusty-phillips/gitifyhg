@@ -164,8 +164,8 @@ def test_clone_simple_branch(git_dir, hg_repo):
     sh.hg.commit(message="c")
 
     sh.cd(git_dir)
-    sh.git.clone("gitifyhg::" + hg_repo)
-    git_repo = git_dir.joinpath('hg_base')
+    sh.git.clone("gitifyhg::" + hg_repo, "gitrepo")
+    git_repo = git_dir.joinpath('gitrepo')
     sh.cd(git_repo)
     assert_git_count(2)
     assert_git_messages(['c', 'a'])
