@@ -336,11 +336,12 @@ class HGImporter(object):
         if tip and tip == head.rev():
             return  # shortcut for no changes
 
-        revs = [r for r in xrange(tip, head.rev() + 1
-            ) if not self.marks.is_marked(r)]
-        rev = 0
+        revs = xrange(tip, head.rev() + 1)
         count = 0
+
+        revs = [rev for rev in revs if not self.marks.is_marked(rev)]
         log(revs)
+        log(rev)
 
         for rev in revs:
             (manifest, user, (time, tz), files, description, extra
