@@ -141,7 +141,7 @@ class GitRemoteParser(object):
     def read_mark(self):
         '''The remote protocol contains lines of the format mark: number.
         Return the mark.'''
-        return self.line.partition(':')[-1]
+        return int(self.read_line().partition(':')[-1])
 
     def read_data(self):
         '''Read all data following a data line for the given number of bytes'''
