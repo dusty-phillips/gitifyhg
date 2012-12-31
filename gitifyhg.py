@@ -31,8 +31,8 @@ from mercurial.util import sha1
 from mercurial import hg
 
 
-def log(msg, level="DEBUG", *args):
-    sys.stderr.write('%s: %s\n' % (level, str(msg) % args))
+def log(msg, level="DEBUG"):
+    sys.stderr.write('%s: %s\n' % (level, str(msg)))
 
 
 def die(msg, *args):
