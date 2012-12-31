@@ -158,10 +158,6 @@ class GitRemoteParser(object):
             yield self.line
             self.line = self.read_line()
 
-    def __iter__(self):
-        '''Loop over lines in a single block.'''
-        return self.read_block('')
-
 
 class HGRemote(object):
     def __init__(self, alias, url):
@@ -198,7 +194,7 @@ class HGRemote(object):
         protocol and respond appropriately'''
         parser = GitRemoteParser()
 
-        for line in parser:
+        for line in parser.read_block(''):
             command = line.split()[0]
             if command not in ('capabilities', 'list', 'import', 'export'):
                 die('unhandled command: %s' % line)
