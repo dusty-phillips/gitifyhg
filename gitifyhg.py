@@ -330,9 +330,6 @@ class HGImporter(object):
         kind_name = "%s/%s" % (kind, name)
         tip = self.marks.tips.get(kind_name, 0)
 
-        log(tip)
-        log(head.rev())
-
         if tip and tip == head.rev():
             return  # shortcut for no changes
 
@@ -340,8 +337,6 @@ class HGImporter(object):
         count = 0
 
         revs = [rev for rev in revs if not self.marks.is_marked(rev)]
-        log(revs)
-        log(rev)
 
         for rev in revs:
             (manifest, user, (time, tz), files, description, extra
@@ -397,7 +392,6 @@ class HGImporter(object):
                     rev, name, count, len(revs)))
                 output("#############################################################")
 
-        log("BREAK AT %s" % rev)
         # make sure the ref is updated
         output("reset %s/%s" % (self.prefix, kind_name))
         output("from :%u" % self.marks.revision_to_mark(rev))
