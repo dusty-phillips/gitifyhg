@@ -55,6 +55,18 @@ def git_dir(tmpdir):
     return git_dir
 
 
+@pytest.fixture
+def git_repo(git_dir, hg_repo):
+    '''Fixture that clones the hg repository into the given git dir
+
+    :param git_dir: the directory to clone the git repo into
+    :param hg_repo: the hg_repo fixture
+    '''
+    sh.cd(git_dir)
+    sh.git.clone("gitifyhg::" + hg_repo, '.')
+    return git_dir
+
+
 # HELPERS
 # =======
 def write_to_test_file(message, filename='test_file'):
@@ -199,10 +211,25 @@ def test_clone_merged_branch(git_dir, hg_repo):
     assert_git_count(2)
 
 
+def test_simple_push_from_master(hg_repo, git_repo):
+    sh.cd(git_repo)
+    write_to_test_file("b")
+    sh.git.add("test_file")
+    sh.git.commit(message="b")
+    sh.git.push()
+
+    sh.cd(hg_repo)
+    assert_hg_count(2)
+    sh.hg.update()
+    with hg_repo.joinpath("test_file") as file:
+        assert file.read() == "a\nb"
+
+
 
 
 # Need to test:
-    # cloning named branches
     # cloning named branches with anonymous branches inside
     # cloning bookmarks
-    # cloning to a named repository
+    # cloning bookmarks that aren't at the tip of their branch
+    # cloning empty repo
+    # pushing to empty repo
