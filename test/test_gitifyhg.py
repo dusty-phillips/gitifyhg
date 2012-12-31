@@ -174,6 +174,32 @@ def test_clone_simple_branch(git_dir, hg_repo):
     assert_git_count(2)
 
 
+def test_clone_merged_branch(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    sh.hg.branch("featurebranch")
+    write_to_test_file("b")
+    sh.hg.commit(message="b")
+    sh.hg.update("default")
+    write_to_test_file("c", "c")
+    sh.hg.add('c')
+    sh.hg.commit(message="c")
+    sh.hg.merge('featurebranch')
+    sh.hg.commit(message="merge")
+    write_to_test_file("d")
+    sh.hg.commit(message="d")
+
+    sh.cd(git_dir)
+    sh.git.clone("gitifyhg::" + hg_repo)
+    git_repo = git_dir.joinpath('hg_base')
+    sh.cd(git_repo)
+    assert_git_count(5)
+    assert_git_messages(['d', 'merge', 'c', 'b', 'a'])
+    sh.git.checkout("origin/branches/featurebranch")
+    assert_git_messages(['b', 'a'])
+    assert_git_count(2)
+
+
+
 
 # Need to test:
     # cloning named branches
