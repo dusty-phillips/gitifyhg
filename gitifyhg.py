@@ -117,12 +117,7 @@ class HGMarks(object):
 class GitRemoteParser(object):
     '''Parser for stdin that processes the git-remote protocol.'''
 
-    def __init__(self, hgrepo):
-        '''
-        :param hgrepo: The mercurial repository object that contains the actual
-            upstream remote that the parser needs to import and export from/to.
-        '''
-        self.hgrepo = hgrepo
+    def __init__(self):
         self.read_line()
 
     def read_line(self):
@@ -189,7 +184,7 @@ class HGRemote(object):
     def process(self):
         '''Process the messages coming in on stdin using the git-remote
         protocol and respond appropriately'''
-        parser = GitRemoteParser(self.repo)
+        parser = GitRemoteParser()
 
         for line in parser:
             command = line.split()[0]
