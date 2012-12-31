@@ -118,13 +118,25 @@ class GitRemoteParser(object):
     '''Parser for stdin that processes the git-remote protocol.'''
 
     def __init__(self):
+        self.peek_stack = []
         self.read_line()
 
     def read_line(self):
         '''Read a line from the standard input.'''
-        self.line = sys.stdin.readline().strip()
+        if self.peek_stack:
+            self.line = self.peek_stack.pop(0)
+        else:
+            self.line = sys.stdin.readline().strip()
         log("INPUT: %s" % self.line)
         return self.line
+
+    def peek(self):
+        '''Look at the next line and store it so that it can still be returned
+        by read_line.'''
+        line = sys.stdin.readline().strip()
+        log("PEEK: %s" % line)
+        self.peek_stack.append(line)
+        return line
 
     def read_mark(self):
         '''The remote protocol contains lines of the format mark: number.
