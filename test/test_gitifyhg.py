@@ -152,6 +152,29 @@ def test_clone_linear_branch(git_dir, hg_repo):
 """
 
 
+def test_clone_simple_branch(git_dir, hg_repo):
+    '''Two divergent branches'''
+    sh.cd(hg_repo)
+    sh.hg.branch("featurebranch")
+    write_to_test_file("b")
+    sh.hg.commit(message="b")
+    sh.hg.update("default")
+    write_to_test_file("c", "c")
+    sh.hg.add('c')
+    sh.hg.commit(message="c")
+
+    sh.cd(git_dir)
+    sh.git.clone("gitifyhg::" + hg_repo)
+    git_repo = git_dir.joinpath('hg_base')
+    sh.cd(git_repo)
+    assert_git_count(2)
+    assert_git_messages(['c', 'a'])
+    sh.git.checkout("origin/branches/featurebranch")
+    assert_git_messages(['b', 'a'])
+    assert_git_count(2)
+
+
+
 # Need to test:
     # cloning named branches
     # cloning named branches with anonymous branches inside
