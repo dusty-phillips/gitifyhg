@@ -350,7 +350,7 @@ class HGImporter(object):
             tip = None
 
         if len(heads) > 1:
-            log("Branch '%s' has more than one head, consider merging", "WARNING", branch)
+            log("Branch '%s' has more than one head, consider merging" % branch, "WARNING")
             tip = self.repo.branchtip(branch)
         else:
             tip = heads[0]

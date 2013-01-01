@@ -211,6 +211,25 @@ def test_clone_merged_branch(git_dir, hg_repo):
     assert_git_count(2)
 
 
+@pytest.mark.xfail
+def test_clone_anonymous_branch(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    write_to_test_file("b")
+    sh.hg.commit(message="b")
+    sh.hg.update(rev=0)
+    write_to_test_file("c")
+    sh.hg.commit(message="c")
+
+    sh.cd(git_dir)
+    result = sh.git.clone("gitifyhg::" + hg_repo)
+    assert "more than one head" in result.stderr
+    # TODO: 'more than one head' is the correct response for now, but a more
+    # appropriate result would be to clone the extra commits, perhaps naming
+    # the branch anonymous/<sha> or something. assert False to mark an expected
+    # failure. (Using test cases as todos is a good thing.)
+    assert False
+
+
 def test_simple_push_from_master(hg_repo, git_repo):
     sh.cd(git_repo)
     write_to_test_file("b")
@@ -228,9 +247,14 @@ def test_simple_push_from_master(hg_repo, git_repo):
 
 
 # Need to test:
+    # cloning anonymous branches
     # cloning named branches with anonymous branches inside
     # cloning bookmarks
     # cloning bookmarks that aren't at the tip of their branch
     # cloning tags
     # cloning empty repo
     # pushing to empty repo
+    # pushing tags
+    # pushing branches to named branches
+    # pushing branches to bookmarks
+    # pushing new branch
