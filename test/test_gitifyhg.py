@@ -55,18 +55,6 @@ def git_dir(tmpdir):
     return git_dir
 
 
-@pytest.fixture
-def git_repo(git_dir, hg_repo):
-    '''Fixture that clones the hg repository into the given git dir
-
-    :param git_dir: the directory to clone the git repo into
-    :param hg_repo: the hg_repo fixture
-    '''
-    sh.cd(git_dir)
-    sh.git.clone("gitifyhg::" + hg_repo, '.')
-    return git_dir
-
-
 # HELPERS
 # =======
 def write_to_test_file(message, filename='test_file'):
@@ -80,6 +68,17 @@ def write_to_test_file(message, filename='test_file'):
         will be updated.'''
     with p(filename).open('a') as file:
         file.write(message)
+
+
+def clone_repo(git_dir, hg_repo):
+    '''Simple helper for the common task of cloning the given mercurial
+    repository into the git directory. Changes the current working directory
+    into the repository and returns the full path to the repository.'''
+    sh.cd(git_dir)
+    sh.git.clone("gitifyhg::" + hg_repo)
+    git_repo = git_dir.joinpath('hg_base')
+    sh.cd(git_repo)
+    return git_repo
 
 
 def assert_git_count(count):
@@ -124,9 +123,7 @@ def test_basic_clone(git_dir, hg_repo):
     write_to_test_file("b")
     sh.hg.commit(message="b")
 
-    sh.cd(git_dir)
-    sh.git.clone("gitifyhg::" + hg_repo)
-    git_repo = git_dir.joinpath('hg_base')
+    git_repo = clone_repo(git_dir, hg_repo)
 
     assert git_repo.exists()
     assert git_repo.joinpath('test_file').exists()
@@ -145,15 +142,13 @@ def test_clone_linear_branch(git_dir, hg_repo):
     write_to_test_file("b")
     sh.hg.commit(message="b")
 
-    sh.cd(git_dir)
-    sh.git.clone("gitifyhg::" + hg_repo)
-    git_repo = git_dir.joinpath('hg_base')
+    git_repo = clone_repo(git_dir, hg_repo)
+
     assert git_repo.exists()
     assert git_repo.joinpath('test_file').exists()
     with git_repo.joinpath('test_file').open() as file:
         assert file.read() == "a\nb"
 
-    sh.cd(git_repo)
     assert_git_count(2)
     assert_git_messages(['b', 'a'])
     print sh.git.branch(remote=True)
@@ -175,10 +170,8 @@ def test_clone_simple_branch(git_dir, hg_repo):
     sh.hg.add('c')
     sh.hg.commit(message="c")
 
-    sh.cd(git_dir)
-    sh.git.clone("gitifyhg::" + hg_repo, "gitrepo")
-    git_repo = git_dir.joinpath('gitrepo')
-    sh.cd(git_repo)
+    clone_repo(git_dir, hg_repo)
+
     assert_git_count(2)
     assert_git_messages(['c', 'a'])
     sh.git.checkout("origin/branches/featurebranch")
@@ -200,10 +193,8 @@ def test_clone_merged_branch(git_dir, hg_repo):
     write_to_test_file("d")
     sh.hg.commit(message="d")
 
-    sh.cd(git_dir)
-    sh.git.clone("gitifyhg::" + hg_repo)
-    git_repo = git_dir.joinpath('hg_base')
-    sh.cd(git_repo)
+    clone_repo(git_dir, hg_repo)
+
     assert_git_count(5)
     assert_git_messages(['d', 'merge', 'c', 'b', 'a'])
     sh.git.checkout("origin/branches/featurebranch")
@@ -268,9 +259,7 @@ def test_clone_bookmark(hg_repo, git_dir):
     write_to_test_file("b")
     sh.hg.commit(message="b")
 
-    sh.cd(git_dir)
-    sh.git.clone("gitifyhg::" + hg_repo)
-    sh.cd(git_dir.joinpath('hg_base'))
+    clone_repo(git_dir, hg_repo)
 
     result = sh.git.branch(remote=True)
     print result.stdout
@@ -297,9 +286,7 @@ def test_clone_divergent_bookmarks(hg_repo, git_dir):
     write_to_test_file("d")
     sh.hg.commit(message="d")
 
-    sh.cd(git_dir)
-    sh.git.clone("gitifyhg::" + hg_repo)
-    sh.cd(git_dir.joinpath('hg_base'))
+    clone_repo(git_dir, hg_repo)
 
     result = sh.git.branch(remote=True)
     print result.stdout
@@ -327,9 +314,7 @@ def test_clone_bookmark_not_at_tip(git_dir, hg_repo):
     sh.hg.bookmark("bookmark_one")
     sh.hg.update('tip')
 
-    sh.cd(git_dir)
-    sh.git.clone("gitifyhg::" + hg_repo)
-    sh.cd(git_dir.joinpath('hg_base'))
+    clone_repo(git_dir, hg_repo)
 
     result = sh.git.branch(remote=True)
     print result.stdout
@@ -348,15 +333,8 @@ def test_clone_bookmark_not_at_tip(git_dir, hg_repo):
     assert_git_messages(['b', 'a'])
 
 
-
-
-
-
-
-
-
-def test_simple_push_from_master(hg_repo, git_repo):
-    sh.cd(git_repo)
+def test_simple_push_from_master(hg_repo, git_dir):
+    clone_repo(git_dir, hg_repo)
     write_to_test_file("b")
     sh.git.add("test_file")
     sh.git.commit(message="b")
