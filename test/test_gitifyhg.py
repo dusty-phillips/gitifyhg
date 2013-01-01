@@ -405,12 +405,32 @@ def test_push_to_named(git_dir, hg_repo):
     sh.cd(hg_repo)
     assert_hg_count(3)
 
+    sh.hg.update('tip')
+
     assert sh.hg.branch().stdout.strip() == "branch_one"
+
+
+@pytest.mark.xfail
+def test_push_new_named_branch(git_dir, hg_repo):
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+    sh.git.checkout("-b", "branches/branch_one")
+    make_git_commit("b")
+    sh.git.push('--set-upstream', 'origin', 'branches/branch_one')
+
+    sh.cd(hg_repo)
+    assert_hg_count(2)
+    sh.hg.update('tip')
+
+    assert sh.hg.branch().stdout.strip() == "branch_one"
+
+    # TODO: Need to determine that the upstream branch did not exist and pass
+    # --new-branch to the push command
 
 
 
 
 # Need to test:
     # pushing tags
-    # pushing new branch
+    # pushing branches to bookmarks
     # pulling
