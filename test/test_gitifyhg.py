@@ -230,6 +230,57 @@ def test_clone_anonymous_branch(git_dir, hg_repo):
     assert False
 
 
+@pytest.mark.xfail
+def test_clone_named_and_anonymous_branch(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    sh.hg.branch("featurebranch")
+    write_to_test_file("b")
+    sh.hg.commit(message="b")
+    write_to_test_file("c")
+    sh.hg.commit(message="c")
+    sh.hg.update(rev=1)
+    write_to_test_file("d")
+    sh.hg.commit(message="d")
+    sh.hg.update('default')
+    write_to_test_file("e")
+    sh.hg.commit(message="e")
+
+    sh.cd(git_dir)
+    result = sh.git.clone("gitifyhg::" + hg_repo)
+    assert "more than one head" in result.stderr
+
+    sh.cd(git_dir.joinpath('hg_base'))
+    result = sh.git.branch(remote=True)
+    print result.stdout
+    assert result.stdout == """  origin/HEAD -> origin/master
+  origin/branches/default
+  origin/branches/featurebranch
+  origin/master
+"""
+
+    # TODO: same more than one head issue as in test_clone_anonymous_branch
+    assert False
+
+
+def test_clone_bookmark(hg_repo, git_dir):
+    sh.cd(hg_repo)
+    sh.hg.bookmark("featurebookmark")
+    write_to_test_file("b")
+    sh.hg.commit(message="b")
+
+    sh.cd(git_dir)
+    sh.git.clone("gitifyhg::" + hg_repo)
+    sh.cd(git_dir.joinpath('hg_base'))
+
+    result = sh.git.branch(remote=True)
+    print result.stdout
+    assert result.stdout == """  origin/HEAD -> origin/master
+  origin/branches/default
+  origin/featurebookmark
+  origin/master
+"""
+
+
 def test_simple_push_from_master(hg_repo, git_repo):
     sh.cd(git_repo)
     write_to_test_file("b")
@@ -247,8 +298,6 @@ def test_simple_push_from_master(hg_repo, git_repo):
 
 
 # Need to test:
-    # cloning anonymous branches
-    # cloning named branches with anonymous branches inside
     # cloning bookmarks
     # cloning bookmarks that aren't at the tip of their branch
     # cloning tags
