@@ -74,10 +74,8 @@ def make_hg_commit(message, filename='test_file'):
     '''Assuming we are in a mercurial repository, write the message to the
     filename and commit it.'''
     add = not p(filename).exists()
-    print add, filename
     write_to_test_file(message, filename)
     if add:
-        print "adding", filename
         sh.hg.add(filename)
     sh.hg.commit(message=message)
 
