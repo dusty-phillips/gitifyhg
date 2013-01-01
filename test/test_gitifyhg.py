@@ -70,6 +70,26 @@ def write_to_test_file(message, filename='test_file'):
         file.write(message)
 
 
+def make_hg_commit(message, filename='test_file'):
+    '''Assuming we are in a mercurial repository, write the message to the
+    filename and commit it.'''
+    add = not p(filename).exists()
+    print add, filename
+    write_to_test_file(message, filename)
+    if add:
+        print "adding", filename
+        sh.hg.add(filename)
+    sh.hg.commit(message=message)
+
+
+def make_git_commit(message, filename='test_file'):
+    '''Assuming we are in a git repository, write the message to the
+    filename and commit it.'''
+    write_to_test_file(message, filename)
+    sh.git.add(filename)
+    sh.git.commit(message=message)
+
+
 def clone_repo(git_dir, hg_repo):
     '''Simple helper for the common task of cloning the given mercurial
     repository into the git directory. Changes the current working directory
@@ -115,8 +135,7 @@ def test_basic_clone(git_dir, hg_repo):
     and a couple commits contains the appropriate structure.'''
 
     sh.cd(hg_repo)
-    write_to_test_file("b")
-    sh.hg.commit(message="b")
+    make_hg_commit("b")
 
     git_repo = clone_repo(git_dir, hg_repo)
 
@@ -134,8 +153,7 @@ def test_clone_linear_branch(git_dir, hg_repo):
     '''One branch after the other, no multiple parents.'''
     sh.cd(hg_repo)
     sh.hg.branch("featurebranch")
-    write_to_test_file("b")
-    sh.hg.commit(message="b")
+    make_hg_commit("b")
 
     git_repo = clone_repo(git_dir, hg_repo)
 
@@ -158,12 +176,9 @@ def test_clone_simple_branch(git_dir, hg_repo):
     '''Two divergent branches'''
     sh.cd(hg_repo)
     sh.hg.branch("featurebranch")
-    write_to_test_file("b")
-    sh.hg.commit(message="b")
+    make_hg_commit("b")
     sh.hg.update("default")
-    write_to_test_file("c", "c")
-    sh.hg.add('c')
-    sh.hg.commit(message="c")
+    make_hg_commit("c", "c")
 
     clone_repo(git_dir, hg_repo)
 
@@ -177,16 +192,12 @@ def test_clone_simple_branch(git_dir, hg_repo):
 def test_clone_merged_branch(git_dir, hg_repo):
     sh.cd(hg_repo)
     sh.hg.branch("featurebranch")
-    write_to_test_file("b")
-    sh.hg.commit(message="b")
+    make_hg_commit("b")
     sh.hg.update("default")
-    write_to_test_file("c", "c")
-    sh.hg.add('c')
-    sh.hg.commit(message="c")
+    make_hg_commit("c", "c")
     sh.hg.merge('featurebranch')
     sh.hg.commit(message="merge")
-    write_to_test_file("d")
-    sh.hg.commit(message="d")
+    make_hg_commit("d")
 
     clone_repo(git_dir, hg_repo)
 
@@ -200,11 +211,9 @@ def test_clone_merged_branch(git_dir, hg_repo):
 @pytest.mark.xfail
 def test_clone_anonymous_branch(git_dir, hg_repo):
     sh.cd(hg_repo)
-    write_to_test_file("b")
-    sh.hg.commit(message="b")
+    make_hg_commit("b")
     sh.hg.update(rev=0)
-    write_to_test_file("c")
-    sh.hg.commit(message="c")
+    make_hg_commit("c")
 
     sh.cd(git_dir)
     result = sh.git.clone("gitifyhg::" + hg_repo)
@@ -220,16 +229,12 @@ def test_clone_anonymous_branch(git_dir, hg_repo):
 def test_clone_named_and_anonymous_branch(git_dir, hg_repo):
     sh.cd(hg_repo)
     sh.hg.branch("featurebranch")
-    write_to_test_file("b")
-    sh.hg.commit(message="b")
-    write_to_test_file("c")
-    sh.hg.commit(message="c")
+    make_hg_commit("b")
+    make_hg_commit("c")
     sh.hg.update(rev=1)
-    write_to_test_file("d")
-    sh.hg.commit(message="d")
+    make_hg_commit("d")
     sh.hg.update('default')
-    write_to_test_file("e")
-    sh.hg.commit(message="e")
+    make_hg_commit("e")
 
     sh.cd(git_dir)
     result = sh.git.clone("gitifyhg::" + hg_repo)
@@ -251,8 +256,7 @@ def test_clone_named_and_anonymous_branch(git_dir, hg_repo):
 def test_clone_bookmark(hg_repo, git_dir):
     sh.cd(hg_repo)
     sh.hg.bookmark("featurebookmark")
-    write_to_test_file("b")
-    sh.hg.commit(message="b")
+    make_hg_commit("b")
 
     clone_repo(git_dir, hg_repo)
 
@@ -272,14 +276,11 @@ def test_clone_bookmark(hg_repo, git_dir):
 def test_clone_divergent_bookmarks(hg_repo, git_dir):
     sh.cd(hg_repo)
     sh.hg.bookmark("bookmark_one")
-    write_to_test_file("b")
-    sh.hg.commit(message="b")
+    make_hg_commit("b")
     sh.hg.update(rev=0)
-    write_to_test_file("c")
-    sh.hg.commit(message="c")
+    make_hg_commit("c")
     sh.hg.bookmark("bookmark_two")
-    write_to_test_file("d")
-    sh.hg.commit(message="d")
+    make_hg_commit("d")
 
     clone_repo(git_dir, hg_repo)
 
@@ -303,8 +304,7 @@ def test_clone_divergent_bookmarks(hg_repo, git_dir):
 
 def test_clone_bookmark_not_at_tip(git_dir, hg_repo):
     sh.cd(hg_repo)
-    write_to_test_file("b")
-    sh.hg.commit(message="b")
+    make_hg_commit("b")
     sh.hg.update(rev=0)
     sh.hg.bookmark("bookmark_one")
     sh.hg.update('tip')
@@ -330,11 +330,9 @@ def test_clone_bookmark_not_at_tip(git_dir, hg_repo):
 
 def test_clone_tags(git_dir, hg_repo):
     sh.cd(hg_repo)
-    write_to_test_file("b")
-    sh.hg.commit(message="b")
+    make_hg_commit("b")
     sh.hg.tag("THIS_IS_TAGGED")
-    write_to_test_file("c")
-    sh.hg.commit(message="c")
+    make_hg_commit("c")
 
     clone_repo(git_dir, hg_repo)
 
@@ -346,11 +344,9 @@ def test_clone_tags(git_dir, hg_repo):
 @pytest.mark.xfail
 def test_clone_tag_with_spaces(git_dir, hg_repo):
     sh.cd(hg_repo)
-    write_to_test_file("b")
-    sh.hg.commit(message="b")
+    make_hg_commit("b")
     sh.hg.tag("THIS IS TAGGED")
-    write_to_test_file("c")
-    sh.hg.commit(message="c")
+    make_hg_commit("c")
 
     # TODO: hg allows tags with spaces, but git thinks that is an attrocious
     # thing to do. We need to either escape spaces in the tag in some way
@@ -364,9 +360,7 @@ def test_clone_tag_with_spaces(git_dir, hg_repo):
 
 def test_simple_push_from_master(hg_repo, git_dir):
     clone_repo(git_dir, hg_repo)
-    write_to_test_file("b")
-    sh.git.add("test_file")
-    sh.git.commit(message="b")
+    make_git_commit("b")
     sh.git.push()
 
     sh.cd(hg_repo)
@@ -388,9 +382,7 @@ def test_empty_repo(tmpdir):
 
     sh.cd("git_clone")
     assert "Initial commit" in sh.git.status().stdout
-    write_to_test_file("a")
-    sh.git.add("test_file")
-    sh.git.commit(message="a")
+    make_git_commit("a")
 
     sh.git.push()
 
@@ -407,3 +399,4 @@ def test_empty_repo(tmpdir):
     # pushing branches to named branches
     # pushing branches to bookmarks
     # pushing new branch
+    # pulling
