@@ -362,21 +362,6 @@ def test_clone_tag_with_spaces(git_dir, hg_repo):
     assert result.stdout == "THIS_IS_TAGGED\n"
 
 
-def test_clone_empty(tmpdir):
-    tmpdir = p(tmpdir).abspath()
-    hg_base = tmpdir.joinpath('hg_base')  # an hg repo to clone from
-    hg_base.mkdir()
-    sh.cd(hg_base)
-    sh.hg.init()
-
-    sh.cd(tmpdir)
-    sh.git.clone("gitifyhg::" + hg_base, "git_clone")
-
-    sh.cd("git_clone")
-    assert_git_count(0)
-
-
-
 def test_simple_push_from_master(hg_repo, git_dir):
     clone_repo(git_dir, hg_repo)
     write_to_test_file("b")
@@ -391,8 +376,32 @@ def test_simple_push_from_master(hg_repo, git_dir):
         assert file.read() == "a\nb"
 
 
+def test_empty_repo(tmpdir):
+    tmpdir = p(tmpdir).abspath()
+    hg_base = tmpdir.joinpath('hg_base')
+    hg_base.mkdir()
+    sh.cd(hg_base)
+    sh.hg.init()
+
+    sh.cd(tmpdir)
+    sh.git.clone("gitifyhg::" + hg_base, "git_clone")
+
+    sh.cd("git_clone")
+    assert "Initial commit" in sh.git.status().stdout
+    write_to_test_file("a")
+    sh.git.add("test_file")
+    sh.git.commit(message="a")
+
+    sh.git.push()
+
+    sh.cd(hg_base)
+    assert_hg_count(1)
+    sh.hg.update()
+    with open(hg_base.joinpath('test_file')) as file:
+        assert file.read() == "a"
+
+
 # Need to test:
-    # cloning empty repo
     # pushing to empty repo
     # pushing tags
     # pushing branches to named branches
