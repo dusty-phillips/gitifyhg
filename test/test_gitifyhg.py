@@ -279,6 +279,10 @@ def test_clone_bookmark(hg_repo, git_dir):
   origin/featurebookmark
   origin/master
 """
+    sh.git.checkout('origin/featurebookmark')
+    assert_git_count(2)
+    sh.git.checkout('master')
+    assert_git_count(2)
 
 
 def test_simple_push_from_master(hg_repo, git_repo):
