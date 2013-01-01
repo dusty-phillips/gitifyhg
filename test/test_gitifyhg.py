@@ -333,6 +333,40 @@ def test_clone_bookmark_not_at_tip(git_dir, hg_repo):
     assert_git_messages(['b', 'a'])
 
 
+def test_clone_tags(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    write_to_test_file("b")
+    sh.hg.commit(message="b")
+    sh.hg.tag("THIS_IS_TAGGED")
+    write_to_test_file("c")
+    sh.hg.commit(message="c")
+
+    clone_repo(git_dir, hg_repo)
+
+    result = sh.git.tag()
+    print result.stdout
+    assert result.stdout == "THIS_IS_TAGGED\n"
+
+
+@pytest.mark.xfail
+def test_clone_tag_with_spaces(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    write_to_test_file("b")
+    sh.hg.commit(message="b")
+    sh.hg.tag("THIS IS TAGGED")
+    write_to_test_file("c")
+    sh.hg.commit(message="c")
+
+    # TODO: hg allows tags with spaces, but git thinks that is an attrocious
+    # thing to do. We need to either escape spaces in the tag in some way
+    # or discard the tag with an appropriate warning message, not fail on the
+    # clone.
+    clone_repo(git_dir, hg_repo)
+
+    result = sh.git.tag()
+    assert result.stdout == "THIS_IS_TAGGED\n"
+
+
 def test_simple_push_from_master(hg_repo, git_dir):
     clone_repo(git_dir, hg_repo)
     write_to_test_file("b")
@@ -348,9 +382,6 @@ def test_simple_push_from_master(hg_repo, git_dir):
 
 
 # Need to test:
-    # cloning bookmarks
-    # cloning bookmarks that aren't at the tip of their branch
-    # cloning tags
     # cloning empty repo
     # pushing to empty repo
     # pushing tags
