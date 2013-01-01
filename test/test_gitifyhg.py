@@ -285,7 +285,7 @@ def test_clone_bookmark(hg_repo, git_dir):
     assert_git_count(2)
 
 
-def test_divergent_bookmarks(hg_repo, git_dir):
+def test_clone_divergent_bookmarks(hg_repo, git_dir):
     sh.cd(hg_repo)
     sh.hg.bookmark("bookmark_one")
     write_to_test_file("b")
@@ -317,6 +317,38 @@ def test_divergent_bookmarks(hg_repo, git_dir):
     sh.git.checkout("origin/bookmark_two")
     assert_git_count(3)
     assert_git_messages(['d', 'c', 'a'])
+
+
+def test_clone_bookmark_not_at_tip(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    write_to_test_file("b")
+    sh.hg.commit(message="b")
+    sh.hg.update(rev=0)
+    sh.hg.bookmark("bookmark_one")
+    sh.hg.update('tip')
+
+    sh.cd(git_dir)
+    sh.git.clone("gitifyhg::" + hg_repo)
+    sh.cd(git_dir.joinpath('hg_base'))
+
+    result = sh.git.branch(remote=True)
+    print result.stdout
+    assert result.stdout == """  origin/HEAD -> origin/master
+  origin/bookmark_one
+  origin/branches/default
+  origin/master
+"""
+
+    sh.git.checkout("origin/bookmark_one")
+    assert_git_count(1)
+    assert_git_messages(['a'])
+
+    sh.git.checkout("master")
+    assert_git_count(2)
+    assert_git_messages(['b', 'a'])
+
+
+
 
 
 
