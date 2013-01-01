@@ -102,11 +102,6 @@ def assert_git_messages(expected_lines):
     assert actual_lines == expected_lines
 
 
-def assert_git_branch(branch_name):
-    '''Assert that the git repo is on the named branch'''
-    assert '* {0}'.format(branch_name) in sh.git.branch().stdout.decode('UTF-8')
-
-
 def assert_hg_count(count):
     '''Assuming you are in an hg repository, assert that ``count`` commits
     have been made to that repo.'''
