@@ -367,6 +367,21 @@ def test_clone_tag_with_spaces(git_dir, hg_repo):
     assert result.stdout == "THIS_IS_TAGGED\n"
 
 
+def test_clone_empty(tmpdir):
+    tmpdir = p(tmpdir).abspath()
+    hg_base = tmpdir.joinpath('hg_base')  # an hg repo to clone from
+    hg_base.mkdir()
+    sh.cd(hg_base)
+    sh.hg.init()
+
+    sh.cd(tmpdir)
+    sh.git.clone("gitifyhg::" + hg_base, "git_clone")
+
+    sh.cd("git_clone")
+    assert_git_count(0)
+
+
+
 def test_simple_push_from_master(hg_repo, git_dir):
     clone_repo(git_dir, hg_repo)
     write_to_test_file("b")

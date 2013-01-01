@@ -258,6 +258,7 @@ class HGRemote(object):
             head = current_branch
             node = self.repo['.'] or self.repo['tip']
             if not node:
+                output()
                 return
             head = head if head != 'default' else 'master'
             self.bookmarks[head] = node
