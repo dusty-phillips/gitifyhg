@@ -221,7 +221,7 @@ def test_simple_push_from_master(hg_repo, git_repo):
     sh.cd(hg_repo)
     assert_hg_count(2)
     sh.hg.update()
-    with hg_repo.joinpath("test_file") as file:
+    with hg_repo.joinpath("test_file").open() as file:
         assert file.read() == "a\nb"
 
 
@@ -231,5 +231,6 @@ def test_simple_push_from_master(hg_repo, git_repo):
     # cloning named branches with anonymous branches inside
     # cloning bookmarks
     # cloning bookmarks that aren't at the tip of their branch
+    # cloning tags
     # cloning empty repo
     # pushing to empty repo

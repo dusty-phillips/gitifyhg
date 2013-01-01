@@ -22,11 +22,13 @@
 import sys
 import os
 import json
+import re
 from path import path as p
 
 from mercurial.ui import ui
+from mercurial.context import memctx, memfilectx
 from mercurial import encoding
-from mercurial.bookmarks import listbookmarks, readcurrent
+from mercurial.bookmarks import listbookmarks, readcurrent, pushbookmark
 from mercurial.util import sha1
 from mercurial import hg
 
@@ -58,6 +60,11 @@ def gitmode(flags):
         return '100644'
 
 
+def hgmode(mode):
+    modes = {'0100755': 'x', '0120000': 'l'}
+    return modes.get(mode, '')
+
+
 class HGMarks(object):
     '''Maps integer marks to specific string mercurial revision identifiers.'''
 
@@ -77,7 +84,7 @@ class HGMarks(object):
             self.revisions_to_marks = loaded['revisions_to_marks']
             self.last_mark = loaded['last-mark']
             self.marks_to_revisions = {int(v): k for k, v in
-                    self.marks_to_revisions.iteritems()}
+                    self.revisions_to_marks.iteritems()}
         else:
             self.tips = {}
             self.revisions_to_marks = {}
@@ -94,8 +101,8 @@ class HGMarks(object):
             file)
 
     def mark_to_revision(self, mark):
-        '''Returns an integer'''
-        return self.marks_to_revisions[mark]
+        # not sure making this an int is a good thing...
+        return int(self.marks_to_revisions[mark])
 
     def revision_to_mark(self, revision):
         return self.revisions_to_marks[str(revision)]
@@ -125,16 +132,16 @@ class GitRemoteParser(object):
         '''Read a line from the standard input.'''
         if self.peek_stack:
             self.line = self.peek_stack.pop(0)
+            log("INPUT (peek): %s" % self.line)
         else:
             self.line = sys.stdin.readline().strip()
-        log("INPUT: %s" % self.line)
+            log("INPUT: %s" % self.line)
         return self.line
 
     def peek(self):
         '''Look at the next line and store it so that it can still be returned
         by read_line.'''
         line = sys.stdin.readline().strip()
-        log("PEEK: %s" % line)
         self.peek_stack.append(line)
         return line
 
@@ -145,10 +152,26 @@ class GitRemoteParser(object):
 
     def read_data(self):
         '''Read all data following a data line for the given number of bytes'''
+        self.read_line()
         if not self.line.startswith('data'):
             return None
-        size = int(self.linepartition(':')[-1])
+        size = int(self.line.partition(' ')[-1])
         return sys.stdin.read(size)
+
+    def read_author(self):
+        '''Read and parse an author string. Return a tuple of
+        (user string, date, git_tz).'''
+        self.read_line()
+        AUTHOR_RE = re.compile('^\w+ (?:(.+)? ?<.*>) (\d+) ([+-]\d+)')
+        match = AUTHOR_RE.match(self.line)
+        if not match:
+            return None
+
+        user, date, tz = match.groups()
+
+        date = int(date)
+        tz = -((int(tz) / 100) * 3600) + ((int(tz) % 100) * 60)
+        return (user, date, tz)
 
     def read_block(self, sentinel):
         '''Yield a block of lines one by one until the sentinel value
@@ -165,6 +188,8 @@ class HGRemote(object):
         self.remotedir = gitdir.joinpath('hg', alias)
         self.marks_git_path = self.remotedir.joinpath('marks-git')
         self.marks = HGMarks(self.remotedir.joinpath('marks-hg'))
+        self.parsed_refs = {}
+        self.blob_marks = {}
         self.branches = {}
         self.bookmarks = {}
 
@@ -200,6 +225,8 @@ class HGRemote(object):
                 die('unhandled command: %s' % line)
             getattr(self, 'do_%s' % command)(parser)
             sys.stdout.flush()
+
+        self.marks.store()
 
     def do_capabilities(self, parser):
         '''Process the capabilities request when incoming from git-remote.
@@ -267,6 +294,9 @@ class HGRemote(object):
 
     def do_import(self, parser):
         HGImporter(self, parser).process()
+
+    def do_export(self, parser):
+        GitExporter(self, parser).process()
 
 
 class HGImporter(object):
@@ -420,6 +450,166 @@ class HGImporter(object):
         removed |= set(previous.keys())
 
         return added | modified, removed
+
+
+class GitExporter(object):
+    '''A processor when the remote receives a git-remote `export` command.
+    Provides export information to push commits from git to the mercurial
+    repository.'''
+
+    NULL_PARENT = '\0' * 20
+
+    def __init__(self, hgremote, parser):
+        self.hgremote = hgremote
+        self.marks = self.hgremote.marks
+        self.parsed_refs = self.hgremote.parsed_refs
+        self.blob_marks = self.hgremote.blob_marks
+        self.repo = self.hgremote.repo
+        self.parser = parser
+
+    def process(self):
+        self.parser.read_line()
+        for line in self.parser.read_block('done'):
+            command = line.split()[0]
+            if command not in ('blob', 'commit', 'reset', 'tag', 'feature'):
+                die('unhandled command: %s' % line)
+            getattr(self, 'do_%s' % command)()
+
+        for ref, node in self.parsed_refs.iteritems():
+            if ref.startswith('refs/heads/branches'):
+                # TODO: figure out how to push a branch
+                pass
+            elif ref.startswith('refs/heads/'):
+                bookmark = ref[len('refs/heads/'):]
+                old = self.hgremote.bookmarks.get(bookmark)
+                old = old.hex() if old else ''
+                if not pushbookmark(self.repo, bookmark, old, node):
+                    continue
+            elif ref.startswith('refs/tags/'):
+                tag = ref[len('refs/tags/'):]
+                parser.repo.tag([tag], node, None, True, None, {})
+            else:
+                # transport-helper/fast-export bugs
+                continue
+            output("ok %s" % ref)
+
+        output()
+
+        self.repo.push(self.hgremote.peer, force=False)
+
+    def do_blob(self):
+        mark = self.parser.read_mark()
+        self.blob_marks[mark] = self.parser.read_data()
+        self.parser.read_line()
+
+    def do_reset(self):
+        ref = self.parser.line.split()[1]
+
+        # If the next line is a commit, allow it to process normally
+        if not self.parser.peek().startswith('from'):
+            return
+
+        from_mark = self.parser.read_mark()
+        from_revision = self.marks.mark_to_revision(from_mark)
+        self.parsed_refs[ref] = self.repo.changelog.node(int(from_revision))
+
+        # skip a line
+        self.parser.read_line()
+
+    def do_commit(self):
+        files = {}
+        extra = {}
+        from_mark = merge_mark = None
+
+        ref = self.parser.line.split()[1]
+        commit_mark = self.parser.read_mark()
+        author = self.parser.read_author()
+        committer = self.parser.read_author()
+        data = self.parser.read_data()
+        if self.parser.peek().startswith('from'):
+            from_mark = self.parser.read_mark()
+        if self.parser.peek().startswith('merge'):
+            merge_mark = self.parser.read_mark()
+            if self.parser.peek().startswith('merge'):
+                die('Octopus merges are not yet supported')
+
+        self.parser.read_line()
+
+        for line in self.parser.read_block(''):
+            if line.startswith('M'):
+                t, mode, mark_ref, path = line.split(' ', 3)
+                mark = int(mark_ref[1:])
+                filespec = {'mode': hgmode(mode), 'data': self.blob_marks[mark]}
+            elif line.startswith('D'):
+                t, path = line.split()
+                filespec = {'deleted': True}
+            files[path] = filespec
+
+        user, date, tz = author
+
+        if committer != author:
+            extra['committer'] = "%s %u %u" % committer
+
+        if from_mark:
+            parent_from = self.repo.changelog.node(
+                self.marks.mark_to_revision(from_mark))
+        else:
+            parent_from = self.NULL_PARENT
+
+        if merge_mark:
+            parent_merge = self.repo.changelog.node(
+                self.marks.mark_to_revision(merge_mark))
+        else:
+            parent_merge = self.NULL_PARENT
+
+        # hg needs to know about files that changed from either parent
+        # whereas git only cares if it changed from the first parent.
+        if merge_mark:
+            for file in self.repo[parent_from].files():
+                if file not in files and file in repo[parent_from].manifest():
+                    files[file] = {'ctx': repo[parent_from][[file]]}
+
+        if ref.startswith('refs/heads/branches/'):
+            extra['branch'] = ref.rpartition('/')[2]
+
+        def get_filectx(repo, memctx, file):
+            filespec = files[file]
+            if 'deleted' in filespec:
+                raise IOError
+            if 'ctx' in filespec:
+                return filespec['ctx']
+            is_exec = filespec['mode'] == 'x'
+            is_link = filespec['mode'] == 'l'
+            rename = filespec.get('rename', None)
+            log([file, filespec['data'], is_link, is_exec, rename])
+            return memfilectx(file, filespec['data'],
+                    is_link, is_exec, rename)
+
+        log("%s\n" % [from_mark, (parent_from, parent_merge), data,
+                files.keys(),
+                user, (date, tz), extra])
+
+        ctx = memctx(self.repo, (parent_from, parent_merge), data,
+            files.keys(), get_filectx, user, (date, tz), extra)
+        log(ctx)
+
+        tmp = encoding.encoding
+        encoding.encoding = 'utf-8'
+        node = self.repo.commitctx(ctx)
+        encoding.encoding = tmp
+
+        rev = self.repo[node].rev()
+
+        self.parsed_refs[ref] = node
+        self.marks.new_mark(rev, commit_mark)
+
+
+
+    def do_tag(self):
+        pass  # FIXME: TODO
+
+    def do_feature(self):
+        pass  # Ignore
 
 
 def main():
