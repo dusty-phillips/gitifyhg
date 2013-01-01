@@ -391,10 +391,26 @@ def test_empty_repo(tmpdir):
         assert file.read() == "a"
 
 
+def test_push_to_named(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    sh.hg.branch("branch_one")
+    make_hg_commit("b")
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+
+    sh.git.checkout("origin/branches/branch_one", track=True)
+    make_git_commit("c")
+    sh.git.push()
+
+    sh.cd(hg_repo)
+    assert_hg_count(3)
+
+    assert sh.hg.branch().stdout.strip() == "branch_one"
+
+
+
+
 # Need to test:
-    # pushing to empty repo
     # pushing tags
-    # pushing branches to named branches
-    # pushing branches to bookmarks
     # pushing new branch
     # pulling
