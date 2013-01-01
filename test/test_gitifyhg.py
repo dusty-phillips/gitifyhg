@@ -285,6 +285,44 @@ def test_clone_bookmark(hg_repo, git_dir):
     assert_git_count(2)
 
 
+def test_divergent_bookmarks(hg_repo, git_dir):
+    sh.cd(hg_repo)
+    sh.hg.bookmark("bookmark_one")
+    write_to_test_file("b")
+    sh.hg.commit(message="b")
+    sh.hg.update(rev=0)
+    write_to_test_file("c")
+    sh.hg.commit(message="c")
+    sh.hg.bookmark("bookmark_two")
+    write_to_test_file("d")
+    sh.hg.commit(message="d")
+
+    sh.cd(git_dir)
+    sh.git.clone("gitifyhg::" + hg_repo)
+    sh.cd(git_dir.joinpath('hg_base'))
+
+    result = sh.git.branch(remote=True)
+    print result.stdout
+    assert result.stdout == """  origin/HEAD -> origin/master
+  origin/bookmark_one
+  origin/bookmark_two
+  origin/branches/default
+  origin/master
+"""
+
+    sh.git.checkout("origin/bookmark_one")
+    assert_git_count(2)
+    assert_git_messages(['b', 'a'])
+
+    sh.git.checkout("origin/bookmark_two")
+    assert_git_count(3)
+    assert_git_messages(['d', 'c', 'a'])
+
+
+
+
+
+
 def test_simple_push_from_master(hg_repo, git_repo):
     sh.cd(git_repo)
     write_to_test_file("b")
@@ -297,8 +335,6 @@ def test_simple_push_from_master(hg_repo, git_repo):
     sh.hg.update()
     with hg_repo.joinpath("test_file").open() as file:
         assert file.read() == "a\nb"
-
-
 
 
 # Need to test:
