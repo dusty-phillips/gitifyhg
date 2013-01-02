@@ -583,4 +583,6 @@ def test_pull_from_bookmark(git_dir, hg_repo):
     # cloning bookmarks with spaces
     # pushing branches with spaces
     # pushing bookmarks with spaces
-    # pulling to bookmarks
+    # pulling bookmarks with spaces
+    # pushing bookmarks with spaces
+    # new tags get pulled in
