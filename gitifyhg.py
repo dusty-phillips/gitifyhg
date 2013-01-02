@@ -132,10 +132,9 @@ class GitRemoteParser(object):
         '''Read a line from the standard input.'''
         if self.peek_stack:
             self.line = self.peek_stack.pop(0)
-            log("INPUT (peek): %s" % self.line)
         else:
             self.line = sys.stdin.readline().strip()
-            log("INPUT: %s" % self.line)
+        #log("INPUT: %s" % self.line)
         return self.line
 
     def peek(self):
