@@ -499,6 +499,23 @@ def test_push_with_multiple_bookmarks(git_dir, hg_repo):
         assert file.read() == "a\nbd"
 
 
+@pytest.mark.xfail
+def test_push_new_bookmark(git_dir, hg_repo):
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+    sh.git.checkout("-b", "anewbranch")
+    make_git_commit("b")
+    sh.git.push('--set-upstream', 'origin', 'anewbranch')
+
+    sh.cd(hg_repo)
+    assert_hg_count(2)
+    assert "anewbranch" in sh.hg.bookmark().stdout
+    sh.hg.update("anewbranch")
+    assert "anewbranch" in sh.hg.tip().stdout
+
+    # TODO: Currently, it does not create a new bookmark when trying to push to
+    # a branch other than master or one named branches/<name>, which is supposed
+    # to create a named branch. This needs to be fixed.
 
 
 # Need to test:
