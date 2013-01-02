@@ -454,11 +454,56 @@ def test_push_new_named_branch(git_dir, hg_repo):
     # --new-branch to the push command
 
 
+def test_push_to_bookmark(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    sh.hg.bookmark('feature')
+    make_hg_commit("b")
+
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+    sh.git.checkout("origin/feature", track=True)
+    make_git_commit("c")
+    sh.git.push()
+
+    sh.cd(hg_repo)
+    sh.hg.update()
+    assert_hg_count(3)
+
+    assert "feature" in sh.hg.bookmark().stdout
+    with hg_repo.joinpath("test_file").open() as file:
+        assert file.read() == "a\nbc"
+
+
+def test_push_with_multiple_bookmarks(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    sh.hg.bookmark('feature')
+    make_hg_commit("b")
+    sh.hg.update(rev=0)
+    sh.hg.bookmark('feature2')
+    make_hg_commit("c")
+
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+    sh.git.checkout("origin/feature", track=True)
+    make_git_commit("d")
+    sh.git.push()
+
+    sh.cd(hg_repo)
+    assert_hg_count(4)
+    assert_hg_count(3, "0..feature")
+    assert_hg_count(2, "0..feature2")
+    sh.hg.update("feature")
+
+    assert "feature" in sh.hg.bookmark().stdout
+    with hg_repo.joinpath("test_file").open() as file:
+        assert file.read() == "a\nbd"
+
+
 
 
 # Need to test:
     # pushing tags
-    # pushing branches to bookmarks
+    # pushing branch to new bookmark
     # pushing branches with spaces
     # pushing bookmarks with spaces
     # pulling
