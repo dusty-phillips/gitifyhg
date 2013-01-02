@@ -529,7 +529,7 @@ def test_basic_pull(git_dir, hg_repo):
     assert_git_messages(["b", "a"])
 
 
-def test_pull_to_named_branch(git_dir, hg_repo):
+def test_pull_from_named_branch(git_dir, hg_repo):
     sh.cd(hg_repo)
     sh.hg.branch("feature")
     make_hg_commit("b")
@@ -544,6 +544,38 @@ def test_pull_to_named_branch(git_dir, hg_repo):
 
     assert_git_count(3)
     assert_git_messages(["c", "b", "a"])
+
+
+@pytest.mark.xfail
+def test_pull_from_bookmark(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    sh.hg.bookmark('feature')
+    make_hg_commit("b")
+    sh.hg.update(rev=0)
+    sh.hg.bookmark('feature2')
+    make_hg_commit("c")
+
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+    sh.git.checkout("origin/feature", track=True)
+    assert_git_messages(["b", "a"])
+
+    sh.cd(hg_repo)
+    sh.hg.update('feature')
+    make_hg_commit("d")
+    sh.hg.update('feature2')
+    make_hg_commit("e")
+
+    sh.cd(git_repo)
+    sh.git.pull()
+    assert_git_messages(["d", "b", "a"])
+    sh.git.checkout("origin/feature2", track=True)
+    assert_git_messages(["c", "a"])
+    sh.git.pull()
+    assert_git_messages(["e", "c", "a"])
+    # TODO: Pulling into a bookmark doesn't seem to be working. Find the
+    # problem and fix.
+
 
 
 # Need to test:
