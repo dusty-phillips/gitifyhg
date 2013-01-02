@@ -120,10 +120,13 @@ def assert_git_messages(expected_lines):
     assert actual_lines == expected_lines
 
 
-def assert_hg_count(count):
+def assert_hg_count(count, rev=None):
     '''Assuming you are in an hg repository, assert that ``count`` commits
     have been made to that repo.'''
-    assert sh.grep(sh.hg.log(), 'changeset:').stdout.count(b'\n') == count
+    if rev:
+        assert sh.grep(sh.hg.log(rev=rev), 'changeset:').stdout.count(b'\n') == count
+    else:
+        assert sh.grep(sh.hg.log(), 'changeset:').stdout.count(b'\n') == count
 
 
 # THE ACTUAL TESTS
