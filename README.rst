@@ -16,12 +16,8 @@
   along with gitifyhg.  If not, see <http://www.gnu.org/licenses/>.
 
 
-Rather than continuing work on gitifyhg, I've started working with
-the git-remote-hg project. Here are some urls:
-
-* `blog article introducing git-remote-hg <https://felipec.wordpress.com/2012/11/13/git-remote-hg-bzr-2/>`_
-* `issues for git-remote-hg <https://github.com/felipec/git/issues>`_
-* `my fork of git-remote-hg <https://github.com/buchuki/git>`_
+NOTE: This readme is out of date, I've completely rewritten gitifyhg as a 
+git remote and will update these once testing is complete.
 
 gitifyhg
 ========
