@@ -273,14 +273,14 @@ class HGRemote(object):
         for branch in self.repo.branchmap():
             heads = self.repo.branchheads(branch)
             if heads:
-                self.branches[branch] = heads  # FIXME: will it fail for multiple anonymous branches on a named branch?
+                self.branches[branch] = heads
 
         # list the head reference
         output("@refs/heads/%s HEAD" % self.headnode[0])
 
         # list the named branch references
         for branch in self.branches:
-            output("? refs/heads/branches/%s" % branch)
+            output("? refs/heads/branches/%s" % branch.replace(' ', '___'))
 
         # list the bookmark references
         for bookmark in self.bookmarks:
@@ -345,19 +345,20 @@ class HGImporter(object):
         output('done')
 
     def do_branch(self, branch):
+        branch = branch.replace("___", " ")
         try:
             heads = self.hgremote.branches[branch]
-        except KeyError:
-            tip = None
+            if len(heads) > 1:
+                log("Branch '%s' has more than one head, consider merging" % branch, "WARNING")
+                tip = self.repo.branchtip(branch)
+            else:
+                tip = heads[0]
 
-        if len(heads) > 1:
-            log("Branch '%s' has more than one head, consider merging" % branch, "WARNING")
-            tip = self.repo.branchtip(branch)
-        else:
-            tip = heads[0]
+        except KeyError:
+            return
 
         head = self.repo[tip]
-        self.process_ref(branch, 'branches', head)
+        self.process_ref(branch.replace(" ", "___"), 'branches', head)
 
     def process_ref(self, name, kind, head):
 

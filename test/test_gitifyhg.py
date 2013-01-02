@@ -187,6 +187,29 @@ def test_clone_simple_branch(git_dir, hg_repo):
     assert_git_count(2)
 
 
+def test_clone_branch_with_spaces(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    sh.hg.branch("feature branch")
+    make_hg_commit("b")
+
+    git_repo = clone_repo(git_dir, hg_repo)
+
+    assert git_repo.exists()
+    assert git_repo.joinpath('test_file').exists()
+    with git_repo.joinpath('test_file').open() as file:
+        assert file.read() == "a\nb"
+
+    assert_git_count(2)
+    assert_git_messages(['b', 'a'])
+    print sh.git.branch(remote=True)
+    assert sh.git.branch(remote=True).stdout == """  origin/HEAD -> origin/master
+  origin/branches/default
+  origin/branches/feature___branch
+  origin/master
+"""
+    # TODO: Cloning a branch with spaces is not currently supported.
+
+
 def test_clone_merged_branch(git_dir, hg_repo):
     sh.cd(hg_repo)
     sh.hg.branch("featurebranch")
@@ -433,4 +456,6 @@ def test_push_new_named_branch(git_dir, hg_repo):
 # Need to test:
     # pushing tags
     # pushing branches to bookmarks
+    # pushing branches with spaces
+    # pushing bookmarks with spaces
     # pulling
