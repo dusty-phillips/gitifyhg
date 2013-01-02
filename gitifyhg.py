@@ -43,7 +43,7 @@ def die(msg, *args):
 
 
 def output(msg=''):
-    log("OUT: %s" % msg)
+    #log("OUT: %s" % msg)
     print(msg)
 
 
@@ -377,8 +377,8 @@ class HGImporter(object):
             (manifest, user, (time, tz), files, description, extra
                 ) = self.repo.changelog.read(self.repo[rev].node())
 
-            rev_branch = extra['branch']
-
+            if not user.strip().endswith(">"):
+                user = user + " <nobody@none.none>"
             author = "%s %d %s" % (user, time, gittz(tz))
 
             if 'committer' in extra:
