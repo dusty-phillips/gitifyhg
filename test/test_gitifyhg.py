@@ -518,9 +518,37 @@ def test_push_new_bookmark(git_dir, hg_repo):
     # to create a named branch. This needs to be fixed.
 
 
+def test_basic_pull(git_dir, hg_repo):
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(hg_repo)
+    make_hg_commit("b")
+    sh.cd(git_repo)
+    sh.git.pull()
+
+    assert_git_count(2)
+    assert_git_messages(["b", "a"])
+
+
+def test_pull_to_named_branch(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    sh.hg.branch("feature")
+    make_hg_commit("b")
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(hg_repo)
+    sh.hg.update("feature")
+    make_hg_commit("c")
+    sh.cd(git_repo)
+    sh.git.checkout("origin/branches/feature", track=True)
+    assert_git_messages(["b", "a"])
+    sh.git.pull()
+
+    assert_git_count(3)
+    assert_git_messages(["c", "b", "a"])
+
+
 # Need to test:
     # pushing tags
-    # pushing branch to new bookmark
+    # cloning bookmarks with spaces
     # pushing branches with spaces
     # pushing bookmarks with spaces
-    # pulling
+    # pulling to bookmarks
