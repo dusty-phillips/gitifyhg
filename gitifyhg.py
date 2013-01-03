@@ -582,17 +582,11 @@ class GitExporter(object):
             is_exec = filespec['mode'] == 'x'
             is_link = filespec['mode'] == 'l'
             rename = filespec.get('rename', None)
-            log([file, filespec['data'], is_link, is_exec, rename])
             return memfilectx(file, filespec['data'],
                     is_link, is_exec, rename)
 
-        log("%s\n" % [from_mark, (parent_from, parent_merge), data,
-                files.keys(),
-                user, (date, tz), extra])
-
         ctx = memctx(self.repo, (parent_from, parent_merge), data,
             files.keys(), get_filectx, user, (date, tz), extra)
-        log(ctx)
 
         tmp = encoding.encoding
         encoding.encoding = 'utf-8'
