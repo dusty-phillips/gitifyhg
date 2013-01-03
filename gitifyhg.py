@@ -488,7 +488,7 @@ class GitExporter(object):
                     continue
             elif ref.startswith('refs/tags/'):
                 tag = ref[len('refs/tags/'):]
-                parser.repo.tag([tag], node, None, True, None, {})
+                self.repo.tag([tag], node, None, True, None, {})
             else:
                 # transport-helper/fast-export bugs
                 continue
@@ -598,10 +598,11 @@ class GitExporter(object):
         self.parsed_refs[ref] = node
         self.marks.new_mark(rev, commit_mark)
 
-
-
     def do_tag(self):
-        pass  # FIXME: TODO
+        name = self.parser.line().split()[1]
+        from_mark = self.parser.read_mark()
+        tagger = self.parser.read_author()
+        data = self.parser.read_data()
 
     def do_feature(self):
         pass  # Ignore

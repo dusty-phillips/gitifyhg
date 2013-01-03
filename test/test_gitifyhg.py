@@ -518,6 +518,20 @@ def test_push_new_bookmark(git_dir, hg_repo):
     # to create a named branch. This needs to be fixed.
 
 
+@py.test.mark.xfail
+def test_push_tag(git_dir, hg_repo):
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+    sh.git.tag("this_is_a_tag")
+    sh.git.push(tags=True)
+
+    sh.cd(hg_repo)
+    assert "this_is_a_tag" in sh.hg.tags().stdout
+
+    # TODO: this currently fails because the hg repository needs a new commit
+    # after hg tag is called.
+
+
 def test_basic_pull(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(hg_repo)
@@ -577,12 +591,11 @@ def test_pull_from_bookmark(git_dir, hg_repo):
     # problem and fix.
 
 
-
 # Need to test:
     # pushing tags
     # cloning bookmarks with spaces
     # pushing branches with spaces
     # pushing bookmarks with spaces
     # pulling bookmarks with spaces
-    # pushing bookmarks with spaces
+    # pulling branches with spacesu
     # new tags get pulled in
