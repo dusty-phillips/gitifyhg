@@ -65,6 +65,17 @@ def hgmode(mode):
     return modes.get(mode, '')
 
 
+def hg_to_git_spaces(name):
+    '''Spaces are allowed in mercurial, but not in git. We convert them to
+    the unlikely string ___'''
+    return name.replace(' ', '___')
+
+
+def git_to_hg_spaces(name):
+    '''But when we push back to mercurial, we need to convert it the other way.'''
+    return name.replace('___', ' ')
+
+
 class HGMarks(object):
     '''Maps integer marks to specific string mercurial revision identifiers.'''
 
@@ -279,7 +290,7 @@ class HGRemote(object):
 
         # list the named branch references
         for branch in self.branches:
-            output("? refs/heads/branches/%s" % branch.replace(' ', '___'))
+            output("? refs/heads/branches/%s" % hg_to_git_spaces(branch))
 
         # list the bookmark references
         for bookmark in self.bookmarks:
@@ -344,7 +355,7 @@ class HGImporter(object):
         output('done')
 
     def do_branch(self, branch):
-        branch = branch.replace("___", " ")
+        branch = git_to_hg_spaces(branch)
         try:
             heads = self.hgremote.branches[branch]
             if len(heads) > 1:
@@ -357,7 +368,7 @@ class HGImporter(object):
             return
 
         head = self.repo[tip]
-        self.process_ref(branch.replace(" ", "___"), 'branches', head)
+        self.process_ref(hg_to_git_spaces(branch), 'branches', head)
 
     def process_ref(self, name, kind, head):
 
