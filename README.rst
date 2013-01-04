@@ -16,54 +16,46 @@
   along with gitifyhg.  If not, see <http://www.gnu.org/licenses/>.
 
 
-NOTE: This readme is out of date, I've completely rewritten gitifyhg as a 
-git remote and will update these once testing is complete.
-
-Working:
-clone repos
-clone/push/pull named branches
-clone/push bookmarked branches
-clone/pull tags
-
-not working:
-working with anonymous branches
-working with bookmarked branches
-creating named branches
-pushing new tags
-
-In general, if you use git-remote-gitifyhg to clone and pull changes from
-a named branch including default, and you rebase your changes onto that branch
-before pushing, and you push to that branch, you'll be ok. Anything else is a bit
-messy.
-
-There are numerous projects out there that attempt to be a git-hg bridge. I believe this is the best one for other people to contribute to because it's
-better documented, has a better test suite, and (for my use cases, anyway), seems
-to be more functional. Pull requests desired!
-
-
-
 gitifyhg
 ========
-This app allows you to do local development in a git repository and push your
-changes to a specific branch in an upstream mercurial repository.
+This git remote allows you to do local development in a git repository and push 
+changes to an upstream mercurial repository. It does this seamlessly and allows
+pushing and pulling to named branches in the upstream repository.
 
 It tries not to affect the upstream mercurial repo in any way. Thus, only a
 restricted git workflow is available to you. 
 
-``gitifyhg`` communicates between the two repos using patches. These are
-applied internally using ``hg export``, ``hg import``, ``git format-patch``,
-and ``git am``.
+gitifyhg does not rely on hg-git, and allows you to push and pull to and from
+a mercurial repository from right inside git. You do not need to adapt your
+git workflow in any way aside from cloning a gitifyhg url.
 
-Currently, gitifyhg does not import upstream hg branches at all and it's primary
-purpose is to keep master synced up with a single branch (normally default)
-in the mercurial repository. It can rebase master onto the hg upstream,
-and it can push patches from master to upstream.
+This is the most robust and usable git to hg bridge currently available. I have
+studied as many other projects as I could find, and have covered as many use
+cases as possible. It has a large test suite (over 650 lines and 33 tests),
+better documentation. I've tested it on several large mercurial repositories
+that break other projects.
+
+That said, gitifyhg is not yet complete. Pull requests are higly desirable.
+There are 7 tests currently marked as expected failures documenting low hanging
+fruit if you want to help out with the project. Some of the features that
+are not fully working include:
+
+* anonymous branches are dropped, only the tip of a named branch is kept
+* tags can be cloned and pulled, but not pushed
+* bookmarks can be cloned and pushed, but not pulled reliably
+
+However, if you're looking for a git-svn type of workflow that allows you to
+clone mercurial repositories, work in local git branches, and rebase your
+branches, you've found it.
 
 URLS
 ----
 * `source <https://github.com/buchuki/gitifyhg>`_
+* `issues <https://github.com/buchuki/gitifyhg/issues>`_
 * `pypi package <https://pypi.python.org/pypi/gitifyhg/>`_
 * `Dusty Phillips <https://archlinux.me/dusty>`_
+* `Inspired by Felipe Contreras
+  <https://felipec.wordpress.com/2012/11/13/git-remote-hg-bzr-2/>`_
 
 Dependencies
 ------------
@@ -71,25 +63,21 @@ gitifyhg explicitly depends on:
 
 * `path.py <https://github.com/jaraco/path.py>`_
 * `sh <http://amoffat.github.com/sh/>`_
-* `six <http://packages.python.org/six/>`_
+* `Mercurial <http://mercurial.selenic.com/>`_
 
 These packages will be installed automatically by ``easy_install``, 
 ``pip``, ``setup.py install``, or ``setup.py develop``.
 
 gitifyhg also expects the following to be installed on your os:
 
-* `python <http://python.org/>`_
-* `Mercurial <http://mercurial.selenic.com/>`_
+* `python2 <http://python.org/>`_
 * `git <http://git-scm.com/>`_
 
 Supports
 --------
-``gitifyhg`` has been tested to run on:
-
-* cPython 2.6
-* cPython 2.7
-* cPython 3.3
-* pypy
+``gitifyhg`` has been tested to run on cPython 2.6 and 2.7. Any python that
+supports Mercurial should be supported. Sadly, this excludes both pypy and
+cPython 3.
 
 It has only been tested on Arch Linux. I expect all Linux operating systems
 to work fine with it and I suspect MacOS will also react well. All bets are
@@ -119,46 +107,53 @@ probably **are** better off using a ``virtualenv``.
 
 Instructions
 ------------
-* Get your Mercurial default branch into a reasonable state and push all your
-  changes.
-* Run ``gitifyhg clone <mercurial repository url>``. This will create a new
-  git repository just like ``git clone``. There will be a hidden ``.gitifyhg``
-  directory in there that holds a working mercurial clone of the upstream repo
-  and an intermediate directory for patches. If you want to change the local
-  repo name you can use ``gitifyhg clone <url> <local_name>``. If you want to
-  follow a different mercurial branch you can use
-  ``gitifyhg clone <url> <local>
-* ``cd repo_name``
-* Set up your ``.gitignore``. You'll probably want to add ``.gitignore`` itself
-  to the list of ignored files, as you don't want to tip upstream off that you
-  are using a superior DVCS. You'll also want to add ``.gitifyhg``, as well
-  as any patterns that are in the ``.hgignore`` from the original repo. You
-  *can* symlink ``.gitignore`` to ``.hgignore`` provided the ``.hgignore``
-  uses glob syntax. See http://www.selenic.com/mercurial/hgignore.5.html for
-  more information.
-* ``git checkout -b working_branch_name``. You *can* work directly on master,
-  but I would avoid it to makes recovering from problems easier.
-* Use git however you see fit. Use
-  `git flow <http://jeffkreeftmeijer.com/2010/why-arent-you-using-git-flow/>`_,
-  use ``rebase -i``, use ``commit --amend``, use ``add -p``.
-  Use all the wonderful git tools that
-  you have been aching to have available while being forced to work on mercurial
-  repositories.
-* At some point, you'll be ready to publish your changes to the hg repository.
-  First run ``git hgrebase`` to pull in changes from mercurial ``default`` and
-  have them appended to git ``master``. If you have patches on master,
-  they will be rebased onto the new patches from upstream.
-* Rebase your working branch onto ``master`` and then merge it into master (or
-  use git-flow for more sensible commands)::
-    
-    git checkout working_branch_name
-    git rebase master
-    git checkout master
-    git merge master
+gitifyhg is a git remote. Once installed, you can clone any Mercurial repo
+using ::
 
-* ``git hgpush`` to push your patches upstream. It will present an error if
-  there were upstream changes while you were doing the rebase step, so you
-  don't have to worry too much about merge fail.
+    git clone gitifyhg::<any mercurial url>
+
+Now run ``git branch -r`` to see the list of Mercurial branches. If it was
+a named branch upstream, it will be named branches/<branchname> in git.
+Bookmarks are referred to directly by their name. For now, I recommend only interacting with named branches.
+
+``master`` automatically tracks the default branch. You can check out any
+named mercurial branch using ::
+
+  git checkout --track origin/branches/<branchname>
+
+As a standard git practice, I recommend creating your own local branch
+to work on. Then change to the tracked branch and ``git pull`` to get
+upstream changes. Rebase your working branch onto that branch before pushing ::
+
+  git checkout -b working_<branchname>
+  # hack add commit ad naseum
+  git checkout branches/<branchname>
+  git pull
+  git checkout working_<branchname>
+  git rebase branches/<branchname>
+  git checkout branches/<branchname>
+  git merge working_<branchname>
+  git push
+
+You can create new named upstream branches by giving them the ``branches/``
+prefix ::
+
+  git checkout -b "branches/my_new_branch"
+  # hack add commit
+  git push --set_upstream origin branches/my_new_branch
+
+And that's really it, you just have to use standard git commands and the remote
+takes care of the details. Just don't do any octopus merges and you should be
+good to go.
+
+Note that Mercurial allows spaces in branch, bookmark, and tag names, while
+git does not. To keep git from choking if upstream has spaces in names, gitifyhg
+will replace them with three underscores and has the sense to convert between
+the two formats when pushing and pulling.
+
+If you have any trouble, please let me know via the issue tracker, preferably
+with pull requests containing test cases.
+
 
 License
 -------
