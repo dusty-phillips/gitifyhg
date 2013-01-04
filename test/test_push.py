@@ -114,13 +114,13 @@ def test_push_named_merge(git_dir, hg_repo):
     assert_hg_count(4)
 
 
-@pytest.mark.xfail
 def test_push_new_named_branch(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(git_repo)
     sh.git.checkout("-b", "branches/branch_one")
     make_git_commit("b")
-    sh.git.push('--set-upstream', 'origin', 'branches/branch_one')
+    sh.git.push('--set-upstream', 'origin', 'branches/branch_one',
+        _err=sys.stderr)
 
     sh.cd(hg_repo)
     assert_hg_count(2)

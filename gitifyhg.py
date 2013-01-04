@@ -480,6 +480,7 @@ class GitExporter(object):
         self.parser = parser
 
     def process(self):
+        new_branch = False
         self.parser.read_line()
         for line in self.parser.read_block('done'):
             command = line.split()[0]
@@ -489,7 +490,9 @@ class GitExporter(object):
 
         for ref, node in self.parsed_refs.iteritems():
             if ref.startswith('refs/heads/branches'):
-                pass  # branches were handled in parse_commit
+                branch = ref[len('refs/heads/branches'):]
+                if git_to_hg_spaces(branch) not in self.hgremote.branches:
+                    new_branch = True
             elif ref.startswith('refs/heads/'):
                 bookmark = ref[len('refs/heads/'):]
                 old = self.hgremote.bookmarks.get(bookmark)
@@ -509,7 +512,7 @@ class GitExporter(object):
 
         output()
 
-        self.repo.push(self.hgremote.peer, force=False)
+        self.repo.push(self.hgremote.peer, force=False, newbranch=new_branch)
 
     def do_blob(self):
         mark = self.parser.read_mark()
