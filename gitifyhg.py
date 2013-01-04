@@ -1,5 +1,3 @@
-#!/usr/bin/python2
-
 # Copyright 2012 Dusty Phillips
 
 # This file is part of gitifyhg.
@@ -196,6 +194,9 @@ class GitRemoteParser(object):
 
 class HGRemote(object):
     def __init__(self, alias, url):
+        if hg.islocal(url):
+            url = p(url).abspath()
+        log(alias)
         gitdir = p(os.environ['GIT_DIR'])
         self.remotedir = gitdir.joinpath('hg', alias)
         self.marks_git_path = self.remotedir.joinpath('marks-git')
