@@ -613,6 +613,10 @@ def main():
     and constructs a parser from the result.
     '''
     HGRemote(*sys.argv[1:3]).process()
+    try:
+        sys.stderr.close()
+    except:
+        pass
 
 
 if __name__ == '__main__':
