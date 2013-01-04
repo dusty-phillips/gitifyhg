@@ -46,8 +46,8 @@ are not fully working include:
 
 However, if you're looking for a git-svn type of workflow that allows you to
 clone mercurial repositories, work in local git branches, and rebase your
-branches, you've found it.
-
+branches, you've found it. Further, all of these problems are fixable.
+ 
 URLS
 ----
 * `source <https://github.com/buchuki/gitifyhg>`_
