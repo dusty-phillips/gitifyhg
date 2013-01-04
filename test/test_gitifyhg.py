@@ -518,7 +518,7 @@ def test_push_new_bookmark(git_dir, hg_repo):
     # to create a named branch. This needs to be fixed.
 
 
-@py.test.mark.xfail
+@pytest.mark.xfail
 def test_push_tag(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(git_repo)

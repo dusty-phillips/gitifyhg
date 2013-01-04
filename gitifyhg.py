@@ -489,6 +489,9 @@ class GitExporter(object):
             elif ref.startswith('refs/tags/'):
                 tag = ref[len('refs/tags/'):]
                 self.repo.tag([tag], node, None, True, None, {})
+                # FIXME: the new tag needs to be committed in such a way that
+                # the commit doesn't interfere with any other commits being
+                # exported.
             else:
                 # transport-helper/fast-export bugs
                 continue
