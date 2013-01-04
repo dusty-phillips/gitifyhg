@@ -619,6 +619,23 @@ def test_pull_from_named_branch(git_dir, hg_repo):
     assert_git_messages(["c", "b", "a"])
 
 
+def test_pull_from_named_branch_with_spaces(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    sh.hg.branch("feature one")
+    make_hg_commit("b")
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(hg_repo)
+    sh.hg.update("feature one")
+    make_hg_commit("c")
+    sh.cd(git_repo)
+    sh.git.checkout("origin/branches/feature___one", track=True)
+    assert_git_messages(["b", "a"])
+    sh.git.pull()
+
+    assert_git_count(3)
+    assert_git_messages(["c", "b", "a"])
+
+
 @pytest.mark.xfail
 def test_pull_from_bookmark(git_dir, hg_repo):
     sh.cd(hg_repo)
