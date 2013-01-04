@@ -111,7 +111,3 @@ def test_pull_tags(git_dir, hg_repo):
     sh.cd(git_repo)
     sh.git.pull()
     assert "tag1" in sh.git.tag()
-
-
-# Need to test:
-    # Todo: split push, pull, and clone tests into separate files.
