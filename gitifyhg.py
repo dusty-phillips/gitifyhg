@@ -1,3 +1,5 @@
+#!/usr/bin/python2
+
 # Copyright 2012 Dusty Phillips
 
 # This file is part of gitifyhg.
