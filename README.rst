@@ -19,6 +19,29 @@
 NOTE: This readme is out of date, I've completely rewritten gitifyhg as a 
 git remote and will update these once testing is complete.
 
+Working:
+clone repos
+clone/push/pull named branches
+clone/push bookmarked branches
+clone/pull tags
+
+not working:
+working with anonymous branches
+working with bookmarked branches
+creating named branches
+pushing new tags
+
+In general, if you use git-remote-gitifyhg to clone and pull changes from
+a named branch including default, and you rebase your changes onto that branch
+before pushing, and you push to that branch, you'll be ok. Anything else is a bit
+messy.
+
+There are numerous projects out there that attempt to be a git-hg bridge. I believe this is the best one for other people to contribute to because it's
+better documented, has a better test suite, and (for my use cases, anyway), seems
+to be more functional. Pull requests desired!
+
+
+
 gitifyhg
 ========
 This app allows you to do local development in a git repository and push your
