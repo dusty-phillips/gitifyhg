@@ -228,3 +228,17 @@ def test_push_tag(git_dir, hg_repo):
 
     # TODO: this currently fails because the hg repository needs a new commit
     # after hg tag is called.
+
+
+@pytest.mark.xfail
+def test_push_tag_with_spaces(git_dir, hg_repo):
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+    sh.git.tag("this is a tag")
+    sh.git.push(tags=True)
+
+    sh.cd(hg_repo)
+    assert "this___is___a___tag" in sh.hg.tags().stdout
+
+    # TODO: this currently fails because the hg repository needs a new commit
+    # after hg tag is called.
