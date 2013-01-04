@@ -667,6 +667,12 @@ def test_pull_from_bookmark(git_dir, hg_repo):
     # problem and fix.
 
 
+@pytest.mark.xfail
+def test_pull_from_bookmark_with_spaces(git_dir, hg_repo):
+    assert False
+    # TODO: Once pulling to a bookmark works, make sure it also works with spaces
+
+
 def test_pull_tags(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(hg_repo)
@@ -677,6 +683,4 @@ def test_pull_tags(git_dir, hg_repo):
 
 
 # Need to test:
-    # pulling bookmarks with spaces
-    # pulling branches with spaces
     # Todo: split push, pull, and clone tests into separate files.
