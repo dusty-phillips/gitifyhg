@@ -297,6 +297,26 @@ def test_clone_bookmark(hg_repo, git_dir):
     assert_git_count(2)
 
 
+def test_clone_bookmark_with_spaces(hg_repo, git_dir):
+    sh.cd(hg_repo)
+    sh.hg.bookmark("feature bookmark")
+    make_hg_commit("b")
+
+    clone_repo(git_dir, hg_repo)
+
+    result = sh.git.branch(remote=True)
+    print result.stdout
+    assert result.stdout == """  origin/HEAD -> origin/master
+  origin/branches/default
+  origin/feature___bookmark
+  origin/master
+"""
+    sh.git.checkout('origin/feature___bookmark')
+    assert_git_count(2)
+    sh.git.checkout('master')
+    assert_git_count(2)
+
+
 def test_clone_divergent_bookmarks(hg_repo, git_dir):
     sh.cd(hg_repo)
     sh.hg.bookmark("bookmark_one")
