@@ -580,8 +580,9 @@ class GitExporter(object):
         # whereas git only cares if it changed from the first parent.
         if merge_mark:
             for file in self.repo[parent_from].files():
-                if file not in files and file in repo[parent_from].manifest():
-                    files[file] = {'ctx': repo[parent_from][[file]]}
+                if file not in files and file in\
+                        self.repo[parent_from].manifest():
+                    files[file] = {'ctx': self.repo[parent_from][file]}
 
         if ref.startswith('refs/heads/branches/'):
             extra['branch'] = git_to_hg_spaces(ref.rpartition('/')[2])

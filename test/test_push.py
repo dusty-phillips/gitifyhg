@@ -17,6 +17,7 @@
 
 
 from path import path as p
+import sys
 import pytest
 import sh
 from .helpers import (make_hg_commit, make_git_commit, clone_repo,
@@ -94,6 +95,23 @@ def test_push_to_named_with_spaces(git_dir, hg_repo):
     sh.hg.update('tip')
 
     assert sh.hg.branch().stdout.strip() == "branch one"
+
+
+def test_push_named_merge(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    sh.hg.branch("branch_one")
+    make_hg_commit("b1", "b")
+    sh.hg.update("default")
+    make_hg_commit("c1", "c")
+
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+    sh.git.merge("origin/branches/branch_one")
+    sh.git.push(_err=sys.stderr)
+
+    sh.cd(hg_repo)
+    sh.hg.update()
+    assert_hg_count(4)
 
 
 @pytest.mark.xfail
