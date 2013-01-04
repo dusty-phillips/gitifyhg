@@ -94,8 +94,8 @@ class HGMarks(object):
             self.tips = loaded['tips']
             self.revisions_to_marks = loaded['revisions_to_marks']
             self.last_mark = loaded['last-mark']
-            self.marks_to_revisions = {int(v): k for k, v in
-                    self.revisions_to_marks.iteritems()}
+            self.marks_to_revisions = dict([(int(v), k) for k, v in
+                    self.revisions_to_marks.iteritems()])
         else:
             self.tips = {}
             self.revisions_to_marks = {}
