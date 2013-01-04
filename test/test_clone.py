@@ -276,7 +276,6 @@ def test_clone_tags(git_dir, hg_repo):
     assert result.stdout == "THIS_IS_TAGGED\n"
 
 
-@pytest.mark.xfail
 def test_clone_tag_with_spaces(git_dir, hg_repo):
     sh.cd(hg_repo)
     make_hg_commit("b")
@@ -290,4 +289,4 @@ def test_clone_tag_with_spaces(git_dir, hg_repo):
     clone_repo(git_dir, hg_repo)
 
     result = sh.git.tag()
-    assert result.stdout == "THIS_IS_TAGGED\n"
+    assert result.stdout == "THIS___IS___TAGGED\n"

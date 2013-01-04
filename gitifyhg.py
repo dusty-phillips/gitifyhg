@@ -299,7 +299,7 @@ class HGRemote(object):
         # list the tags
         for tag, node in self.repo.tagslist():
             if tag != "tip":
-                output("? refs/tags/%s" % tag)
+                output("? refs/tags/%s" % hg_to_git_spaces(tag))
 
         output()
 
@@ -347,7 +347,7 @@ class HGImporter(object):
                     self.hgremote.bookmarks[git_to_hg_spaces(bookmark)])
             elif ref.startswith('refs/tags/'):
                 tag = ref[len('refs/tags/'):]
-                self.process_ref(tag, 'tags', self.repo[tag])
+                self.process_ref(tag, 'tags', self.repo[git_to_hg_spaces(tag)])
 
             self.parser.read_line()
 
