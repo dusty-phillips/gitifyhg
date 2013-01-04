@@ -18,7 +18,6 @@
 
 import pytest
 import sh
-import sys
 from .helpers import (make_hg_commit, clone_repo, assert_git_count,
     assert_git_messages)
 
