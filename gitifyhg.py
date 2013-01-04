@@ -294,7 +294,7 @@ class HGRemote(object):
 
         # list the bookmark references
         for bookmark in self.bookmarks:
-            output("? refs/heads/%s" % bookmark)
+            output("? refs/heads/%s" % hg_to_git_spaces(bookmark))
 
         # list the tags
         for tag, node in self.repo.tagslist():
@@ -344,7 +344,7 @@ class HGImporter(object):
                 bookmark = ref[len('refs/heads/'):]
                 self.process_ref(bookmark,
                     'bookmarks',
-                    self.hgremote.bookmarks[bookmark])
+                    self.hgremote.bookmarks[git_to_hg_spaces(bookmark)])
             elif ref.startswith('refs/tags/'):
                 tag = ref[len('refs/tags/'):]
                 self.process_ref(tag, 'tags', self.repo[tag])
