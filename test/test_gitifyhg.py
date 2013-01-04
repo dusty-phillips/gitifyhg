@@ -494,6 +494,26 @@ def test_push_to_bookmark(git_dir, hg_repo):
         assert file.read() == "a\nbc"
 
 
+def test_push_to_bookmark_with_spaces(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    sh.hg.bookmark('feature one')
+    make_hg_commit("b")
+
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+    sh.git.checkout("origin/feature___one", track=True)
+    make_git_commit("c")
+    sh.git.push()
+
+    sh.cd(hg_repo)
+    sh.hg.update()
+    assert_hg_count(3)
+
+    assert "feature" in sh.hg.bookmark().stdout
+    with hg_repo.joinpath("test_file").open() as file:
+        assert file.read() == "a\nbc"
+
+
 def test_push_with_multiple_bookmarks(git_dir, hg_repo):
     sh.cd(hg_repo)
     sh.hg.bookmark('feature')
