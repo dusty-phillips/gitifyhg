@@ -111,3 +111,12 @@ def test_pull_tags(git_dir, hg_repo):
     sh.cd(git_repo)
     sh.git.pull()
     assert "tag1" in sh.git.tag()
+
+
+def test_pull_tag_with_spaces(git_dir, hg_repo):
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(hg_repo)
+    sh.hg.tag("tag one")
+    sh.cd(git_repo)
+    sh.git.pull()
+    assert "tag___one" in sh.git.tag()
