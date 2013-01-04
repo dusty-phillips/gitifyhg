@@ -591,6 +591,15 @@ def test_pull_from_bookmark(git_dir, hg_repo):
     # problem and fix.
 
 
+def test_pull_tags(git_dir, hg_repo):
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(hg_repo)
+    sh.hg.tag("tag1")
+    sh.cd(git_repo)
+    sh.git.pull()
+    assert "tag1" in sh.git.tag()
+
+
 # Need to test:
     # pushing tags
     # cloning bookmarks with spaces
@@ -598,4 +607,3 @@ def test_pull_from_bookmark(git_dir, hg_repo):
     # pushing bookmarks with spaces
     # pulling bookmarks with spaces
     # pulling branches with spacesu
-    # new tags get pulled in
