@@ -456,6 +456,25 @@ def test_push_to_named(git_dir, hg_repo):
     assert sh.hg.branch().stdout.strip() == "branch_one"
 
 
+def test_push_to_named_with_spaces(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    sh.hg.branch("branch one")
+    make_hg_commit("b")
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+
+    sh.git.checkout("origin/branches/branch___one", track=True)
+    make_git_commit("c")
+    sh.git.push()
+
+    sh.cd(hg_repo)
+    assert_hg_count(3)
+
+    sh.hg.update('tip')
+
+    assert sh.hg.branch().stdout.strip() == "branch one"
+
+
 @pytest.mark.xfail
 def test_push_new_named_branch(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
@@ -641,9 +660,6 @@ def test_pull_tags(git_dir, hg_repo):
 
 
 # Need to test:
-    # pushing tags
-    # cloning bookmarks with spaces
-    # pushing branches with spaces
-    # pushing bookmarks with spaces
     # pulling bookmarks with spaces
-    # pulling branches with spacesu
+    # pulling branches with spaces
+    # Todo: split push, pull, and clone tests into separate files.

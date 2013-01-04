@@ -489,8 +489,7 @@ class GitExporter(object):
 
         for ref, node in self.parsed_refs.iteritems():
             if ref.startswith('refs/heads/branches'):
-                # TODO: figure out how to push a branch
-                pass
+                pass  # branches were handled in parse_commit
             elif ref.startswith('refs/heads/'):
                 bookmark = ref[len('refs/heads/'):]
                 old = self.hgremote.bookmarks.get(bookmark)
@@ -585,7 +584,7 @@ class GitExporter(object):
                     files[file] = {'ctx': repo[parent_from][[file]]}
 
         if ref.startswith('refs/heads/branches/'):
-            extra['branch'] = ref.rpartition('/')[2]
+            extra['branch'] = git_to_hg_spaces(ref.rpartition('/')[2])
 
         def get_filectx(repo, memctx, file):
             filespec = files[file]
