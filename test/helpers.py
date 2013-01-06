@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with gitifyhg.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 
 from path import path as p
 import sh
@@ -56,7 +57,7 @@ def clone_repo(git_dir, hg_repo):
     repository into the git directory. Changes the current working directory
     into the repository and returns the full path to the repository.'''
     sh.cd(git_dir)
-    sh.git.clone("gitifyhg::" + hg_repo)
+    sh.git.clone("gitifyhg::" + hg_repo, _err=sys.stderr)
     git_repo = git_dir.joinpath('hg_base')
     sh.cd(git_repo)
     return git_repo
