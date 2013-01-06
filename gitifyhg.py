@@ -32,9 +32,14 @@ from mercurial.bookmarks import listbookmarks, readcurrent, pushbookmark
 from mercurial.util import sha1
 from mercurial import hg
 
+DEBUG_GITIFYHG = os.environ.get("DEBUG_GITIFYHG", "").lower() == "on"
+
 
 def log(msg, level="DEBUG"):
-    sys.stderr.write('%s: %s\n' % (level, str(msg)))
+    '''The git remote operates on stdin and stdout, so all debugging information
+    has to go to stderr.'''
+    if DEBUG_GITIFYHG or level != "DEBUG":
+        sys.stderr.write('%s: %s\n' % (level, str(msg)))
 
 
 def die(msg, *args):
@@ -43,7 +48,7 @@ def die(msg, *args):
 
 
 def output(msg=''):
-    #log("OUT: %s" % msg)
+    log("OUT: %s" % msg)
     print(msg)
 
 
@@ -170,7 +175,7 @@ class GitRemoteParser(object):
             self.line = self.peek_stack.pop(0)
         else:
             self.line = sys.stdin.readline().strip()
-        #log("INPUT: %s" % self.line)
+        log("INPUT: %s" % self.line)
         return self.line
 
     def peek(self):
