@@ -79,6 +79,9 @@ Supports
 supports Mercurial should be supported. Sadly, this excludes both pypy and
 cPython 3.
 
+It has only been tested with Mercurial version 2.4.1. Because it uses
+Mercurial's internal APIs, it IS likely to break with other versions.
+
 It has only been tested on Arch Linux. I expect all Linux operating systems
 to work fine with it and I suspect MacOS will also react well. All bets are
 off with Windows, but please let me know if it works or you fixed it.
