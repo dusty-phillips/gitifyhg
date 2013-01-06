@@ -76,6 +76,31 @@ def git_to_hg_spaces(name):
     return name.replace('___', ' ')
 
 
+AUTHOR = re.compile(r'^([^<>]+?)? ?<([^<>]*)>$')
+NAME = re.compile(r'^([^<>]+)')
+
+
+def sanitize_author(author):
+    '''Mercurial allows a more freeform user string than git, so we have to
+    massage it to be compatible. Git experts "name <email>".'''
+    name = "unknown"
+    email = "unknown"
+    author = author.replace('"', '')
+    match = AUTHOR.match(author)
+    if match:
+        name = match.group(1)
+        email = match.group(2).strip()
+    else:
+        match = NAME.match(author)
+        if match:
+            if "@" in match:  # for when they specify just an email with no name
+                email = match.group(1).strip()
+            else:
+                name = match.group(1).strip()
+
+    return '%s <%s>' % (name, email)
+
+
 class HGMarks(object):
     '''Maps integer marks to specific string mercurial revision identifiers.'''
 
@@ -389,12 +414,12 @@ class HGImporter(object):
             (manifest, user, (time, tz), files, description, extra
                 ) = self.repo.changelog.read(self.repo[rev].node())
 
-            if not user.strip().endswith(">"):
-                user = user + " <nobody@none.none>"
+            user = sanitize_author(user)
             author = "%s %d %s" % (user, time, gittz(tz))
 
             if 'committer' in extra:
                 user, time, tz = extra['committer'].rsplit(' ', 2)
+                user = sanitize_author(user)
                 committer = "%s %s %s" % (user, time, gittz(int(tz)))
             else:
                 committer = author

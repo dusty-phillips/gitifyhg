@@ -310,3 +310,27 @@ def test_clone_tag_with_spaces(git_dir, hg_repo):
 
     result = sh.git.tag()
     assert result.stdout == "THIS___IS___TAGGED\n"
+
+
+def test_author_no_email(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    with open(hg_repo.joinpath('.hg/hgrc'), "w") as file:
+        file.write("[ui]\nusername=noemailsupplied")
+
+    make_hg_commit("b")
+
+    clone_repo(git_dir, hg_repo)
+    assert "Author: noemailsupplied <unknown>\n" in \
+        sh.git("--no-pager", "log", color="never").stdout
+
+
+def test_author_no_space_before_email(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    with open(hg_repo.joinpath('.hg/hgrc'), "w") as file:
+        file.write("[ui]\nusername=nospace<email@example.com>")
+
+    make_hg_commit("b")
+
+    clone_repo(git_dir, hg_repo)
+    assert "Author: nospace <email@example.com>\n" in \
+        sh.git("--no-pager", "log", color="never").stdout
