@@ -93,7 +93,7 @@ def sanitize_author(author):
     else:
         match = NAME.match(author)
         if match:
-            if "@" in match:  # for when they specify just an email with no name
+            if "@" in match.group(1):  # when they provide email without name
                 email = match.group(1).strip()
             else:
                 name = match.group(1).strip()
