@@ -157,6 +157,44 @@ the two formats when pushing and pulling.
 If you have any trouble, please let me know via the issue tracker, preferably
 with pull requests containing test cases.
 
+Development
+-----------
+You can hack on gitifyhg by forking the
+`github <https://github.com/buchuki/gitifyhg>`_ repository. All the code is
+in the ``gitifyhg.py`` file, and tests are in the ``test`` directory.
+
+I recommend developing in a `virtualenv <http://www.virtualenv.org/>`_ ::
+
+  cd gitifyhg
+  virtualenv -p python2.7 venv
+  . venv/bin/activate
+  python setup.py develop
+
+There is currently a problem where if you have a development version of gitifyhg
+in an active virtualenv and a stable version installed at the system level, git
+will pick the system level gitifyhg regardless ofthe PATH setting in the
+virtualenv. The only workaround I have found is to temporarily uninstall the
+system virtualenv.
+
+You can use `tox <http://tox.testrun.org/>`_ to set up a test environment ::
+
+  pip install tox
+  tox
+
+Or just run ``py.test`` directly in the virtualenv ::
+
+  pip install pytest
+  py.test -k <name of test>
+
+If you want debugging information out of gitifyhg, set the GITIFYHG_DEBUG=on 
+environment variable. This is done automatically if you are running the test
+suite.
+
+The gitifyhg remote is called by git and commands are passed on stdin.
+Output is sent to stdout. The protocol is described at
+https://www.kernel.org/pub/software/scm/git/docs/git-remote-helpers.html
+The git remote prints INPUT and OUTPUT lines for each of these to help
+introspect the protocol.
 
 License
 -------
