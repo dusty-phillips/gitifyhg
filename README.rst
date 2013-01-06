@@ -62,7 +62,6 @@ Dependencies
 gitifyhg explicitly depends on:
 
 * `path.py <https://github.com/jaraco/path.py>`_
-* `sh <http://amoffat.github.com/sh/>`_
 * `Mercurial <http://mercurial.selenic.com/>`_
 
 These packages will be installed automatically by ``easy_install``, 
@@ -179,11 +178,13 @@ system virtualenv.
 You can use `tox <http://tox.testrun.org/>`_ to set up a test environment ::
 
   pip install tox
-  tox
+  tox -e py27
 
-Or just run ``py.test`` directly in the virtualenv ::
+Or install the test dependencies manually and run
+`py.test <http://pytest.org/>`_ directly in the virtualenv ::
 
   pip install pytest
+  pip install sh
   py.test -k <name of test>
 
 If you want debugging information out of gitifyhg, set the GITIFYHG_DEBUG=on 
