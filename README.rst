@@ -200,5 +200,5 @@ introspect the protocol.
 License
 -------
 
-gitifyhg is copyright 2012 Dusty Phillips and is licensed under the
+gitifyhg is copyright 2012-2013 Dusty Phillips and is licensed under the
 `GNU General Public License <https://www.gnu.org/licenses/gpl.html>`_
