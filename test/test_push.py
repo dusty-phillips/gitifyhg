@@ -37,7 +37,7 @@ def test_simple_push_from_master(hg_repo, git_dir):
 
 
 def test_empty_repo(tmpdir):
-    tmpdir = p(tmpdir).abspath()
+    tmpdir = p(tmpdir.strpath).abspath()
     hg_base = tmpdir.joinpath('hg_base')
     hg_base.mkdir()
     sh.cd(hg_base)

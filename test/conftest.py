@@ -16,7 +16,7 @@ def hg_repo(tmpdir):
     :return: a py.path inside the test's temporary directory that contains
         an initialized hg repository with a single commit'''
     os.environ['DEBUG_GITIFYHG'] = "on"
-    tmpdir = p(tmpdir).abspath()
+    tmpdir = p(tmpdir.strpath).abspath()
     hg_base = tmpdir.joinpath('hg_base')  # an hg repo to clone from
     hg_base.mkdir()
     sh.cd(hg_base)
@@ -36,7 +36,7 @@ def git_dir(tmpdir):
     :param tmpdir: the temporary directory for the current test
     :return: a py.path inside the test's temporary directory that is an empty
         but existing directory.'''
-    tmpdir = p(tmpdir).abspath()
+    tmpdir = p(tmpdir.strpath).abspath()
     git_dir = tmpdir.joinpath('git_dir')
     git_dir.mkdir()
     return git_dir
