@@ -50,7 +50,7 @@ def test_empty_repo(tmpdir):
     assert "Initial commit" in sh.git.status().stdout
     make_git_commit("a")
 
-    sh.git.push()
+    sh.git.push("origin", "master")
 
     sh.cd(hg_base)
     assert_hg_count(1)
