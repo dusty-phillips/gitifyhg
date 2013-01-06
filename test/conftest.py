@@ -1,4 +1,5 @@
 import pytest
+import os
 from path import path as p
 import sh
 from .helpers import write_to_test_file
@@ -7,11 +8,14 @@ from .helpers import write_to_test_file
 @pytest.fixture
 def hg_repo(tmpdir):
     '''Fixture that creates an hg repository in a temporary directory
-    gitifyhg can then be tested by cloaning that repo
+    gitifyhg can then be tested by cloaning that repo.
+
+    Also sets the DEBUG_GITIFYHG environment variable.
 
     :param tmpdir: A temporary directory for the current test
     :return: a py.path inside the test's temporary directory that contains
         an initialized hg repository with a single commit'''
+    #os.environ['DEBUG_GITIFYHG'] = "on"
     tmpdir = p(tmpdir).abspath()
     hg_base = tmpdir.joinpath('hg_base')  # an hg repo to clone from
     hg_base.mkdir()
