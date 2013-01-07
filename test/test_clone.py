@@ -18,8 +18,9 @@
 
 import pytest
 import sh
+from path import path as p
 from .helpers import (make_hg_commit, clone_repo, assert_git_count,
-    assert_git_messages)
+    assert_git_messages, write_to_test_file)
 
 
 def test_basic_clone(git_dir, hg_repo):
@@ -334,3 +335,22 @@ def test_author_no_space_before_email(git_dir, hg_repo):
     clone_repo(git_dir, hg_repo)
     assert "Author: nospace <email@example.com>\n" in \
         sh.git("--no-pager", "log", color="never").stdout
+
+
+def test_unicode_path(tmpdir, git_dir):
+    tmpdir = p(tmpdir.strpath).abspath()
+    hg_base = tmpdir.joinpath(u'hg\u2020base')  # an hg repo to clone from
+    hg_base.mkdir()
+    sh.cd(hg_base)
+    write_to_test_file(u'\u2020\n'.encode('utf-8'), u'\u2020')
+    sh.hg.init()
+    sh.hg.add(u'\u2020')
+    sh.hg.commit(message=u"\u2020")
+    sh.cd('..')
+
+    sh.cd(git_dir)
+    sh.git.clone("gitifyhg::" + hg_base)
+    git_repo = git_dir.joinpath(u'hg\u2020base')
+    sh.cd(git_repo)
+    return git_repo
+

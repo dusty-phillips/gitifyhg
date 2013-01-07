@@ -39,7 +39,7 @@ def log(msg, level="DEBUG"):
     '''The git remote operates on stdin and stdout, so all debugging information
     has to go to stderr.'''
     if DEBUG_GITIFYHG or level != "DEBUG":
-        sys.stderr.write('%s: %s\n' % (level, str(msg)))
+        sys.stderr.write(u'%s: %r\n' % (level, msg))
 
 
 def die(msg, *args):
@@ -48,6 +48,8 @@ def die(msg, *args):
 
 
 def output(msg=''):
+    if isinstance(msg, unicode):
+        msg = msg.encode('utf-8')
     log("OUT: %s" % msg)
     print(msg)
 
@@ -224,9 +226,9 @@ class GitRemoteParser(object):
 
 class HGRemote(object):
     def __init__(self, alias, url):
-        if hg.islocal(url):
+        if hg.islocal(url.encode('utf-8')):
             url = p(url).abspath()
-        gitdir = p(os.environ['GIT_DIR'])
+        gitdir = p(os.environ['GIT_DIR'].decode('utf-8'))
         self.remotedir = gitdir.joinpath('hg', alias)
         self.marks_git_path = self.remotedir.joinpath('marks-git')
         self.marks = HGMarks(self.remotedir.joinpath('marks-hg'))
@@ -246,10 +248,10 @@ class HGRemote(object):
         myui = ui()
         myui.setconfig('ui', 'interactive', 'off')
 
-        local_path = os.path.join(self.remotedir, 'clone')
-        if not os.path.exists(local_path):
-            self.peer, dstpeer = hg.clone(myui, {}, url,
-                local_path, update=False, pull=True)
+        local_path = self.remotedir.joinpath('clone')
+        if not local_path.exists():
+            self.peer, dstpeer = hg.clone(myui, {}, url.encode('utf-8'),
+                local_path.encode('utf-8'), update=False, pull=True)
             self.repo = dstpeer.local()
         else:
             self.repo = hg.repository(myui, local_path)
@@ -273,15 +275,15 @@ class HGRemote(object):
     def do_capabilities(self, parser):
         '''Process the capabilities request when incoming from git-remote.
         '''
-        output("import")
-        output("export")
-        output("refspec refs/heads/branches/*:%s/branches/*" % self.prefix)
-        output("refspec refs/heads/*:%s/bookmarks/*" % self.prefix)
-        output("refspec refs/tags/*:%s/tags/*" % self.prefix)
+        output(u"import")
+        output(u"export")
+        output(u"refspec refs/heads/branches/*:%s/branches/*" % self.prefix)
+        output(u"refspec refs/heads/*:%s/bookmarks/*" % self.prefix)
+        output(u"refspec refs/tags/*:%s/tags/*" % self.prefix)
 
         if self.marks_git_path.exists():
-            output("*import-marks %s" % self.marks_git_path)
-        output("*export-marks %s" % self.marks_git_path)
+            output(u"*import-marks %s" % self.marks_git_path)
+        output(u"*export-marks %s" % self.marks_git_path)
 
         output()
 
@@ -661,7 +663,8 @@ def main():
     '''Main entry point for the git-remote-gitifyhg command. Parses sys.argv
     and constructs a parser from the result.
     '''
-    HGRemote(*sys.argv[1:3]).process()
+    log(repr(sys.argv))
+    HGRemote(*[x.decode('utf-8') for x in sys.argv[1:3]]).process()
     try:
         sys.stderr.close()
     except:
