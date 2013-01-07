@@ -36,6 +36,8 @@ def git_dir(tmpdir):
     :param tmpdir: the temporary directory for the current test
     :return: a py.path inside the test's temporary directory that is an empty
         but existing directory.'''
+    os.environ['DEBUG_GITIFYHG'] = "on"
+
     tmpdir = p(tmpdir.strpath).abspath()
     git_dir = tmpdir.joinpath('git_dir')
     git_dir.mkdir()
