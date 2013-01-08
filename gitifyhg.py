@@ -254,8 +254,8 @@ class HGRemote(object):
                 local_path.encode('utf-8'), update=False, pull=True)
             self.repo = dstpeer.local()
         else:
-            self.repo = hg.repository(myui, local_path)
-            self.peer = hg.peer(myui, {}, url)
+            self.repo = hg.repository(myui, local_path.encode('utf-8'))
+            self.peer = hg.peer(myui, {}, url.encode('utf-8'))
             self.repo.pull(self.peer, heads=None, force=True)
 
     def process(self):

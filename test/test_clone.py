@@ -18,9 +18,10 @@
 
 import pytest
 import sh
+import sys
 from path import path as p
 from .helpers import (make_hg_commit, clone_repo, assert_git_count,
-    assert_git_messages, write_to_test_file)
+    assert_hg_count, assert_git_messages, write_to_test_file)
 
 
 def test_basic_clone(git_dir, hg_repo):
@@ -349,8 +350,22 @@ def test_unicode_path(tmpdir, git_dir):
     sh.cd('..')
 
     sh.cd(git_dir)
-    sh.git.clone("gitifyhg::" + hg_base)
+    sh.git.clone("gitifyhg::" + hg_base, _err=sys.stderr)
     git_repo = git_dir.joinpath(u'hg\u2020base')
     sh.cd(git_repo)
-    return git_repo
+    assert_git_messages([u"\u2020"])
 
+    write_to_test_file(u'\u2020\n'.encode('utf-8'), u'\u2020')
+    sh.git.add(u'\u2020')
+    sh.git.commit(message=u"\u2020")
+    sh.git.push()
+    sh.cd(hg_base)
+    sh.hg.update()
+    assert_hg_count(2)
+
+    write_to_test_file(u'\u2020\u2015'.encode('utf-8'), u'\u2020\u2015')
+    sh.hg.add(u'\u2020\u2015')
+    sh.hg.commit(message=u"\u2015")
+    sh.cd(git_repo)
+    sh.git.pull()
+    assert_git_messages([u'\u2015', u"\u2020", u"\u2020"])
