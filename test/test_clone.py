@@ -19,6 +19,7 @@
 import pytest
 import sh
 import sys
+import os
 from path import path as p
 from .helpers import (make_hg_commit, clone_repo, assert_git_count,
     assert_hg_count, assert_git_messages, write_to_test_file)
@@ -369,3 +370,33 @@ def test_unicode_path(tmpdir, git_dir):
     sh.cd(git_repo)
     sh.git.pull()
     assert_git_messages([u'\u2015', u"\u2020", u"\u2020"])
+
+
+def test_executable_bit(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    write_to_test_file("b")
+    sh.chmod('644', 'test_file')
+    sh.hg.add('test_file')
+    sh.hg.commit(message='add file')
+    sh.chmod('755', 'test_file')
+    sh.hg.commit(message='make executable')
+    sh.chmod('644', 'test_file')
+    sh.hg.commit(message='make unexecutable')
+
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+    assert git_repo.joinpath('test_file').access(os.X_OK) == False
+    sh.git.checkout('HEAD^')
+    assert git_repo.joinpath('test_file').access(os.X_OK) == True
+    sh.git.checkout('HEAD^')
+    assert git_repo.joinpath('test_file').access(os.X_OK) == False
+
+    sh.git.checkout('master')
+    sh.chmod('755', 'test_file')
+    sh.git.add('test_file')
+    sh.git.commit(message="make executable again")
+    sh.git.push()
+
+    sh.cd(hg_repo)
+    sh.update()
+    assert git_repo.joinpath('test_file').access(os.X_OK) == True
