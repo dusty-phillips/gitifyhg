@@ -409,7 +409,10 @@ class HGImporter(object):
             heads = self.hgremote.branches[branch]
             if len(heads) > 1:
                 log("Branch '%s' has more than one head, consider merging" % branch, "WARNING")
-                tip = self.repo.branchtip(branch)
+                if hasattr(self.repo, 'branchtip'):
+                    tip = self.repo.branchtip(branch)
+                else:
+                    tip = self.repo.branchtags()[branch]
             else:
                 tip = heads[0]
 
