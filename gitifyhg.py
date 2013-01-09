@@ -37,6 +37,14 @@ from mercurial.error import RepoLookupError
 
 DEBUG_GITIFYHG = os.environ.get("DEBUG_GITIFYHG") != None
 
+# hijack stdout to prevent mercurial from inadvertently talking to git.
+# interactive=off and ui.pushbuffer() don't seem to work.
+class DummyOut(object):
+    def write(self, x): pass
+    def flush(self): pass
+actual_stdout = sys.stdout
+sys.stdout = DummyOut()
+
 
 def log(msg, level="DEBUG"):
     '''The git remote operates on stdin and stdout, so all debugging information
@@ -54,7 +62,7 @@ def output(msg=''):
     if isinstance(msg, unicode):
         msg = msg.encode('utf-8')
     log("OUT: %s" % msg)
-    print(msg)
+    print >> actual_stdout, msg
 
 
 def gittz(tz):
@@ -278,7 +286,7 @@ class HGRemote(object):
             if command not in ('capabilities', 'list', 'import', 'export'):
                 die('unhandled command: %s' % line)
             getattr(self, 'do_%s' % command)(parser)
-            sys.stdout.flush()
+            actual_stdout.flush()
 
         self.marks.store()
 
@@ -374,7 +382,7 @@ class HGImporter(object):
         if self.hgremote.marks_git_path.exists():
             output("feature import-marks=%s" % self.hgremote.marks_git_path)
         output("feature export-marks=%s" % self.hgremote.marks_git_path)
-        sys.stdout.flush()
+        actual_stdout.flush()
 
         tmp = encoding.encoding
         encoding.encoding = 'utf-8'
