@@ -68,7 +68,7 @@ def gitmode(flags):
 
 
 def hgmode(mode):
-    modes = {'0100755': 'x', '0120000': 'l'}
+    modes = {'100755': 'x', '120000': 'l'}
     return modes.get(mode, '')
 
 

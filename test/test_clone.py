@@ -400,3 +400,24 @@ def test_executable_bit(git_dir, hg_repo):
     sh.cd(hg_repo)
     sh.update()
     assert git_repo.joinpath('test_file').access(os.X_OK) == True
+
+
+def test_sym_link(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    write_to_test_file('b')
+    sh.hg.add('test_file')
+    sh.hg.commit(message="b")
+    sh.ln('-s', 'test_file', 'linked')
+    sh.hg.add('linked')
+    sh.hg.commit(message="c")
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+    assert p('linked').islink()
+    sh.ln('-s', 'test_file', 'second_link')
+    sh.git.add('second_link')
+    sh.git.commit(message="d")
+    sh.git.push()
+    sh.cd(hg_repo)
+    sh.hg.update()
+    assert p('second_link').islink()
+
