@@ -28,6 +28,7 @@ from path import path as p
 
 from mercurial.ui import ui
 from mercurial.context import memctx, memfilectx
+from mercurial.error import Abort
 from mercurial import encoding
 from mercurial.bookmarks import listbookmarks, readcurrent, pushbookmark
 from mercurial.util import sha1
@@ -542,8 +543,11 @@ class GitExporter(object):
         self.blob_marks = self.hgremote.blob_marks
         self.repo = self.hgremote.repo
         self.parser = parser
+        self.processed_marks = set()
+        self.processed_nodes = []
 
     def process(self):
+        self.marks.store()  # checkpoint
         new_branch = False
         self.parser.read_line()
         for line in self.parser.read_block('done'):
@@ -572,11 +576,47 @@ class GitExporter(object):
             else:
                 # transport-helper/fast-export bugs
                 continue
-            output("ok %s" % ref)
 
+        success = False
+        try:
+            self.repo.push(self.hgremote.peer, force=False, newbranch=new_branch)
+            self.marks.store()
+            success = True
+        except Abort as e:
+            # mercurial.error.Abort: push creates new remote head f14531ca4e2d!
+            if e.message.startswith("push creates new remote head"):
+                self.marks.load()  # restore from checkpoint
+                # strip revs backwards, newest to oldest
+                # TODO: this can probably be done faster by finding the root revs
+                for rev in reversed(self.processed_nodes):
+                    self.repo.mq.strip(self.repo, [rev])
+            else:
+                die("unknown hg exception: %s" % e)
+        # TODO: handle network/other errors?
+
+        for ref in self.parsed_refs:
+            if success:
+                output("ok %s" % ref)
+            else:
+                output("error %s non-fast forward" % ref)  # TODO: other errors as well
         output()
 
-        self.repo.push(self.hgremote.peer, force=False, newbranch=new_branch)
+        if not success:
+            # wait until fast-export finishes to muck with the marks file
+            self.remove_processed_git_marks()
+
+    def remove_processed_git_marks(self):
+        fread = open(self.hgremote.marks_git_path, 'r')
+        fwrite = open(self.hgremote.marks_git_path, 'r+')
+        for line in fread:
+            if not line.startswith(':'):
+                die("invalid line in marks-git: " + line)
+            mark = line[1:].split()[0]
+            if mark not in self.processed_marks:
+                fwrite.write(line)
+        fread.close()
+        fwrite.truncate()
+        fwrite.close()
 
     def do_blob(self):
         mark = self.parser.read_mark()
@@ -680,6 +720,8 @@ class GitExporter(object):
 
         self.parsed_refs[ref] = node
         self.marks.new_mark(rev, commit_mark)
+        self.processed_marks.add(str(commit_mark))
+        self.processed_nodes.append(node)
 
     def do_tag(self):
         name = self.parser.line().split()[1]
