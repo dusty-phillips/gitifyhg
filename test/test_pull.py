@@ -18,8 +18,8 @@
 
 import pytest
 import sh
-from .helpers import (make_hg_commit, clone_repo, assert_git_count,
-    assert_git_messages)
+from .helpers import (make_hg_commit, make_git_commit, clone_repo,
+    assert_git_count, assert_git_messages)
 
 
 def test_basic_pull(git_dir, hg_repo):
@@ -65,6 +65,48 @@ def test_pull_from_named_branch_with_spaces(git_dir, hg_repo):
 
     assert_git_count(3)
     assert_git_messages(["c", "b", "a"])
+
+
+@pytest.mark.xfail
+def test_pull_anonymous(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    make_hg_commit("b")
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(hg_repo)
+    make_hg_commit("c")
+    sh.hg.update(rev="-2")
+    make_hg_commit("c2")
+
+    sh.cd(git_repo)
+    sh.git.pull()
+    assert False
+    # TODO: anonymous branches are currently being pruned.
+
+
+def test_pull_conflict(git_dir, hg_repo):
+    git_repo = clone_repo(git_dir, hg_repo)
+    make_git_commit("b")
+    sh.cd(hg_repo)
+    make_hg_commit("c")
+    sh.cd(git_repo)
+
+    assert "Automatic merge failed" in sh.git.pull(_ok_code=[1]).stdout
+
+
+def test_pull_auto_merge(git_dir, hg_repo):
+    git_repo = clone_repo(git_dir, hg_repo)
+    make_git_commit("b")
+    sh.cd(hg_repo)
+    make_hg_commit("c", "c")
+    sh.cd(git_repo)
+
+    sh.git.pull()
+    assert_git_count(4)
+    # Merge order appears to be non-deterministic, but I'd like to see
+    # this better tested.
+    # assert_git_messages([
+    #     u"Merge branch 'master' of gitifyhg::%s" % (hg_repo),
+    #     u"c", u"b", u"a"])
 
 
 @pytest.mark.xfail
