@@ -23,6 +23,7 @@ import sys
 import os
 import json
 import re
+import subprocess
 from path import path as p
 
 from mercurial.ui import ui
@@ -228,6 +229,10 @@ class HGRemote(object):
     def __init__(self, alias, url):
         if hg.islocal(url.encode('utf-8')):
             url = p(url).abspath()
+            # Force git to use an absolute path in the future
+            cmd = ['git', 'config', 'remote.%s.url' % alias, "gitifyhg::%s" % url]
+            subprocess.call(cmd)
+
         gitdir = p(os.environ['GIT_DIR'].decode('utf-8'))
         self.remotedir = gitdir.joinpath('hg', alias)
         self.marks_git_path = self.remotedir.joinpath('marks-git')
@@ -663,7 +668,6 @@ def main():
     '''Main entry point for the git-remote-gitifyhg command. Parses sys.argv
     and constructs a parser from the result.
     '''
-    log(repr(sys.argv))
     HGRemote(*[x.decode('utf-8') for x in sys.argv[1:3]]).process()
     try:
         sys.stderr.close()

@@ -63,6 +63,8 @@ def test_clone_relative(git_dir, hg_repo):
     assert_git_messages(['b', 'a'])
     assert len(sh.git.status(short=True).stdout) == 0
 
+    sh.git.pull()
+
 
 def test_clone_linear_branch(git_dir, hg_repo):
     '''One branch after the other, no multiple parents.'''
