@@ -59,6 +59,16 @@ def test_empty_repo(tmpdir):
         assert file.read() == "a"
 
 
+def test_push_conflict_default(git_dir, hg_repo):
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(hg_repo)
+    make_hg_commit("b")
+    sh.cd(git_repo)
+    make_git_commit("c")
+    assert sh.git.push(_ok_code=128).stderr.find("Remote Mercurial repository"
+        " contains new commits. Consider pulling first.") > 0
+
+
 def test_push_to_named(git_dir, hg_repo):
     sh.cd(hg_repo)
     sh.hg.branch("branch_one")
@@ -127,6 +137,20 @@ def test_push_new_named_branch(git_dir, hg_repo):
     sh.hg.update('tip')
 
     assert sh.hg.branch().stdout.strip() == "branch_one"
+
+
+def test_push_conflict_named_branch(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    sh.hg.branch("feature")
+    make_hg_commit('b')
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(hg_repo)
+    make_hg_commit('c')
+    sh.cd(git_repo)
+    sh.git.checkout("origin/branches/feature", track=True)
+    make_git_commit("d")
+    assert sh.git.push(_ok_code=128).stderr.find("Remote Mercurial repository"
+        " contains new commits. Consider pulling first.") > 0
 
 
 def test_push_to_bookmark(git_dir, hg_repo):
