@@ -128,9 +128,6 @@ def test_push_new_named_branch(git_dir, hg_repo):
 
     assert sh.hg.branch().stdout.strip() == "branch_one"
 
-    # TODO: Need to determine that the upstream branch did not exist and pass
-    # --new-branch to the push command
-
 
 def test_push_to_bookmark(git_dir, hg_repo):
     sh.cd(hg_repo)
