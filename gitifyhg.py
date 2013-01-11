@@ -294,7 +294,7 @@ class HGRemote(object):
 
     def do_list(self, parser):
         '''List all references in the mercurial repository. This includes
-        the current head, all branches, and bookmarks.'''
+        the current head, all branches, tags, and bookmarks.'''
 
         current_branch = self.repo.dirstate.branch()
 
