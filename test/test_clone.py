@@ -126,7 +126,6 @@ def test_clone_branch_with_spaces(git_dir, hg_repo):
   origin/branches/feature___branch
   origin/master
 """
-    # TODO: Cloning a branch with spaces is not currently supported.
 
 
 def test_clone_merged_branch(git_dir, hg_repo):
