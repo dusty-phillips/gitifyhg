@@ -65,8 +65,7 @@ def test_push_conflict_default(git_dir, hg_repo):
     make_hg_commit("b")
     sh.cd(git_repo)
     make_git_commit("c")
-    assert sh.git.push(_ok_code=128).stderr.find("Remote Mercurial repository"
-        " contains new commits. Consider pulling first.") > 0
+    assert sh.git.push(_ok_code=1).stderr.find("[remote rejected] master -> master") > 0
 
 
 def test_push_to_named(git_dir, hg_repo):
@@ -149,8 +148,8 @@ def test_push_conflict_named_branch(git_dir, hg_repo):
     sh.cd(git_repo)
     sh.git.checkout("origin/branches/feature", track=True)
     make_git_commit("d")
-    assert sh.git.push(_ok_code=128).stderr.find("Remote Mercurial repository"
-        " contains new commits. Consider pulling first.") > 0
+    assert sh.git.push(_ok_code=1).stderr.find("[remote rejected]"
+        " branches/feature -> branches/feature") > 0
 
 
 def test_push_to_bookmark(git_dir, hg_repo):
