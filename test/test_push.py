@@ -68,6 +68,17 @@ def test_push_conflict_default(git_dir, hg_repo):
     assert sh.git.push(_ok_code=1).stderr.find("[remote rejected] master -> master") > 0
 
 
+@pytest.mark.xfail
+def test_push_conflict_default_double(git_dir, hg_repo):
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(hg_repo)
+    make_hg_commit("b")
+    sh.cd(git_repo)
+    make_git_commit("c")
+    assert sh.git.push(_ok_code=1).stderr.find("[remote rejected] master -> master") > 0
+    assert sh.git.push(_ok_code=1).stderr.find("[remote rejected] master -> master") > 0
+
+
 def test_push_to_named(git_dir, hg_repo):
     sh.cd(hg_repo)
     sh.hg.branch("branch_one")
