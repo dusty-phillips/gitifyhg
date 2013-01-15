@@ -605,7 +605,7 @@ class GitExporter(object):
         tip = self.repo[tip].rev()
         log("%r %r" % (git_marked_tip, tip))
         if git_marked_tip < tip:
-            output("error %s already exists\n" % ref)
+            output("error %s non-fast forward\n" % ref)
             sys.exit(1)
 
         commit_mark = self.parser.read_mark()
