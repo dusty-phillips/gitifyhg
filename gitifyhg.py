@@ -35,7 +35,7 @@ from mercurial import hg
 from mercurial.error import RepoLookupError
 
 
-DEBUG_GITIFYHG = os.environ.get("DEBUG_GITIFYHG", "").lower() == "on"
+DEBUG_GITIFYHG = os.environ.get("DEBUG_GITIFYHG") != None
 
 
 def log(msg, level="DEBUG"):
