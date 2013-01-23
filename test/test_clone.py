@@ -424,3 +424,27 @@ def test_sym_link(git_dir, hg_repo):
     sh.hg.update()
     assert p('second_link').islink()
 
+
+def test_clone_close_branch(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    sh.hg.branch('feature')
+    make_hg_commit("b", "b")
+    sh.hg.update('default')
+    make_hg_commit("c")
+    sh.hg.update('feature')
+    write_to_test_file("d", "b")
+    sh.hg.commit('--close-branch', message="d")
+
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+    # TODO: Perhaps it should make an archived tag instead of a branch...
+    print sh.git.branch(remote=True)
+    assert sh.git.branch(remote=True).stdout == """  origin/HEAD -> origin/master
+  origin/branches/default
+  origin/branches/feature
+  origin/master
+"""
+
+    assert_git_messages(['c', 'a'])
+    sh.git.checkout("origin/branches/feature")
+    assert_git_messages(['d', 'b', 'a'])

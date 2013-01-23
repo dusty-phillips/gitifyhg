@@ -307,10 +307,15 @@ class HGRemote(object):
         else:
             # If there is no bookmark for head, mock one
             head = current_branch
-            node = self.repo['.'] or self.repo['tip']
+            node = self.repo['.']
+            # I think this means an initial clone occured and we haven't
+            # hg updated yet in the local clone
             if not node:
-                output()
-                return
+                if 'default' in self.repo:
+                    node = self.repo['default']
+                else:  # empty repository or head is at 0 commit
+                    output()
+                    return
             head = head if head != 'default' else 'master'
             self.bookmarks[head] = node
 
