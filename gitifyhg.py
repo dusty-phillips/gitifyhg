@@ -379,7 +379,7 @@ class HGImporter(object):
         while self.parser.line.startswith('import'):
             ref = self.parser.line.split()[1]
 
-            if (ref == 'HEAD'):
+            if ref == 'HEAD':
                 self.process_ref(
                     self.hgremote.headnode[0],
                     'bookmarks',
