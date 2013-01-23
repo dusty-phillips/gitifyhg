@@ -306,10 +306,6 @@ def test_clone_tag_with_spaces(git_dir, hg_repo):
     sh.hg.tag("THIS IS TAGGED")
     make_hg_commit("c")
 
-    # TODO: hg allows tags with spaces, but git thinks that is an attrocious
-    # thing to do. We need to either escape spaces in the tag in some way
-    # or discard the tag with an appropriate warning message, not fail on the
-    # clone.
     clone_repo(git_dir, hg_repo)
 
     result = sh.git.tag()
