@@ -76,17 +76,20 @@ def test_clone_linear_branch(git_dir, hg_repo):
 
     assert git_repo.exists()
     assert git_repo.joinpath('test_file').exists()
-    with git_repo.joinpath('test_file').open() as file:
-        assert file.read() == "a\nb"
-
-    assert_git_count(2)
-    assert_git_messages(['b', 'a'])
-    print sh.git.branch(remote=True)
+    assert_git_count(1)
+    assert_git_messages(['a'])
     assert sh.git.branch(remote=True).stdout == """  origin/HEAD -> origin/master
   origin/branches/default
   origin/branches/featurebranch
   origin/master
 """
+
+    sh.git.checkout('branches/featurebranch')
+
+    with git_repo.joinpath('test_file').open() as file:
+        assert file.read() == "a\nb"
+    assert_git_count(2)
+    assert_git_messages(['b', 'a'])
 
 
 def test_clone_simple_branch(git_dir, hg_repo):
@@ -115,17 +118,20 @@ def test_clone_branch_with_spaces(git_dir, hg_repo):
 
     assert git_repo.exists()
     assert git_repo.joinpath('test_file').exists()
-    with git_repo.joinpath('test_file').open() as file:
-        assert file.read() == "a\nb"
-
-    assert_git_count(2)
-    assert_git_messages(['b', 'a'])
-    print sh.git.branch(remote=True)
+    assert_git_count(1)
+    assert_git_messages(['a'])
     assert sh.git.branch(remote=True).stdout == """  origin/HEAD -> origin/master
   origin/branches/default
   origin/branches/feature___branch
   origin/master
 """
+
+    sh.git.checkout('branches/feature___branch')
+
+    with git_repo.joinpath('test_file').open() as file:
+        assert file.read() == "a\nb"
+    assert_git_count(2)
+    assert_git_messages(['b', 'a'])
 
 
 def test_clone_merged_branch(git_dir, hg_repo):
