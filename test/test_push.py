@@ -241,7 +241,6 @@ def test_push_after_rebase(git_dir, hg_repo):
     assert_hg_count(3)
 
 
-@pytest.mark.xfail
 def test_push_email(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(git_repo)
