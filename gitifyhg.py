@@ -322,7 +322,7 @@ class HGRemote(object):
 
         # update the named branch references
         for branch in self.repo.branchmap():
-            heads = self.repo.branchheads(branch)
+            heads = self.repo.branchheads(branch, closed=True)
             if heads:
                 self.branches[branch] = heads
 
