@@ -66,7 +66,7 @@ def clone_repo(git_dir, hg_repo):
 def assert_git_count(count):
     '''Assuming you are in a git repository, assert that ``count`` commits
     have been made to that repo.'''
-    assert sh.git('--no-pager',  'log', '--pretty=oneline'
+    assert sh.git('log', '--pretty=oneline'
         ).stdout.count(b'\n') == count
 
 
@@ -79,7 +79,7 @@ def assert_git_messages(expected_lines):
         (ie: most recent commits at the top or left)
     :return True if the message lines match the git repo in the current directory
         False otherwise.'''
-    actual_lines = sh.git('--no-pager', 'log', pretty='oneline', color='never'
+    actual_lines = sh.git('log', pretty='oneline', color='never'
         ).strip().split('\n')
     actual_lines = [l.partition(' ')[-1] for l in actual_lines]
     assert actual_lines == expected_lines

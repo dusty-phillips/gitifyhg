@@ -327,7 +327,7 @@ def test_author_no_email(git_dir, hg_repo):
 
     clone_repo(git_dir, hg_repo)
     assert "Author: noemailsupplied <unknown>\n" in \
-        sh.git("--no-pager", "log", color="never").stdout
+        sh.git("log", color="never").stdout
 
 
 def test_author_no_space_before_email(git_dir, hg_repo):
@@ -339,7 +339,7 @@ def test_author_no_space_before_email(git_dir, hg_repo):
 
     clone_repo(git_dir, hg_repo)
     assert "Author: nospace <email@example.com>\n" in \
-        sh.git("--no-pager", "log", color="never").stdout
+        sh.git("log", color="never").stdout
 
 
 def test_unicode_path(tmpdir, git_dir):
