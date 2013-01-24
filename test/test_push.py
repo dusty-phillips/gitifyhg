@@ -21,7 +21,7 @@ import sys
 import pytest
 import sh
 from .helpers import (make_hg_commit, make_git_commit, clone_repo,
-    assert_hg_count)
+    assert_hg_count, assert_git_count)
 
 
 def test_simple_push_from_master(hg_repo, git_dir):
@@ -226,6 +226,33 @@ def test_push_with_multiple_bookmarks(git_dir, hg_repo):
     assert "feature" in sh.hg.bookmark().stdout
     with hg_repo.joinpath("test_file").open() as file:
         assert file.read() == "a\nbd"
+
+
+def test_push_after_rebase(git_dir, hg_repo):
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(hg_repo)
+    make_hg_commit("b")
+    sh.cd(git_repo)
+    make_git_commit("c", "c")
+    sh.git.pull('--rebase')
+    assert_git_count(3)         # as with test_pull_auto_merge
+    sh.git.push()
+    sh.cd(hg_repo)
+    assert_hg_count(3)
+
+
+@pytest.mark.xfail
+def test_push_after_merge(git_dir, hg_repo):
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(hg_repo)
+    make_hg_commit("b")
+    sh.cd(git_repo)
+    make_git_commit("c", "c")
+    sh.git.pull()               # automerge
+    assert_git_count(4)         # as with test_pull_auto_merge
+    sh.git.push()
+    sh.cd(hg_repo)
+    assert_hg_count(4)
 
 
 @pytest.mark.xfail
