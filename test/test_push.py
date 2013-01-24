@@ -21,7 +21,7 @@ import sys
 import pytest
 import sh
 from .helpers import (make_hg_commit, make_git_commit, clone_repo,
-    assert_hg_count, assert_git_count)
+    assert_hg_count, assert_git_count, assert_hg_author, assert_git_author)
 
 
 def test_simple_push_from_master(hg_repo, git_dir):

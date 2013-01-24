@@ -22,7 +22,7 @@ import sys
 import os
 from path import path as p
 from .helpers import (make_hg_commit, clone_repo, assert_git_count,
-    assert_hg_count, assert_git_messages, write_to_test_file)
+    assert_hg_count, assert_git_messages, assert_git_author, write_to_test_file)
 
 
 def test_basic_clone(git_dir, hg_repo):
@@ -320,26 +320,18 @@ def test_clone_tag_with_spaces(git_dir, hg_repo):
 
 def test_author_no_email(git_dir, hg_repo):
     sh.cd(hg_repo)
-    with open(hg_repo.joinpath('.hg/hgrc'), "w") as file:
-        file.write("[ui]\nusername=noemailsupplied")
-
-    make_hg_commit("b")
+    make_hg_commit("b", user="noemailsupplied")
 
     clone_repo(git_dir, hg_repo)
-    assert "Author: noemailsupplied <unknown>\n" in \
-        sh.git("log", color="never").stdout
+    assert_git_author(author='noemailsupplied <unknown>')
 
 
 def test_author_no_space_before_email(git_dir, hg_repo):
     sh.cd(hg_repo)
-    with open(hg_repo.joinpath('.hg/hgrc'), "w") as file:
-        file.write("[ui]\nusername=nospace<email@example.com>")
-
-    make_hg_commit("b")
+    make_hg_commit("b", user="nospace<email@example.com>")
 
     clone_repo(git_dir, hg_repo)
-    assert "Author: nospace <email@example.com>\n" in \
-        sh.git("log", color="never").stdout
+    assert_git_author(author='nospace <email@example.com>')
 
 
 def test_unicode_path(tmpdir, git_dir):
