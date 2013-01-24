@@ -207,12 +207,15 @@ class GitRemoteParser(object):
         '''Read and parse an author string. Return a tuple of
         (user string, date, git_tz).'''
         self.read_line()
-        AUTHOR_RE = re.compile('^\w+ (?:(.+)? ?<.*>) (\d+) ([+-]\d+)')
+        AUTHOR_RE = re.compile(r'^(?:author|committer)(?: ([^<>]+)?)? <([^<>]*)> (\d+) ([+-]\d+)')
         match = AUTHOR_RE.match(self.line)
         if not match:
             return None
 
-        user, date, tz = match.groups()
+        user, email, date, tz = match.groups()
+        if user is None:
+            user = ''
+        user += ' <' + email + '>'
 
         date = int(date)
         tz = -((int(tz) / 100) * 3600) + ((int(tz) % 100) * 60)

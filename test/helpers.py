@@ -18,6 +18,7 @@
 import sys
 
 from path import path as p
+import os
 import sh
 
 
@@ -34,22 +35,22 @@ def write_to_test_file(message, filename='test_file'):
         file.write(message)
 
 
-def make_hg_commit(message, filename='test_file'):
+def make_hg_commit(message, filename='test_file', user='Hg Author <hg@author.email>'):
     '''Assuming we are in a mercurial repository, write the message to the
     filename and commit it.'''
     add = not p(filename).exists()
     write_to_test_file(message, filename)
     if add:
         sh.hg.add(filename)
-    sh.hg.commit(message=message)
+    sh.hg.commit(message=message, user=user)
 
 
-def make_git_commit(message, filename='test_file'):
+def make_git_commit(message, filename='test_file', author='Git Author <git@author.email>'):
     '''Assuming we are in a git repository, write the message to the
     filename and commit it.'''
     write_to_test_file(message, filename)
     sh.git.add(filename)
-    sh.git.commit(message=message)
+    sh.git.commit(message=message, author=author)
 
 
 def clone_repo(git_dir, hg_repo):
@@ -66,7 +67,7 @@ def clone_repo(git_dir, hg_repo):
 def assert_git_count(count):
     '''Assuming you are in a git repository, assert that ``count`` commits
     have been made to that repo.'''
-    assert sh.git('--no-pager',  'log', '--pretty=oneline'
+    assert sh.git('log', '--pretty=oneline'
         ).stdout.count(b'\n') == count
 
 
@@ -79,7 +80,7 @@ def assert_git_messages(expected_lines):
         (ie: most recent commits at the top or left)
     :return True if the message lines match the git repo in the current directory
         False otherwise.'''
-    actual_lines = sh.git('--no-pager', 'log', pretty='oneline', color='never'
+    actual_lines = sh.git('log', pretty='oneline', color='never'
         ).strip().split('\n')
     actual_lines = [l.partition(' ')[-1] for l in actual_lines]
     assert actual_lines == expected_lines
@@ -92,3 +93,13 @@ def assert_hg_count(count, rev=None):
         assert sh.grep(sh.hg.log(rev=rev), 'changeset:').stdout.count(b'\n') == count
     else:
         assert sh.grep(sh.hg.log(), 'changeset:').stdout.count(b'\n') == count
+
+
+def assert_hg_author(author='Git Author <git@author.email>', rev="tip"):
+    output = sh.hg.log(template='{author}', rev=rev).stdout.strip()
+    assert author == output
+
+
+def assert_git_author(author='Git Author <git@author.email>', ref="HEAD"):
+    output = sh.git.show('-s', '--format=%an <%ae>', ref).stdout.strip()
+    assert author == output
