@@ -242,6 +242,24 @@ def test_push_after_rebase(git_dir, hg_repo):
 
 
 @pytest.mark.xfail
+def test_push_email(git_dir, hg_repo):
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+    make_git_commit("b")
+    sh.git.push()
+    sh.cd(hg_repo)
+    sh.hg.update()
+    assert_hg_author()
+    hg_user = "Hg Author <hg@author.test>"
+    make_hg_commit("c", user=hg_user)
+    assert_hg_author(hg_user)
+    sh.cd(git_repo)
+    sh.git.pull()
+    assert_git_author(ref="HEAD^")
+    assert_git_author(author=hg_user)
+
+
+@pytest.mark.xfail
 def test_push_after_merge(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(hg_repo)
