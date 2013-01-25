@@ -458,11 +458,8 @@ class HGImporter(object):
             if not parents and rev:
                 output('reset %s/%s' % (self.prefix, kind_name))
 
-            mark = self.marks.get_mark(rev)
-
-            # output the commit itself
             output("commit %s/%s" % (self.prefix, kind_name))
-            output("mark :%d" % (mark))
+            output("mark :%d" % (self.marks.get_mark(rev)))
             output("author %s" % (author))
             output("committer %s" % (committer))
             output("data %d" % (len(description)))
@@ -484,28 +481,30 @@ class HGImporter(object):
                 output("D %s" % (file))
             output()
 
-            #log("HACK: %s %s" % (self.repo[rev].node(), self.repo[rev].hex()) )
-
-            # output the a git note indicating the mercurial hash of the commit
-            output("commit refs/notes/hg")
-            #output("mark :%d" % (self.marks.get_mark(rev)))
-            # FIXME: Should we insert a fake committer like "gitifyhg" here?
-            output("committer %s" % (committer))
-            # FIXME: What "commit message" should be on this note?
-            data = "blabla"
-            output("data %d" % len(data))
-            output(data)
-            output("N inline :%d" % (mark))
-            data = self.repo[rev].hex()
-            output("data %d" % len(data))
-            output(data)
-            output()
-
             count += 1
             if (count % 100 == 0):
                 output("progress revision %d '%s' (%d/%d)" % (
                     rev, name, count, len(revs)))
                 output("#############################################################")
+
+
+        # output a git note indicating the mercurial hash of the added commits
+        output("commit refs/notes/hg")
+        # TODO: obtain SHA-1 of last commit to refs/notes/hg and use it:
+        #output("from :%s" % (TODO-PARENT-SHA1))
+        # TODO: Should we insert a fake committer like "gitifyhg" here?
+        #output("committer %s" % (committer))
+        output("committer gitifyhg <unknown> 1359154199 +0100")
+        # TODO: What "commit message" should be on this note?
+        data = "This note update brought to you by gitifyhg"
+        output("data %d" % len(data))
+        output(data)
+        for rev in revs:
+            output("N inline :%d" % (self.marks.revision_to_mark(rev)))
+            data = self.repo[rev].hex()
+            output("data %d" % len(data))
+            output(data)
+        output()
 
         # make sure the ref is updated
         output("reset %s/%s" % (self.prefix, kind_name))
