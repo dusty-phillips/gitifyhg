@@ -603,33 +603,6 @@ class GitExporter(object):
         from_mark = merge_mark = None
 
         ref = self.parser.line.split()[1]
-        # FIXME: This needs to be in it's own method or function somehow.
-        #        The importer uses similar logic.
-        if ref.startswith('refs/heads/branches/'):
-            branch_name = ref[len('refs/heads/branches/'):]
-            try:
-                tip = self.repo.branchtip(git_to_hg_spaces(branch_name))
-                git_marked_tip = self.marks.tips['branches/%s' % branch_name]
-            except RepoLookupError:
-                # setting these to 0 isn't honest, but it (currently)
-                # only has to pass the if git_marked_tip < tip: below
-                tip = git_marked_tip = 0
-        elif ref == 'refs/heads/master':
-            try:
-                tip = self.repo.branchtip('default')
-                git_marked_tip = self.marks.tips['bookmarks/master']
-            except RepoLookupError:
-                tip = git_marked_tip = 0
-        elif ref.startswith('refs/heads/'):
-            bookmark = ref[len('refs/heads/'):]
-            tip = listbookmarks(self.repo)[git_to_hg_spaces(bookmark)]
-            git_marked_tip = self.marks.tips['bookmarks/%s' % bookmark]
-
-        tip = self.repo[tip].rev()
-        log("%r %r" % (git_marked_tip, tip))
-        if git_marked_tip < tip:
-            output("error %s non-fast forward\n" % ref)
-            sys.exit(1)
 
         commit_mark = self.parser.read_mark()
         author = self.parser.read_author()
@@ -680,7 +653,8 @@ class GitExporter(object):
                     files[file] = {'ctx': self.repo[parent_from][file]}
 
         if ref.startswith('refs/heads/branches/'):
-            extra['branch'] = git_to_hg_spaces(branch_name)
+            extra['branch'] = git_to_hg_spaces(
+                ref[len('refs/heads/branches/'):])
 
         def get_filectx(repo, memctx, file):
             filespec = files[file]
