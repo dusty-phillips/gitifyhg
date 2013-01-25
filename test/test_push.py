@@ -36,7 +36,7 @@ def test_simple_push_from_master(hg_repo, git_dir):
         assert file.read() == "a\nb"
 
 
-@pytest.mark.xfail # commit is pushed, sh.git.fetch() would update remotes
+@pytest.mark.xfail  # commit is pushed, sh.git.fetch() would update remotes
 def test_simple_push_updates_remote(hg_repo, git_dir):
     clone_repo(git_dir, hg_repo)
     make_git_commit("b")
