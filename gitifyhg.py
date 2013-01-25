@@ -606,17 +606,15 @@ class GitExporter(object):
             self.remove_processed_git_marks()
 
     def remove_processed_git_marks(self):
-        fread = open(self.hgremote.marks_git_path, 'r')
-        fwrite = open(self.hgremote.marks_git_path, 'r+')
-        for line in fread:
-            if not line.startswith(':'):
-                die("invalid line in marks-git: " + line)
-            mark = line[1:].split()[0]
-            if mark not in self.processed_marks:
-                fwrite.write(line)
-        fread.close()
-        fwrite.truncate()
-        fwrite.close()
+        with self.hgremote.marks_git_path.open() as fread:
+            with self.hgremote.marks_git_path.open('r+') as fwrite:
+                for line in fread:
+                    if not line.startswith(':'):
+                        die("invalid line in marks-git: " + line)
+                    mark = line[1:].split()[0]
+                    if mark not in self.processed_marks:
+                        fwrite.write(line)
+                fwrite.truncate()
 
     def do_blob(self):
         mark = self.parser.read_mark()
