@@ -64,10 +64,10 @@ def clone_repo(git_dir, hg_repo):
     return git_repo
 
 
-def assert_git_count(count):
+def assert_git_count(count, ref='HEAD'):
     '''Assuming you are in a git repository, assert that ``count`` commits
     have been made to that repo.'''
-    assert sh.git('log', '--pretty=oneline'
+    assert sh.git('log', '--pretty=oneline', ref
         ).stdout.count(b'\n') == count
 
 

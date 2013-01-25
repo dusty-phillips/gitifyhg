@@ -36,6 +36,15 @@ def test_simple_push_from_master(hg_repo, git_dir):
         assert file.read() == "a\nb"
 
 
+@pytest.mark.xfail # commit is pushed, sh.git.fetch() would update remotes
+def test_simple_push_updates_remote(hg_repo, git_dir):
+    clone_repo(git_dir, hg_repo)
+    make_git_commit("b")
+    sh.git.push()
+    # sh.git.fetch()
+    assert_git_count(2, ref='origin')
+
+
 def test_empty_repo(tmpdir):
     tmpdir = p(tmpdir.strpath).abspath()
     hg_base = tmpdir.joinpath('hg_base')
@@ -270,6 +279,17 @@ def test_push_after_merge(git_dir, hg_repo):
     sh.git.push()
     sh.cd(hg_repo)
     assert_hg_count(4)
+
+
+@pytest.mark.xfail
+def test_push_two_commits(git_dir, hg_repo):
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+    make_git_commit("b")
+    make_git_commit("c")
+    sh.git.push()
+    sh.cd(hg_repo)
+    assert_hg_count(3)
 
 
 @pytest.mark.xfail
