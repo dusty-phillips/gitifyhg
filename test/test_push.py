@@ -273,6 +273,17 @@ def test_push_after_merge(git_dir, hg_repo):
 
 
 @pytest.mark.xfail
+def test_push_two_commits(git_dir, hg_repo):
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+    make_git_commit("b")
+    make_git_commit("c")
+    sh.git.push()
+    sh.cd(hg_repo)
+    assert_hg_count(3)
+
+
+@pytest.mark.xfail
 def test_push_new_bookmark(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(git_repo)
