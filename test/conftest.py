@@ -5,6 +5,10 @@ import sh
 from .helpers import write_to_test_file
 
 
+# Disables color and pager independent of user's configuration
+sh.git = sh.git.bake(_tty_out=False)
+
+
 @pytest.fixture
 def hg_repo(tmpdir):
     '''Fixture that creates an hg repository in a temporary directory
