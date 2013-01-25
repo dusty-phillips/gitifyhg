@@ -292,6 +292,16 @@ def test_clone_bookmark_not_at_tip(git_dir, hg_repo):
     assert_git_count(2)
     assert_git_messages(['b', 'a'])
 
+# See issue #13
+@pytest.mark.xfail
+def test_clone_bookmark_named_master_not_at_tip(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    make_hg_commit("b")
+    sh.hg.update(rev=0)
+    sh.hg.bookmark("master")
+    sh.hg.update('tip')
+
+    clone_repo(git_dir, hg_repo)
 
 def test_clone_tags(git_dir, hg_repo):
     sh.cd(hg_repo)
