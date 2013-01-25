@@ -37,11 +37,15 @@ from mercurial.error import RepoLookupError
 
 DEBUG_GITIFYHG = os.environ.get("DEBUG_GITIFYHG") != None
 
+
 # hijack stdout to prevent mercurial from inadvertently talking to git.
 # interactive=off and ui.pushbuffer() don't seem to work.
 class DummyOut(object):
-    def write(self, x): pass
-    def flush(self): pass
+    def write(self, x):
+        pass
+
+    def flush(self):
+        pass
 actual_stdout = sys.stdout
 sys.stdout = DummyOut()
 
