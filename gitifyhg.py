@@ -371,6 +371,7 @@ class HGImporter(object):
 
     def process(self):
         output("feature done")
+        output("feature notes")
         if self.hgremote.marks_git_path.exists():
             output("feature import-marks=%s" % self.hgremote.marks_git_path)
         output("feature export-marks=%s" % self.hgremote.marks_git_path)
@@ -457,8 +458,11 @@ class HGImporter(object):
             if not parents and rev:
                 output('reset %s/%s' % (self.prefix, kind_name))
 
+            mark = self.marks.get_mark(rev)
+
+            # output the commit itself
             output("commit %s/%s" % (self.prefix, kind_name))
-            output("mark :%d" % (self.marks.get_mark(rev)))
+            output("mark :%d" % (mark))
             output("author %s" % (author))
             output("committer %s" % (committer))
             output("data %d" % (len(description)))
@@ -478,6 +482,23 @@ class HGImporter(object):
                 output(data)
             for file in removed:
                 output("D %s" % (file))
+            output()
+
+            #log("HACK: %s %s" % (self.repo[rev].node(), self.repo[rev].hex()) )
+
+            # output the a git note indicating the mercurial hash of the commit
+            output("commit refs/notes/hg")
+            #output("mark :%d" % (self.marks.get_mark(rev)))
+            # FIXME: Should we insert a fake committer like "gitifyhg" here?
+            output("committer %s" % (committer))
+            # FIXME: What "commit message" should be on this note?
+            data = "blabla"
+            output("data %d" % len(data))
+            output(data)
+            output("N inline :%d" % (mark))
+            data = self.repo[rev].hex()
+            output("data %d" % len(data))
+            output(data)
             output()
 
             count += 1
