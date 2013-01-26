@@ -25,6 +25,7 @@ import json
 import re
 import subprocess
 from path import path as p
+from time import strftime
 
 from mercurial.ui import ui
 from mercurial.context import memctx, memfilectx
@@ -144,11 +145,13 @@ class HGMarks(object):
             self.last_mark = loaded['last-mark']
             self.marks_to_revisions = dict([(int(v), k) for k, v in
                     self.revisions_to_marks.iteritems()])
+            self.notes_mark = loaded.get('notes-mark', None)
         else:
             self.tips = {}
             self.revisions_to_marks = {}
             self.marks_to_revisions = {}
             self.last_mark = 0
+            self.notes_mark = None
 
     def store(self):
         '''Save marks to the storage file.'''
@@ -156,7 +159,8 @@ class HGMarks(object):
             json.dump({
                 'tips': self.tips,
                 'revisions_to_marks': self.revisions_to_marks,
-                'last-mark': self.last_mark},
+                'last-mark': self.last_mark,
+                'notes-mark': self.notes_mark},
             file)
 
     def mark_to_revision(self, mark):
@@ -178,6 +182,11 @@ class HGMarks(object):
 
     def is_marked(self, revision):
         return str(revision) in self.revisions_to_marks
+
+    def new_notes_mark(self):
+        self.last_mark += 1
+        self.notes_mark = self.last_mark
+        return self.notes_mark
 
 
 class GitRemoteParser(object):
@@ -263,6 +272,8 @@ class HGRemote(object):
         if alias[8:] == url:  # strips off 'gitifyhg::'
             alias = sha1(alias).hexdigest()
         self.prefix = 'refs/hg/%s' % alias
+        self.alias = alias
+        self.url = url
         self.build_repo(url, alias)
 
     def build_repo(self, url, alias):
@@ -381,12 +392,14 @@ class HGImporter(object):
         self.prefix = self.hgremote.prefix
         self.repo = self.hgremote.repo
         self.parser = parser
+        self.notes_committed = 0
 
     def process(self):
         output("feature done")
         if self.hgremote.marks_git_path.exists():
             output("feature import-marks=%s" % self.hgremote.marks_git_path)
         output("feature export-marks=%s" % self.hgremote.marks_git_path)
+        output("feature notes")
         actual_stdout.flush()
 
         tmp = encoding.encoding
@@ -434,6 +447,27 @@ class HGImporter(object):
 
         head = self.repo[tip]
         self.process_ref(hg_to_git_spaces(branch), 'branches', head)
+
+    def process_notes(self):
+        last_notes_mark = self.marks.notes_mark if self.marks.notes_mark is not None else 0
+        mark_to_hgsha1 = [(mark, self.repo[rev].hex()) for rev, mark in
+                          self.marks.revisions_to_marks.iteritems() if mark > last_notes_mark]
+        if not mark_to_hgsha1:
+            return
+        output("commit refs/notes/hg-%s" % (self.hgremote.alias))
+        output("mark :%d" % (self.marks.new_notes_mark()))
+        output("committer <gitifyhg-note> %s" % (strftime('%s %z')))
+        message = u"hg from %s (%s)\n" % (self.prefix, self.hgremote.url)
+        message = message.encode("utf-8")
+        output("data %d" % (len(message)))
+        output(message)
+        if last_notes_mark > 0:
+            output("from :%d" % (last_notes_mark))
+        for mark, hgsha1 in mark_to_hgsha1:
+            output("N inline :%d" % (mark))
+            output("data 40")
+            output(hgsha1)
+        output()
 
     def process_ref(self, name, kind, head):
 
@@ -506,6 +540,8 @@ class HGImporter(object):
         output("reset %s/%s" % (self.prefix, kind_name))
         output("from :%u" % self.marks.revision_to_mark(rev))
         output()
+
+        self.process_notes()
 
         self.marks.tips[kind_name] = rev
 
