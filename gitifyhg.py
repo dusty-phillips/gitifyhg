@@ -622,10 +622,9 @@ class GitExporter(object):
             # mercurial.error.Abort: push creates new remote head f14531ca4e2d!
             if e.message.startswith("push creates new remote head"):
                 self.marks.load()  # restore from checkpoint
-                # strip revs backwards, newest to oldest
-                # TODO: this can probably be done faster by finding the root revs
-                for rev in reversed(self.processed_nodes):
-                    self.repo.mq.strip(self.repo, [rev])
+                # strip revs, implementation finds min revision from list
+                if self.processed_nodes:
+                    self.repo.mq.strip(self.repo, self.processed_nodes)
             else:
                 die("unknown hg exception: %s" % e)
         # TODO: handle network/other errors?
