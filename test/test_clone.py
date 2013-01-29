@@ -58,7 +58,7 @@ def test_clone_relative(git_dir, hg_repo):
     assert git_repo.exists()
     assert git_repo.joinpath('test_file').exists()
     assert git_repo.joinpath('.git').isdir()
-    with git_repo.joinpath('.git/hg/origin/clone/.hg/hgrc').open() as file:
+    with git_repo.joinpath(sh.glob('.git/hg/*/clone/.hg/hgrc')[0]).open() as file:
         assert hg_repo in file.read()
 
     sh.cd(git_repo)
