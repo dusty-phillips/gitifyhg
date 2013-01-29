@@ -1,0 +1,50 @@
+language: python
+python:
+  - "2.6"
+  - "2.7"
+
+# install recent git version, and make sure the git config
+# contains suitable default
+before_install:
+  - sudo apt-get update -qq
+  - sudo add-apt-repository -y ppa:pdoes/ppa
+  - sudo apt-get install -qq git
+  - git config --global user.email you@example.com
+  - git config --global user.name Gitifyhg
+  - git config --global push.default simple
+
+# install dependencies and gitifyhg itself;
+# py.test is already preinstalled
+install:
+  - "pip install -q --use-mirrors sh"
+  - "pip install -q --use-mirrors path.py>=2.5"
+  - "pip install -q --use-mirrors Mercurial==$HG_VERSION"
+  - "python setup.py -q install"
+
+# specify various mercurial versions to test against
+# TODO: Also test against multiple git versions;
+# this may require setting up a custom PPA with suitable
+# .deb's in it.
+env:
+  - HG_VERSION=2.4.2  # latest release
+#  - HG_VERSION=2.4.1
+#  - HG_VERSION=2.3.2
+  - HG_VERSION=2.2.2  # Debian Wheezy, Ubuntu 12.10
+  - HG_VERSION=2.0.2  # Ubuntu 12.04 LTS
+  - HG_VERSION=1.9.1  # Ubuntu 11.10
+#  - HG_VERSION=2.2.3
+#  - HG_VERSION=2.1.2
+#  - HG_VERSION=2.0.2
+#  - HG_VERSION=1.9.3
+#  - HG_VERSION=1.8.4
+#  - HG_VERSION=1.6.4  # Debian Squeeze
+
+# command to run actual tests
+# We also output the git and hg versions to make sure we are using
+# the right ones.
+# Also, switch the traceback format to 'short' to work around
+# a bug in py.test <= 2.3.4.
+script:
+  - git --version
+  - hg --version
+  - py.test --tb=short
