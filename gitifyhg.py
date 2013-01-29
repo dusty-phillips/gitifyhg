@@ -270,6 +270,7 @@ class HGRemote(object):
         clone does not exist, clone it, otherwise, ensure it is fetched.'''
         myui = ui()
         myui.setconfig('ui', 'interactive', 'off')
+        myui.setconfig('extensions', 'mq', '')
 
         local_path = self.remotedir.joinpath('clone')
         if not local_path.exists():
