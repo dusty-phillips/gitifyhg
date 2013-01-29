@@ -35,6 +35,32 @@ def test_basic_pull(git_dir, hg_repo):
     assert_git_notes(hgsha1s)
 
 
+def test_pull_named_remote(git_dir, hg_repo):
+    git_repo = git_dir.joinpath("hg_repo")
+    sh.git.init(git_repo)
+    sh.cd(git_repo)
+    sh.git.remote("add", "--fetch", "the-remote", "gitifyhg::"+hg_repo)
+    sh.git.pull("the-remote", "master")
+    assert_git_count(1)
+    sh.cd(hg_repo)
+    make_hg_commit("b")
+    make_hg_commit("c")
+    sh.cd(git_repo)
+    sh.git.fetch("the-remote")
+    assert_git_count(3, ref="the-remote/master")
+
+    sh.cd(hg_repo)
+    make_hg_commit("d")
+    hgsha1s = sh.hg.log(template='{node}\n').stdout.splitlines()
+
+    sh.cd(git_repo)
+    sh.git.remote("rename", "the-remote", "new-remote-name")
+    sh.mv(".git/refs/hg/the-remote", ".git/refs/hg/new-remote-name")
+    sh.git.pull("new-remote-name", "master")
+    assert_git_count(4)
+    assert_git_notes(hgsha1s)
+
+
 def test_pull_from_named_branch(git_dir, hg_repo):
     sh.cd(hg_repo)
     sh.hg.branch("feature")
