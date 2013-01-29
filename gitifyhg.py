@@ -260,8 +260,13 @@ class HGRemote(object):
             cmd = ['git', 'config', 'remote.%s.url' % alias, "gitifyhg::%s" % url]
             subprocess.call(cmd)
 
+        # use hash of URL as unique identifier in various places.
+        # this has the advantage over 'alias' that it stays constant
+        # when the user does a "git remote rename old new".
+        self.uuid = sha1(url).hexdigest()
+
         gitdir = p(os.environ['GIT_DIR'].decode('utf-8'))
-        self.remotedir = gitdir.joinpath('hg', alias)
+        self.remotedir = gitdir.joinpath('hg', self.uuid)
         self.marks_git_path = self.remotedir.joinpath('marks-git')
         self.marks = HGMarks(self.remotedir.joinpath('marks-hg'))
         self.parsed_refs = {}
@@ -269,14 +274,12 @@ class HGRemote(object):
         self.branches = {}
         self.bookmarks = {}
 
-        if alias[8:] == url:  # strips off 'gitifyhg::'
-            alias = sha1(alias).hexdigest()
         self.prefix = 'refs/hg/%s' % alias
         self.alias = alias
         self.url = url
-        self.build_repo(url, alias)
+        self.build_repo(url)
 
-    def build_repo(self, url, alias):
+    def build_repo(self, url):
         '''Make the Mercurial repo object self.repo available. If the local
         clone does not exist, clone it, otherwise, ensure it is fetched.'''
         myui = ui()
@@ -455,7 +458,7 @@ class HGImporter(object):
                           self.marks.revisions_to_marks.iteritems() if mark > last_notes_mark]
         if not mark_to_hgsha1:
             return
-        output("commit refs/notes/hg-%s" % (self.hgremote.alias))
+        output("commit refs/notes/hg-%s" % (self.hgremote.uuid))
         output("mark :%d" % (self.marks.new_notes_mark()))
         output("committer <gitifyhg-note> %s" % (strftime('%s %z')))
         message = u"hg from %s (%s)\n" % (self.prefix, self.hgremote.url)
