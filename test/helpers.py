@@ -103,3 +103,10 @@ def assert_hg_author(author='Git Author <git@author.email>', rev="tip"):
 def assert_git_author(author='Git Author <git@author.email>', ref="HEAD"):
     output = sh.git.show('-s', '--format=%an <%ae>', ref).stdout.strip()
     assert author == output
+
+
+def assert_git_notes(hgsha1s):
+    sh.git.notes('--ref=hg', 'merge', 'hg-origin')
+    output = sh.git.log(pretty="format:%N", notes='hg').stdout
+    notes = [line for line in output.splitlines() if line]
+    assert notes == hgsha1s
