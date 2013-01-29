@@ -21,7 +21,8 @@ import sys
 import pytest
 import sh
 from .helpers import (make_hg_commit, make_git_commit, clone_repo,
-    assert_hg_count, assert_git_count, assert_hg_author, assert_git_author)
+    assert_hg_count, assert_git_count, assert_hg_author, assert_git_author,
+    assert_git_notes)
 
 
 def test_simple_push_from_master(hg_repo, git_dir):
@@ -42,6 +43,18 @@ def test_simple_push_updates_remote(hg_repo, git_dir):
     sh.git.push()
     sh.git.fetch()
     assert_git_count(2, ref='origin')
+
+
+def test_simple_push_updates_notes(hg_repo, git_dir):
+    git_repo = clone_repo(git_dir, hg_repo)
+    make_git_commit("b")
+    sh.git.push()
+    sh.cd(hg_repo)
+    hgsha1s = sh.hg.log(template='{node}\n').stdout.splitlines()
+    sh.cd(git_repo)
+    sh.git.fetch()
+    assert_git_count(2, ref='origin')
+    assert_git_notes(hgsha1s)
 
 
 def test_empty_repo(tmpdir):
