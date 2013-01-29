@@ -458,7 +458,7 @@ class HGImporter(object):
                           self.marks.revisions_to_marks.iteritems() if mark > last_notes_mark]
         if not mark_to_hgsha1:
             return
-        output("commit refs/notes/hg-%s" % (self.hgremote.alias))
+        output("commit refs/notes/hg-%s" % (self.hgremote.uuid))
         output("mark :%d" % (self.marks.new_notes_mark()))
         output("committer <gitifyhg-note> %s" % (strftime('%s %z')))
         message = u"hg from %s (%s)\n" % (self.prefix, self.hgremote.url)
