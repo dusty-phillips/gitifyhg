@@ -263,7 +263,7 @@ class HGRemote(object):
         # use hash of URL as unique identifier in various places.
         # this has the advantage over 'alias' that it stays constant
         # when the user does a "git remote rename old new".
-        self.uuid = sha1(url).hexdigest()
+        self.uuid = sha1(url.encode('utf-8')).hexdigest()
 
         gitdir = p(os.environ['GIT_DIR'].decode('utf-8'))
         self.remotedir = gitdir.joinpath('hg', self.uuid)
