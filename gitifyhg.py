@@ -400,6 +400,7 @@ class HGImporter(object):
 
     def process(self):
         output("feature done")
+        output("feature notes")
         if self.hgremote.marks_git_path.exists():
             output("feature import-marks=%s" % self.hgremote.marks_git_path)
         output("feature export-marks=%s" % self.hgremote.marks_git_path)
@@ -539,6 +540,29 @@ class HGImporter(object):
                 output("progress revision %d '%s' (%d/%d)" % (
                     rev, name, count, len(revs)))
                 output("#############################################################")
+
+
+        # output a git note indicating the mercurial hash of the added commits
+        output("commit refs/notes/hg")
+        # TODO: Should we insert a fake committer like "gitifyhg" here?
+        #output("committer %s" % (committer))
+        output("committer gitifyhg <unknown> 1359154199 +0100")
+        # TODO: What "commit message" should be on this note?
+        data = "This note update brought to you by gitifyhg"
+        output("data %d" % len(data))
+        output(data)
+        # HACK: obtain SHA-1 of last commit to refs/notes/hg and use it
+        try:
+            PARENT_SHA1 = subprocess.check_output(['git', 'show-ref', 'refs/notes/hg', '-s'])
+            output("from %s" % (PARENT_SHA1.rstrip()))
+        except subprocess.CalledProcessError:
+            pass
+        for rev in revs:
+            output("N inline :%d" % (self.marks.revision_to_mark(rev)))
+            data = self.repo[rev].hex()
+            output("data %d" % len(data))
+            output(data)
+        output()
 
         # make sure the ref is updated
         output("reset %s/%s" % (self.prefix, kind_name))
