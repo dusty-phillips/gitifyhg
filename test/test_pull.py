@@ -55,7 +55,6 @@ def test_pull_named_remote(git_dir, hg_repo):
 
     sh.cd(git_repo)
     sh.git.remote("rename", "the-remote", "new-remote-name")
-    sh.mv(".git/refs/hg/the-remote", ".git/refs/hg/new-remote-name")
     sh.git.pull("new-remote-name", "master")
     assert_git_count(4)
     assert_git_notes(hgsha1s)
