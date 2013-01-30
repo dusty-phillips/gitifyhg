@@ -61,7 +61,6 @@ def test_simple_push_updates_notes(hg_repo, git_dir):
     assert_git_notes(hgsha1s)
 
 
-@pytest.mark.xfail
 def test_simple_push_updates_notes_after_contentful_pull(hg_repo, git_dir):
     """Issue #30: check that notes are eventually applied"""
     git_repo = clone_repo(git_dir, hg_repo)
