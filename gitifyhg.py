@@ -409,6 +409,7 @@ class HGImporter(object):
         tmp = encoding.encoding
         encoding.encoding = 'utf-8'
 
+        self.commit_count = 0
         while self.parser.line.startswith('import'):
             ref = self.parser.line.split()[1]
 
@@ -427,6 +428,8 @@ class HGImporter(object):
             elif ref.startswith('refs/tags/'):
                 tag = ref[len('refs/tags/'):]
                 self.process_ref(tag, 'tags', self.repo[git_to_hg_spaces(tag)])
+
+            self.process_notes()
 
             self.parser.read_line()
 
@@ -456,7 +459,7 @@ class HGImporter(object):
         last_notes_mark = self.marks.notes_mark if self.marks.notes_mark is not None else 0
         mark_to_hgsha1 = [(mark, self.repo[rev].hex()) for rev, mark in
                           self.marks.revisions_to_marks.iteritems() if mark > last_notes_mark]
-        if not mark_to_hgsha1:
+        if not mark_to_hgsha1 or self.commit_count < 1:
             return
         output("commit refs/notes/hg-%s" % (self.hgremote.uuid))
         output("mark :%d" % (self.marks.new_notes_mark()))
@@ -545,9 +548,8 @@ class HGImporter(object):
         output("from :%u" % self.marks.revision_to_mark(rev))
         output()
 
-        self.process_notes()
-
         self.marks.tips[kind_name] = rev
+        self.commit_count += count
 
     def get_filechanges(self, context, parent):
         modified = set()
