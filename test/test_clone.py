@@ -331,22 +331,6 @@ def test_clone_tag_with_spaces(git_dir, hg_repo):
     assert result.stdout == "THIS___IS___TAGGED\n"
 
 
-def test_author_no_email(git_dir, hg_repo):
-    sh.cd(hg_repo)
-    make_hg_commit("b", user="noemailsupplied")
-
-    clone_repo(git_dir, hg_repo)
-    assert_git_author(author='noemailsupplied <unknown>')
-
-
-def test_author_no_space_before_email(git_dir, hg_repo):
-    sh.cd(hg_repo)
-    make_hg_commit("b", user="nospace<email@example.com>")
-
-    clone_repo(git_dir, hg_repo)
-    assert_git_author(author='nospace <email@example.com>')
-
-
 def test_unicode_path(tmpdir, git_dir):
     tmpdir = p(tmpdir.strpath).abspath()
     hg_base = tmpdir.joinpath(u'hg\u2020base')  # an hg repo to clone from
