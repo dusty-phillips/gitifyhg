@@ -175,7 +175,25 @@ will pick the system level gitifyhg regardless ofthe PATH setting in the
 virtualenv. The only workaround I have found is to temporarily uninstall the
 system virtualenv.
 
-You can use `tox <http://tox.testrun.org/>`_ to set up a test environment ::
+If you want debugging information out of gitifyhg, set the GITIFYHG_DEBUG=on 
+environment variable. This is done automatically if you are running the test
+suite.
+
+The gitifyhg remote is called by git and commands are passed on stdin.
+Output is sent to stdout. The protocol is described at
+https://www.kernel.org/pub/software/scm/git/docs/git-remote-helpers.html
+The git remote prints INPUT and OUTPUT lines for each of these to help
+introspect the protocol.
+
+Testing
+=======
+
+Tests are continuously run by Travis-CI: |BuildStatus|_
+
+.. |BuildStatus| image:: https://secure.travis-ci.org/buchuki/gitifyhg.png
+.. _BuildStatus: http://travis-ci.org/buchuki/gitifyhg
+
+You can use `tox <http://tox.testrun.org/>`_ to set up a local test environment ::
 
   pip install tox
   tox -e py27
@@ -186,16 +204,6 @@ Or install the test dependencies manually and run
   pip install pytest
   pip install sh
   py.test -k <name of test>
-
-If you want debugging information out of gitifyhg, set the GITIFYHG_DEBUG=on 
-environment variable. This is done automatically if you are running the test
-suite.
-
-The gitifyhg remote is called by git and commands are passed on stdin.
-Output is sent to stdout. The protocol is described at
-https://www.kernel.org/pub/software/scm/git/docs/git-remote-helpers.html
-The git remote prints INPUT and OUTPUT lines for each of these to help
-introspect the protocol.
 
 License
 -------
