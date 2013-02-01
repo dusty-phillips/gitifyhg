@@ -25,19 +25,74 @@ from .helpers import (make_hg_commit, clone_repo, assert_git_count,
     assert_hg_count, assert_git_messages, assert_git_author, write_to_test_file,
     assert_git_notes)
 
-def test_author_no_email(git_dir, hg_repo):
+def test_author_all_good(git_dir, hg_repo):
     sh.cd(hg_repo)
-    make_hg_commit("b", user="noemailsupplied")
+    make_hg_commit("b", user="all is good <email@example.com>")
 
     clone_repo(git_dir, hg_repo)
-    assert_git_author(author='noemailsupplied <unknown>')
+    assert_git_author(author='all is good <email@example.com>')
+
+
+def test_author_no_email(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    make_hg_commit("b", user="no email supplied")
+
+    clone_repo(git_dir, hg_repo)
+    assert_git_author(author='no email supplied <unknown>')
+
+
+# See issue #22
+@pytest.mark.xfail
+def test_author_only_email(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    make_hg_commit("b", user="<email@example.com>")
+
+    clone_repo(git_dir, hg_repo)
+    assert_git_author(author='unknown <email@example.com>')
+
+
+def test_author_only_email_no_quote(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    make_hg_commit("b", user="email@example.com")
+
+    clone_repo(git_dir, hg_repo)
+    assert_git_author(author='unknown <email@example.com>')
 
 
 def test_author_no_space_before_email(git_dir, hg_repo):
     sh.cd(hg_repo)
-    make_hg_commit("b", user="nospace<email@example.com>")
+    make_hg_commit("b", user="no space before email<email@example.com>")
 
     clone_repo(git_dir, hg_repo)
-    assert_git_author(author='nospace <email@example.com>')
+    assert_git_author(author='no space before email <email@example.com>')
 
+
+# See issue #22
+@pytest.mark.xfail
+def test_author_no_email_quoting(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    make_hg_commit("b", user="no email quoting email@example.com")
+
+    clone_repo(git_dir, hg_repo)
+    assert_git_author(author='no email quoting <email@example.com>')
+
+
+# See issue #22
+@pytest.mark.xfail
+def test_author_missing_end_quote(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    make_hg_commit("b", user="missing end quote <email@example.com")
+
+    clone_repo(git_dir, hg_repo)
+    assert_git_author(author='missing end quote <email@example.com>')
+
+
+# See issue #22
+@pytest.mark.xfail
+def test_author_abuse_quotes(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    make_hg_commit("b", user="totally >>> bad <<< quote can be used in hg <><><")
+
+    clone_repo(git_dir, hg_repo)
+    assert_git_author(author='TODO: How should this be translated?')
 
