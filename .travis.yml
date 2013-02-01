@@ -42,3 +42,13 @@ script:
   - git --version
   - hg --version
   - py.test --tb=short
+
+# No need to test old hg versions against new python
+matrix:
+  exclude:
+    - python: 2.7
+      env: HG_VERSION=1.9.1
+    - python: 2.7
+      env: HG_VERSION=1.8.4
+    - python: 2.7
+      env: HG_VERSION=1.6.4
