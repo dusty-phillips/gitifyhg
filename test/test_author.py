@@ -41,8 +41,6 @@ def test_author_no_email(git_dir, hg_repo):
     assert_git_author(author='no email supplied <unknown>')
 
 
-# See issue #22
-@pytest.mark.xfail
 def test_author_only_email(git_dir, hg_repo):
     sh.cd(hg_repo)
     make_hg_commit("b", user="<email@example.com>")
