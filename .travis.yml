@@ -27,17 +27,11 @@ install:
 # .deb's in it.
 env:
   - HG_VERSION=2.4.2  # latest release
-#  - HG_VERSION=2.4.1
-#  - HG_VERSION=2.3.2
   - HG_VERSION=2.2.2  # Debian Wheezy, Ubuntu 12.10
   - HG_VERSION=2.0.2  # Ubuntu 12.04 LTS
   - HG_VERSION=1.9.1  # Ubuntu 11.10
-#  - HG_VERSION=2.2.3
-#  - HG_VERSION=2.1.2
-#  - HG_VERSION=2.0.2
-#  - HG_VERSION=1.9.3
-#  - HG_VERSION=1.8.4
-#  - HG_VERSION=1.6.4  # Debian Squeeze
+  - HG_VERSION=1.8.4
+  - HG_VERSION=1.6.4  # Debian Squeeze
 
 # command to run actual tests
 # We also output the git and hg versions to make sure we are using
