@@ -112,7 +112,8 @@ def sanitize_author(author):
     author = author.replace('"', '')
     match = AUTHOR.match(author)
     if match:
-        name = match.group(1) or name   # handle 'None', e.g for input "<only@email>"
+        if match.group(1): # handle 'None', e.g for input "<only@email>"
+            name = match.group(1).strip()
         email = match.group(2).translate(None, '<>').strip()
     else:
         match = NAME.match(author)
