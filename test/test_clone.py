@@ -437,3 +437,44 @@ def test_clone_close_branch(git_dir, hg_repo):
     assert_git_messages(['c', 'a'])
     sh.git.checkout("origin/branches/feature")
     assert_git_messages(['d', 'b', 'a'])
+
+
+def test_clone_remove_file(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    make_hg_commit("b")
+    sh.hg.rm("test_file")
+    sh.hg.commit(message="c")
+
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+
+    assert not p('a').exists()
+
+
+# See issue #36
+@pytest.mark.xfail
+def test_clone_replace_file_by_dir(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    make_hg_commit("b", filename="dir_or_file")
+    sh.hg.rm("dir_or_file")
+    sh.mkdir("dir_or_file")
+    make_hg_commit("c", filename="dir_or_file/test_file")
+
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+
+    assert p('dir_or_file').isdir()
+    assert p('dir_or_file/test_file').exists()
+
+
+def test_clone_replace_dir_by_file(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    sh.mkdir("dir_or_file")
+    make_hg_commit("b", filename="dir_or_file/test_file")
+    sh.hg.rm("dir_or_file/test_file")
+    make_hg_commit("c", filename="dir_or_file")
+
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+
+    assert p('dir_or_file').isfile()
