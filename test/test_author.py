@@ -66,7 +66,6 @@ def test_author_no_space_before_email(git_dir, hg_repo):
 
 
 # See issue #22
-@pytest.mark.xfail
 def test_author_no_email_quoting(git_dir, hg_repo):
     sh.cd(hg_repo)
     make_hg_commit("b", user="no email quoting email@example.com")
