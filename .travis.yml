@@ -26,7 +26,8 @@ install:
 # this may require setting up a custom PPA with suitable
 # .deb's in it.
 env:
-  - HG_VERSION=2.4.2  # latest release
+  - HG_VERSION=2.5  # latest release
+  - HG_VERSION=2.4.2
   - HG_VERSION=2.2.2  # Debian Wheezy, Ubuntu 12.10
   - HG_VERSION=2.0.2  # Ubuntu 12.04 LTS
   - HG_VERSION=1.9.1  # Ubuntu 11.10
