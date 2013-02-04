@@ -22,17 +22,22 @@ install:
   - "python setup.py -q install"
 
 # specify various mercurial versions to test against
+#
 # TODO: Also test against multiple git versions;
 # this may require setting up a custom PPA with suitable
 # .deb's in it.
+#
+# NOTE: Right now, hg versions 1.8.x and older are not supported,
+# due to problems with the bookmarks extension. We may or
+# may not add support for them in the future, see issue #20.
 env:
   - HG_VERSION=2.5  # latest release
   - HG_VERSION=2.4.2
   - HG_VERSION=2.2.2  # Debian Wheezy, Ubuntu 12.10
   - HG_VERSION=2.0.2  # Ubuntu 12.04 LTS
   - HG_VERSION=1.9.1  # Ubuntu 11.10
-  - HG_VERSION=1.8.4
-  - HG_VERSION=1.6.4  # Debian Squeeze
+  #- HG_VERSION=1.8.4
+  #- HG_VERSION=1.6.4  # Debian Squeeze
 
 # command to run actual tests
 # We also output the git and hg versions to make sure we are using
@@ -49,7 +54,7 @@ matrix:
   exclude:
     - python: 2.7
       env: HG_VERSION=1.9.1
-    - python: 2.7
-      env: HG_VERSION=1.8.4
-    - python: 2.7
-      env: HG_VERSION=1.6.4
+    #- python: 2.7
+    #  env: HG_VERSION=1.8.4
+    #- python: 2.7
+    #  env: HG_VERSION=1.6.4
