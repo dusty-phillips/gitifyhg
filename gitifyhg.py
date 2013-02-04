@@ -100,7 +100,8 @@ def git_to_hg_spaces(name):
     return name.replace('___', ' ')
 
 
-AUTHOR = re.compile(r'^([^<>]+?)? ?<([^<>]*)>$')
+AUTHOR = re.compile(r'^(.+ )?([^ ]+@[^ ]+)$')
+EMAIL = re.compile(r'^([^ ]+@[^ ]+)')
 NAME = re.compile(r'^([^<>]+)')
 
 
@@ -109,18 +110,17 @@ def sanitize_author(author):
     massage it to be compatible. Git experts "name <email>".'''
     name = "unknown"
     email = "unknown"
-    author = author.replace('"', '')
+    author = author.translate(None, '"<>')
     match = AUTHOR.match(author)
     if match:
         name = match.group(1) or name   # handle 'None', e.g for input "<only@email>"
         email = match.group(2).strip()
     else:
-        match = NAME.match(author)
+        match = EMAIL.match(author)
         if match:
-            if "@" in match.group(1):  # when they provide email without name
-                email = match.group(1).strip()
-            else:
-                name = match.group(1).strip()
+            email = match.group(1).strip()
+        else:
+            name = author
 
     return '%s <%s>' % (name, email)
 
