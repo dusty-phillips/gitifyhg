@@ -272,6 +272,28 @@ def test_push_with_multiple_bookmarks(git_dir, hg_repo):
         assert file.read() == "a\nbd"
 
 
+@pytest.mark.xfail
+def test_fetch_after_bad_push_updates_origin_master(git_dir, hg_repo):
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(hg_repo)
+    make_hg_commit("b")
+    sh.cd(git_repo)
+    make_git_commit("c", "c")
+    try:
+        sh.git.push()
+    except sh.ErrorReturnCode as ret:
+        print("Output from failed push:")
+        print('\t' + '\n\t'.join(ret[0].splitlines()))
+    sh.git.fetch()
+    assert_git_count(2, ref="origin/branches/default")
+    assert_git_count(2, ref="origin/master")
+    sh.git.pull('--rebase')
+    assert_git_count(3)         # as with test_pull_auto_merge
+    sh.git.push()
+    sh.cd(hg_repo)
+    assert_hg_count(3)
+
+
 def test_push_after_rebase(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(hg_repo)
