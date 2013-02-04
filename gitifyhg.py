@@ -101,12 +101,15 @@ def git_to_hg_spaces(name):
 
 
 AUTHOR = re.compile(r'^([^<>]+?)? ?<([^<>]*)>$')
+AUTHOR_NOQUOTE = re.compile(r'^([^<>]+?)? ([^<> ]*@[^<> ]*)$')
 NAME = re.compile(r'^([^<>]+)')
 
 
 def sanitize_author(author):
     '''Mercurial allows a more freeform user string than git, so we have to
     massage it to be compatible. Git experts "name <email>".'''
+    def gitrepr(name, email):
+        return '%s <%s>' % (name, email)
     name = "unknown"
     email = "unknown"
     author = author.replace('"', '')
@@ -114,13 +117,19 @@ def sanitize_author(author):
     if match:
         name = match.group(1) or name   # handle 'None', e.g for input "<only@email>"
         email = match.group(2).strip()
-    else:
-        match = NAME.match(author)
-        if match:
-            if "@" in match.group(1):  # when they provide email without name
-                email = match.group(1).strip()
-            else:
-                name = match.group(1).strip()
+        return gitrepr(name, email)
+    match = AUTHOR_NOQUOTE.match(author)
+    if match:
+        name = match.group(1) or name
+        email = match.group(2).strip()
+        return gitrepr(name, email)
+    match = NAME.match(author)
+    if match:
+        if "@" in match.group(1):  # when they provide email without name
+            email = match.group(1).strip()
+        else:
+            name = match.group(1).strip()
+        return gitrepr(name, email)
 
     return '%s <%s>' % (name, email)
 
