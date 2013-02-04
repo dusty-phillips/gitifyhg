@@ -478,3 +478,67 @@ def test_clone_replace_dir_by_file(git_dir, hg_repo):
     sh.cd(git_repo)
 
     assert p('dir_or_file').isfile()
+
+
+def test_clone_replace_file_by_symlink(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    make_hg_commit("b", filename="link_or_file")
+    sh.hg.rm("link_or_file")
+    sh.ln("-s", "test_file", "link_or_file")
+    sh.hg.add("link_or_file")
+    sh.hg.commit(message="c")
+
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+
+    assert p('link_or_file').isfile()
+    assert p('link_or_file').islink()
+
+
+def test_clone_replace_symlink_by_file(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    sh.ln("-s", "test_file", "link_or_file")
+    sh.hg.add("link_or_file")
+    sh.hg.commit(message="b")
+    sh.hg.rm("link_or_file")
+    make_hg_commit("c", filename="link_or_file")
+
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+
+    assert p('link_or_file').isfile()
+    assert not p('link_or_file').islink()
+
+
+# See issue #36
+@pytest.mark.xfail
+def test_clone_replace_symlink_by_dir(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    sh.ln("-s", "test_file", "dir_or_link")
+    sh.hg.add("dir_or_link")
+    sh.hg.commit(message="b")
+    sh.hg.rm("dir_or_link")
+    sh.mkdir("dir_or_link")
+    make_hg_commit("c", filename="dir_or_link/test_file")
+
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+
+    assert p('dir_or_link').isdir()
+    assert p('dir_or_link/test_file').exists()
+
+
+def test_clone_replace_dir_by_symlink(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    sh.mkdir("dir_or_link")
+    make_hg_commit("b", filename="dir_or_link/test_file")
+    sh.hg.rm("dir_or_link/test_file")
+    sh.ln("-s", "test_file", "dir_or_link")
+    sh.hg.add("dir_or_link")
+    sh.hg.commit(message="c")
+
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+
+    assert p('dir_or_link').isfile()
+    assert p('dir_or_link').islink()
