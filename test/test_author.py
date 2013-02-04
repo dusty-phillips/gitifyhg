@@ -92,11 +92,10 @@ def test_author_obfuscated_email(git_dir, hg_repo):
 
 
 # See issue #22
-@pytest.mark.xfail
 def test_author_abuse_quotes(git_dir, hg_repo):
     sh.cd(hg_repo)
     make_hg_commit("b", user="totally >>> bad <<< quote can be used in hg <><><")
 
     clone_repo(git_dir, hg_repo)
-    assert_git_author(author='TODO: How should this be translated?')
+    assert_git_author(author="totally <bad  quote can be used in hg>")
 
