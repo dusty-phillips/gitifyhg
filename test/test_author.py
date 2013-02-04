@@ -66,7 +66,6 @@ def test_author_no_space_before_email(git_dir, hg_repo):
 
 
 # See issue #22
-@pytest.mark.xfail
 def test_author_no_email_quoting(git_dir, hg_repo):
     sh.cd(hg_repo)
     make_hg_commit("b", user="no email quoting email@example.com")
@@ -76,13 +75,20 @@ def test_author_no_email_quoting(git_dir, hg_repo):
 
 
 # See issue #22
-@pytest.mark.xfail
 def test_author_missing_end_quote(git_dir, hg_repo):
     sh.cd(hg_repo)
     make_hg_commit("b", user="missing end quote <email@example.com")
 
     clone_repo(git_dir, hg_repo)
     assert_git_author(author='missing end quote <email@example.com>')
+
+
+def test_author_obfuscated_email(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    make_hg_commit("b", user="Author <obfuscated (at) email dot address>")
+
+    clone_repo(git_dir, hg_repo)
+    assert_git_author(author="Author <obfuscated (at) email dot address>")
 
 
 # See issue #22
