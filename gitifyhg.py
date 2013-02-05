@@ -100,7 +100,7 @@ def git_to_hg_spaces(name):
     return name.replace('___', ' ')
 
 
-AUTHOR = re.compile(r'^([^<>]+?)? ?<([^<>]*)>$')
+AUTHOR = re.compile(r'^(?:(.+)?( |<))?([^<> ]+@[^<> ]+)>?$')
 NAME = re.compile(r'^([^<>]+)')
 
 
@@ -113,14 +113,10 @@ def sanitize_author(author):
     match = AUTHOR.match(author)
     if match:
         name = match.group(1) or name   # handle 'None', e.g for input "<only@email>"
-        email = match.group(2).strip()
+        name = name.translate(None, '<>')
+        email = match.group(3).strip()
     else:
-        match = NAME.match(author)
-        if match:
-            if "@" in match.group(1):  # when they provide email without name
-                email = match.group(1).strip()
-            else:
-                name = match.group(1).strip()
+        name = author.translate(None, '<>')
 
     return '%s <%s>' % (name, email)
 
