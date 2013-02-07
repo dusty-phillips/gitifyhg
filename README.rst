@@ -78,12 +78,18 @@ Supports
 supports Mercurial should be supported. Sadly, this excludes both pypy and
 cPython 3.
 
-It has only been tested with Mercurial version 2.4.1. Because it uses
-Mercurial's internal APIs, it IS likely to break with other versions.
+``gitifyhg`` requires at least Mercurial 1.9, older versions are curently
+not supported. We perform continuous testing against various Mercurial
+versions ranging from 1.9 to 2.5. However, this does not completely rule
+out the possibility of compatibility issues, so we recommend using Mercurial
+2.4.x or 2.5.x, as this is what ``gitifyhg`` is primarily developed for.
+Should you actually encounter any compatibility issues with any older or
+newer Mercurial versions, please let us know.
 
-It has only been tested on Arch Linux. I expect all Linux operating systems
-to work fine with it and I suspect MacOS will also react well. All bets are
-off with Windows, but please let me know if it works or you fixed it.
+
+It has only been tested on Arch Linux and Mac OS X. In general it should
+work equally well on other Unix-like operating systems like *BSD or Solari.
+All bets are off with Windows, but please let us know if it works or you fixed it.
 
 Install
 -------
@@ -153,7 +159,7 @@ git does not. To keep git from choking if upstream has spaces in names, gitifyhg
 will replace them with three underscores and has the sense to convert between
 the two formats when pushing and pulling.
 
-If you have any trouble, please let me know via the issue tracker, preferably
+If you have any trouble, please let us know via the issue tracker, preferably
 with pull requests containing test cases.
 
 Development
