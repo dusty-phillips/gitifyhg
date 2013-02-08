@@ -481,11 +481,11 @@ class HGImporter(object):
         kind_name = "%s/%s" % (kind, name)
         tip = self.marks.tips.get(kind_name, 0)
 
-        if tip and tip == head.rev():
-            return  # shortcut for no changes
-
         revs = xrange(tip, head.rev() + 1)
         count = 0
+
+        if not revs:
+            return
 
         revs = [rev for rev in revs if not self.marks.is_marked(rev)]
 
