@@ -22,7 +22,7 @@ import sys
 import os
 from path import path as p
 from .helpers import (make_hg_commit, clone_repo, assert_git_count,
-    assert_hg_count, assert_git_messages, assert_git_author, write_to_test_file)
+    assert_hg_count, assert_git_messages, write_to_test_file)
 
 
 def test_basic_clone(git_dir, hg_repo):
@@ -292,6 +292,7 @@ def test_clone_bookmark_not_at_tip(git_dir, hg_repo):
     assert_git_count(2)
     assert_git_messages(['b', 'a'])
 
+
 # See issue #13
 def test_clone_bookmark_named_master_not_at_tip(git_dir, hg_repo):
     sh.cd(hg_repo)
@@ -301,6 +302,7 @@ def test_clone_bookmark_named_master_not_at_tip(git_dir, hg_repo):
     sh.hg.update('tip')
 
     clone_repo(git_dir, hg_repo)
+
 
 def test_clone_tags(git_dir, hg_repo):
     sh.cd(hg_repo)
