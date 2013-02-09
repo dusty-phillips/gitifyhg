@@ -19,6 +19,7 @@
 from path import path as p
 import sys
 import pytest
+import os
 import sh
 from .helpers import (make_hg_commit, make_git_commit, clone_repo,
     assert_hg_count, assert_git_count, assert_hg_author, assert_git_author,
@@ -114,6 +115,19 @@ def test_push_conflict_default(git_dir, hg_repo):
 
 
 def test_push_conflict_default_double(git_dir, hg_repo):
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(hg_repo)
+    make_hg_commit("b")
+    sh.cd(git_repo)
+    make_git_commit("c")
+    assert sh.git.push(_ok_code=1).stderr.find("master -> master (non-fast-forward)") > 0
+    assert sh.git.push(_ok_code=1).stderr.find("master -> master (non-fast-forward)") > 0
+
+
+@pytest.mark.xfail
+def test_push_conflict_default_double_non_english(git_dir, hg_repo):
+    del os.environ['HGPLAIN']
+    os.environ['LANG'] = 'de_DE'
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(hg_repo)
     make_hg_commit("b")
