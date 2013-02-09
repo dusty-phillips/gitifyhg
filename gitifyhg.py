@@ -482,15 +482,13 @@ class HGImporter(object):
         kind_name = "%s/%s" % (kind, name)
         tip = self.marks.tips.get(kind_name, 0)
 
-        if tip and tip == head.rev():
-            return  # shortcut for no changes
-
         revs = xrange(tip, head.rev() + 1)
         count = 0
 
-        revs = [rev for rev in revs if not self.marks.is_marked(rev)]
-
         for rev in revs:
+            if self.marks.is_marked(rev):
+                continue
+
             (manifest, user, (time, tz), files, description, extra
                 ) = self.repo.changelog.read(self.repo[rev].node())
 
@@ -546,10 +544,10 @@ class HGImporter(object):
 
         # make sure the ref is updated
         output("reset %s/%s" % (self.prefix, kind_name))
-        output("from :%u" % self.marks.revision_to_mark(rev))
+        output("from :%u" % self.marks.revision_to_mark(head.rev()))
         output()
 
-        self.marks.tips[kind_name] = rev
+        self.marks.tips[kind_name] = head.rev()
         self.commit_count += count
 
     def get_filechanges(self, context, parent):
