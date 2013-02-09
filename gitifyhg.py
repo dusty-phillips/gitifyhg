@@ -40,7 +40,6 @@ from mercurial import encoding
 from mercurial.bookmarks import listbookmarks, readcurrent, pushbookmark
 from mercurial.util import sha1
 from mercurial import hg
-from mercurial.error import RepoLookupError
 
 
 DEBUG_GITIFYHG = os.environ.get("DEBUG_GITIFYHG") != None
@@ -108,6 +107,7 @@ def git_to_hg_spaces(name):
 
 AUTHOR = re.compile(r'^([^<>]+)?(<(?:[^<>]*)>| [^ ]*@.*|[<>].*)$')
 
+
 def sanitize_author(author):
     '''Mercurial allows a more freeform user string than git, so we have to
     massage it to be compatible. Git expects "name <email>".'''
@@ -116,7 +116,7 @@ def sanitize_author(author):
     author = author.replace('"', '')
     match = AUTHOR.match(author)
     if match:
-        if match.group(1): # handle 'None', e.g for input "<only@email>"
+        if match.group(1):  # handle 'None', e.g for input "<only@email>"
             name = match.group(1).strip()
         email = match.group(2).translate(None, "<>").strip()
     else:
