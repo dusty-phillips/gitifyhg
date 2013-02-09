@@ -21,8 +21,7 @@ import sys
 import pytest
 import sh
 from .helpers import (make_hg_commit, make_git_commit, clone_repo,
-    assert_hg_count, assert_git_count, assert_hg_author, assert_git_author,
-    assert_git_notes)
+    assert_hg_count, assert_git_count, assert_hg_author, assert_git_author)
 
 
 def test_simple_push_from_master(hg_repo, git_dir):
@@ -43,42 +42,6 @@ def test_simple_push_updates_remote(hg_repo, git_dir):
     sh.git.push()
     sh.git.fetch()
     assert_git_count(2, ref='origin')
-
-
-@pytest.mark.xfail
-def test_simple_push_updates_notes(hg_repo, git_dir):
-    """Issue #30: don't know how to apply notes without triggering error
-       message when there are no other commits in fast-import stream"""
-    git_repo = clone_repo(git_dir, hg_repo)
-    make_git_commit("b")
-    sh.git.push()
-    sh.cd(hg_repo)
-    hgsha1s = sh.hg.log(template='{node}\n').stdout.splitlines()
-    sh.cd(git_repo)
-    fetch_stderr = sh.git.fetch().stderr
-    assert not 'error' in fetch_stderr
-    assert_git_count(2, ref='origin')
-    assert_git_notes(hgsha1s)
-
-
-def test_simple_push_updates_notes_after_contentful_pull(hg_repo, git_dir):
-    """Issue #30: check that notes are eventually applied"""
-    git_repo = clone_repo(git_dir, hg_repo)
-    make_git_commit("b")
-    sh.git.push()
-    sh.cd(git_repo)
-    fetch_stderr = sh.git.fetch().stderr
-    assert not 'error' in fetch_stderr
-    assert_git_count(2, ref='origin')
-    sh.cd(hg_repo)
-    sh.hg.update()
-    make_hg_commit("c")
-    hgsha1s = sh.hg.log(template='{node}\n').stdout.splitlines()
-    sh.cd(git_repo)
-    fetch_stderr = sh.git.pull().stderr
-    assert not 'error' in fetch_stderr
-    assert_git_count(3, ref='origin')
-    assert_git_notes(hgsha1s)
 
 
 def test_empty_repo(tmpdir):

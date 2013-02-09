@@ -22,8 +22,7 @@ import sys
 import os
 from path import path as p
 from .helpers import (make_hg_commit, clone_repo, assert_git_count,
-    assert_hg_count, assert_git_messages, assert_git_author, write_to_test_file,
-    assert_git_notes)
+    assert_hg_count, assert_git_messages, assert_git_author, write_to_test_file)
 
 
 def test_basic_clone(git_dir, hg_repo):
@@ -32,7 +31,6 @@ def test_basic_clone(git_dir, hg_repo):
 
     sh.cd(hg_repo)
     make_hg_commit("b")
-    hgsha1s = sh.hg.log(template='{node}\n').stdout.splitlines()
 
     git_repo = clone_repo(git_dir, hg_repo)
 
@@ -44,7 +42,6 @@ def test_basic_clone(git_dir, hg_repo):
     assert_git_count(2)
     assert_git_messages(['b', 'a'])
     assert len(sh.git.status(short=True).stdout) == 0
-    assert_git_notes(hgsha1s)
 
 
 def test_clone_relative(git_dir, hg_repo):

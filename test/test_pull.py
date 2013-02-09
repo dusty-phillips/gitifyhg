@@ -19,20 +19,18 @@
 import pytest
 import sh
 from .helpers import (make_hg_commit, make_git_commit, clone_repo,
-    assert_git_count, assert_git_messages, assert_git_notes)
+    assert_git_count, assert_git_messages)
 
 
 def test_basic_pull(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(hg_repo)
     make_hg_commit("b")
-    hgsha1s = sh.hg.log(template='{node}\n').stdout.splitlines()
     sh.cd(git_repo)
     sh.git.pull()
 
     assert_git_count(2)
     assert_git_messages(["b", "a"])
-    assert_git_notes(hgsha1s)
 
 
 def test_pull_named_remote(git_dir, hg_repo):
@@ -51,13 +49,11 @@ def test_pull_named_remote(git_dir, hg_repo):
 
     sh.cd(hg_repo)
     make_hg_commit("d")
-    hgsha1s = sh.hg.log(template='{node}\n').stdout.splitlines()
 
     sh.cd(git_repo)
     sh.git.remote("rename", "the-remote", "new-remote-name")
     sh.git.pull("new-remote-name", "master")
     assert_git_count(4)
-    assert_git_notes(hgsha1s)
 
 
 def test_pull_from_named_branch(git_dir, hg_repo):
