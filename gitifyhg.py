@@ -27,6 +27,12 @@ import subprocess
 from path import path as p
 from time import strftime
 
+
+# Enable "plain" mode to make us resilient against changes to the locale, as we
+# rely on parsing certain messages produced by Mercurial. See issue #26.
+os.environ['HGPLAIN'] = '1'
+
+
 from mercurial.ui import ui
 from mercurial.context import memctx, memfilectx
 from mercurial.error import Abort

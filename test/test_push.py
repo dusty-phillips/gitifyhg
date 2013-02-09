@@ -124,9 +124,7 @@ def test_push_conflict_default_double(git_dir, hg_repo):
     assert sh.git.push(_ok_code=1).stderr.find("master -> master (non-fast-forward)") > 0
 
 
-@pytest.mark.xfail
 def test_push_conflict_default_double_non_english(git_dir, hg_repo):
-    del os.environ['HGPLAIN']
     os.environ['LANG'] = 'de_DE'
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(hg_repo)
