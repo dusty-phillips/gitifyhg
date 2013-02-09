@@ -377,11 +377,15 @@ class HGRemote(object):
 
         # list the named branch references
         for branch in self.branches:
-            output("? refs/heads/branches/%s" % hg_to_git_spaces(branch))
+            if branch != "default":
+                output("? refs/heads/branches/%s" % hg_to_git_spaces(branch))
+            else:
+                output("? refs/heads/master")
 
         # list the bookmark references
         for bookmark in self.bookmarks:
-            output("? refs/heads/%s" % hg_to_git_spaces(bookmark))
+            if bookmark != "master":
+                output("? refs/heads/%s" % hg_to_git_spaces(bookmark))
 
         # list the tags
         for tag, node in self.repo.tagslist():

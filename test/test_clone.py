@@ -79,7 +79,6 @@ def test_clone_linear_branch(git_dir, hg_repo):
     assert_git_count(1)
     assert_git_messages(['a'])
     assert sh.git.branch(remote=True).stdout == """  origin/HEAD -> origin/master
-  origin/branches/default
   origin/branches/featurebranch
   origin/master
 """
@@ -121,7 +120,6 @@ def test_clone_branch_with_spaces(git_dir, hg_repo):
     assert_git_count(1)
     assert_git_messages(['a'])
     assert sh.git.branch(remote=True).stdout == """  origin/HEAD -> origin/master
-  origin/branches/default
   origin/branches/feature___branch
   origin/master
 """
@@ -189,7 +187,6 @@ def test_clone_named_and_anonymous_branch(git_dir, hg_repo):
     result = sh.git.branch(remote=True)
     print result.stdout
     assert result.stdout == """  origin/HEAD -> origin/master
-  origin/branches/default
   origin/branches/featurebranch
   origin/master
 """
@@ -208,7 +205,6 @@ def test_clone_bookmark(hg_repo, git_dir):
     result = sh.git.branch(remote=True)
     print result.stdout
     assert result.stdout == """  origin/HEAD -> origin/master
-  origin/branches/default
   origin/featurebookmark
   origin/master
 """
@@ -228,7 +224,6 @@ def test_clone_bookmark_with_spaces(hg_repo, git_dir):
     result = sh.git.branch(remote=True)
     print result.stdout
     assert result.stdout == """  origin/HEAD -> origin/master
-  origin/branches/default
   origin/feature___bookmark
   origin/master
 """
@@ -254,7 +249,6 @@ def test_clone_divergent_bookmarks(hg_repo, git_dir):
     assert result.stdout == """  origin/HEAD -> origin/master
   origin/bookmark_one
   origin/bookmark_two
-  origin/branches/default
   origin/master
 """
 
@@ -280,7 +274,6 @@ def test_clone_bookmark_not_at_tip(git_dir, hg_repo):
     print result.stdout
     assert result.stdout == """  origin/HEAD -> origin/master
   origin/bookmark_one
-  origin/branches/default
   origin/master
 """
 
@@ -344,7 +337,6 @@ def test_clone_close_branch(git_dir, hg_repo):
     # TODO: Perhaps it should make an archived tag instead of a branch...
     print sh.git.branch(remote=True)
     assert sh.git.branch(remote=True).stdout == """  origin/HEAD -> origin/master
-  origin/branches/default
   origin/branches/feature
   origin/master
 """
