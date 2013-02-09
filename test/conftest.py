@@ -21,7 +21,6 @@ def hg_repo(tmpdir):
         an initialized hg repository with a single commit'''
     os.environ['DEBUG_GITIFYHG'] = "on"
     os.environ['GIT_PAGER'] = 'cat'
-    os.environ['HGPLAIN'] = '1'
     tmpdir = p(tmpdir.strpath).abspath()
     hg_base = tmpdir.joinpath('hg_base')  # an hg repo to clone from
     hg_base.mkdir()
