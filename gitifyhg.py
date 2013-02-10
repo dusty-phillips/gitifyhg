@@ -139,6 +139,16 @@ def sanitize_author(author):
         return "<%s>" % (email)
 
 
+def branch_tip(repo, branch):
+    '''HG has a lovely branch_tip method, but it requires mercurial 2.4
+    This function provides backwards compatibility. If we ever get to
+    drop older versions, we can drop this function.'''
+    if hasattr(repo, 'branchtip'):
+        return repo.branchtip(branch)
+    else:
+        return repo.branchtags()[branch]
+
+
 class HGMarks(object):
     '''Maps integer marks to specific string mercurial revision identifiers.'''
 
@@ -462,10 +472,7 @@ class HGImporter(object):
             heads = self.hgremote.branches[branch]
             if len(heads) > 1:
                 log("Branch '%s' has more than one head, consider merging" % branch, "WARNING")
-                if hasattr(self.repo, 'branchtip'):
-                    tip = self.repo.branchtip(branch)
-                else:
-                    tip = self.repo.branchtags()[branch]
+                tip = branch_tip(self.repo, branch)
             else:
                 tip = heads[0]
 
@@ -671,7 +678,7 @@ class GitExporter(object):
                 # out where to commit the tagged commit?
                 branch_tag = self.repo[node].branch()
                 ctx = memctx(self.repo,
-                    (self.repo.branchtip(branch_tag), self.NULL_PARENT),
+                    (branch_tip(self.repo, branch_tag), self.NULL_PARENT),
                     "Added tag %s for changeset %s" % (tag, hgshort(node)),
                     ['.hgtags'], get_filectx, extra={'branch': branch_tag})
 
