@@ -24,6 +24,7 @@ import os
 import json
 import re
 import subprocess
+import errno
 from path import path as p
 from time import strftime
 
@@ -43,6 +44,9 @@ from mercurial import encoding
 from mercurial.bookmarks import listbookmarks, readcurrent, pushbookmark
 from mercurial.util import sha1
 from mercurial import hg
+from mercurial.node import nullid
+from mercurial.node import hex as hghex  # What idiot overroad a builtin?
+from mercurial.node import short as hgshort
 
 
 DEBUG_GITIFYHG = os.environ.get("DEBUG_GITIFYHG") != None
@@ -133,6 +137,16 @@ def sanitize_author(author):
         return "%s <%s>" % (name, email)
     else:
         return "<%s>" % (email)
+
+
+def branch_tip(repo, branch):
+    '''HG has a lovely branch_tip method, but it requires mercurial 2.4
+    This function provides backwards compatibility. If we ever get to
+    drop older versions, we can drop this function.'''
+    if hasattr(repo, 'branchtip'):
+        return repo.branchtip(branch)
+    else:
+        return repo.branchtags()[branch]
 
 
 class HGMarks(object):
@@ -239,7 +253,7 @@ class GitRemoteParser(object):
         '''Read and parse an author string. Return a tuple of
         (user string, date, git_tz).'''
         self.read_line()
-        AUTHOR_RE = re.compile(r'^(?:author|committer)(?: ([^<>]+)?)? <([^<>]*)> (\d+) ([+-]\d+)')
+        AUTHOR_RE = re.compile(r'^(?:author|committer|tagger)(?: ([^<>]+)?)? <([^<>]*)> (\d+) ([+-]\d+)')
         match = AUTHOR_RE.match(self.line)
         if not match:
             return None
@@ -458,10 +472,7 @@ class HGImporter(object):
             heads = self.hgremote.branches[branch]
             if len(heads) > 1:
                 log("Branch '%s' has more than one head, consider merging" % branch, "WARNING")
-                if hasattr(self.repo, 'branchtip'):
-                    tip = self.repo.branchtip(branch)
-                else:
-                    tip = self.repo.branchtags()[branch]
+                tip = branch_tip(self.repo, branch)
             else:
                 tip = heads[0]
 
@@ -604,6 +615,7 @@ class GitExporter(object):
         self.hgremote = hgremote
         self.marks = self.hgremote.marks
         self.parsed_refs = self.hgremote.parsed_refs
+        self.parsed_tags = {}  # refs to tuple of (message, author)
         self.blob_marks = self.hgremote.blob_marks
         self.repo = self.hgremote.repo
         self.parser = parser
@@ -632,13 +644,10 @@ class GitExporter(object):
                 if not pushbookmark(self.repo, bookmark, old, node):
                     continue
             elif ref.startswith('refs/tags/'):
-                tag = ref[len('refs/tags/'):]
-                self.repo.tag([tag], node, None, True, None, {})
-                # FIXME: the new tag needs to be committed in such a way that
-                # the commit doesn't interfere with any other commits being
-                # exported.
+                self.write_tag(ref)
             else:
                 # transport-helper/fast-export bugs
+                log("Fast-export unexpected ref: %s" % ref, "WARNING")
                 continue
 
         success = False
@@ -785,13 +794,61 @@ class GitExporter(object):
         self.processed_nodes.append(node)
 
     def do_tag(self):
-        name = self.parser.line().split()[1]
-        from_mark = self.parser.read_mark()
+        name = self.parser.line.split()[1]
+        self.parser.read_mark()
         tagger = self.parser.read_author()
-        data = self.parser.read_data()
+        message = self.parser.read_data()
+        self.parser.read_line()
+        self.parsed_tags[git_to_hg_spaces(name)] = tagger, message
 
     def do_feature(self):
         pass  # Ignore
+
+    def write_tag(self, ref):
+        node = self.parsed_refs[ref]
+        tag = git_to_hg_spaces(ref[len('refs/tags/'):])
+        # Calling self.repo.tag() doesn't append the tag to the correct
+        # commit. So I copied some of localrepo._tag into here.
+        # But that method, like much of mercurial's code, is ugly.
+        # So I then rewrote it.
+
+        try:
+            fp = self.repo.wfile('.hgtags', 'rb+')
+        except IOError as e:
+            if e.errno != errno.ENOENT:
+                raise
+            fp = self.repo.wfile('.hgtags', 'ab')
+            prevtags = ''
+        else:
+            prevtags = fp.read()
+
+        fp.seek(0, 2)
+        if prevtags and prevtags[-1] != '\n':
+            fp.write('\n')
+        encoded_tag = encoding.fromlocal(tag)
+        fp.write('%s %s\n' % (hghex(node), encoded_tag))
+        fp.close()
+
+        def get_filectx(repo, memctx, file):
+            return memfilectx(file, repo.wfile('.hgtags', 'rb').read())
+        branch_tag = self.repo[node].branch()
+        if tag in self.parsed_tags:
+            author, message = self.parsed_tags[tag]
+            user, date, tz = author
+            date_tz = (date, tz)
+        else:
+            message = "Added tag %s for changeset %s" % (tag, hgshort(node))
+            user = None
+            date_tz = None
+        ctx = memctx(self.repo,
+            (branch_tip(self.repo, branch_tag), self.NULL_PARENT),
+            message,
+            ['.hgtags'], get_filectx, user, date_tz, {'branch': branch_tag})
+
+        tmp = encoding.encoding
+        encoding.encoding = 'utf-8'
+        node = self.repo.commitctx(ctx)
+        encoding.encoding = tmp
 
 
 def main():

@@ -19,10 +19,10 @@
 from path import path as p
 import sys
 import pytest
-import os
 import sh
 from .helpers import (make_hg_commit, make_git_commit, clone_repo,
-    assert_hg_count, assert_git_count, assert_hg_author, assert_git_author)
+    assert_hg_count, assert_git_count, assert_hg_messages,
+    assert_hg_author, assert_git_author)
 
 
 def test_simple_push_from_master(hg_repo, git_dir):
@@ -341,29 +341,66 @@ def test_push_new_bookmark(git_dir, hg_repo):
     # to create a named branch. This needs to be fixed.
 
 
-@pytest.mark.xfail
 def test_push_tag(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(git_repo)
     sh.git.tag("this_is_a_tag")
-    sh.git.push(tags=True)
+    sh.git.push(tags=True, _err=sys.stderr)
 
     sh.cd(hg_repo)
     assert "this_is_a_tag" in sh.hg.tags().stdout
-
-    # TODO: this currently fails because the hg repository needs a new commit
-    # after hg tag is called.
+    assert_hg_count(2)
 
 
-@pytest.mark.xfail
+def test_push_tag_with_subsequent_commits(git_dir, hg_repo):
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+    sh.git.tag("this_is_a_tag")
+    make_git_commit("b")
+    sh.git.push("origin", "HEAD", tags=True, _err=sys.stderr)
+
+    sh.cd(hg_repo)
+    assert "this_is_a_tag" in sh.hg.tags().stdout
+    assert_hg_count(3)
+    hgsha = sh.hg.id(id=True).stdout.strip()
+    assert_hg_messages(['Added tag this_is_a_tag for changeset %s' % hgsha,
+        'b', 'a'])
+
+
+def test_push_messaged_tag(git_dir, hg_repo):
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+    sh.git.tag("this_is_a_tag", message="I tagged this with a message and user")
+    sh.git.push(tags=True, _err=sys.stderr)
+
+    sh.cd(hg_repo)
+    assert "this_is_a_tag" in sh.hg.tags().stdout
+    assert_hg_count(2)
+    assert_hg_messages(['I tagged this with a message and user', 'a'])
+
+
+def test_push_tag_different_branch(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    sh.hg.branch("branch_one")
+    make_hg_commit("b")
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+    sh.git.checkout("origin/branches/branch_one", track=True)
+    sh.git.tag("this_is_a_tag")
+    sh.git.push(tags=True, _err=sys.stderr)
+
+    sh.cd(hg_repo)
+    assert "this_is_a_tag" in sh.hg.tags().stdout
+    assert_hg_count(3)
+    sh.hg.update('tip')  # tip is the commit that added the tag
+    assert sh.hg.branch().stdout.strip() == "branch_one"
+
+
 def test_push_tag_with_spaces(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(git_repo)
-    sh.git.tag("this is a tag")
+    sh.git.tag("this___is___a___tag")
     sh.git.push(tags=True)
 
     sh.cd(hg_repo)
-    assert "this___is___a___tag" in sh.hg.tags().stdout
-
-    # TODO: this currently fails because the hg repository needs a new commit
-    # after hg tag is called.
+    assert "this is a tag" in sh.hg.tags().stdout
