@@ -367,11 +367,16 @@ def test_push_tag_with_subsequent_commits(git_dir, hg_repo):
         'b', 'a'])
 
 
-@pytest.mark.xfail
 def test_push_messaged_tag(git_dir, hg_repo):
-    # Untested is the case where a non-lightweight tag is pushed, that is
-    # where git tag -m "message" was called.
-    assert False
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+    sh.git.tag("this_is_a_tag", message="I tagged this with a message and user")
+    sh.git.push(tags=True, _err=sys.stderr)
+
+    sh.cd(hg_repo)
+    assert "this_is_a_tag" in sh.hg.tags().stdout
+    assert_hg_count(2)
+    assert_hg_messages(['I tagged this with a message and user', 'a'])
 
 
 def test_push_tag_different_branch(git_dir, hg_repo):

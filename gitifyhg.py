@@ -253,7 +253,7 @@ class GitRemoteParser(object):
         '''Read and parse an author string. Return a tuple of
         (user string, date, git_tz).'''
         self.read_line()
-        AUTHOR_RE = re.compile(r'^(?:author|committer)(?: ([^<>]+)?)? <([^<>]*)> (\d+) ([+-]\d+)')
+        AUTHOR_RE = re.compile(r'^(?:author|committer|tagger)(?: ([^<>]+)?)? <([^<>]*)> (\d+) ([+-]\d+)')
         match = AUTHOR_RE.match(self.line)
         if not match:
             return None
@@ -615,6 +615,7 @@ class GitExporter(object):
         self.hgremote = hgremote
         self.marks = self.hgremote.marks
         self.parsed_refs = self.hgremote.parsed_refs
+        self.parsed_tags = {}  # refs to tuple of (message, author)
         self.blob_marks = self.hgremote.blob_marks
         self.repo = self.hgremote.repo
         self.parser = parser
@@ -793,10 +794,12 @@ class GitExporter(object):
         self.processed_nodes.append(node)
 
     def do_tag(self):
-        name = self.parser.line().split()[1]
-        from_mark = self.parser.read_mark()
+        name = self.parser.line.split()[1]
+        self.parser.read_mark()
         tagger = self.parser.read_author()
-        data = self.parser.read_data()
+        message = self.parser.read_data()
+        self.parser.read_line()
+        self.parsed_tags[git_to_hg_spaces(name)] = tagger, message
 
     def do_feature(self):
         pass  # Ignore
@@ -828,25 +831,24 @@ class GitExporter(object):
 
         def get_filectx(repo, memctx, file):
             return memfilectx(file, repo.wfile('.hgtags', 'rb').read())
-        # FIXME: This is using default user and dates.
-        # It looks to me like git lightweight tags don't store
-        # usernames or dates, so defaults may be all we have access
-        # to. However, we should also support heavyweight tags and
-        # messages.
-        #
-        # Problem #2: It always pushes to default. How do we figure
-        # out where to commit the tagged commit?
         branch_tag = self.repo[node].branch()
+        if tag in self.parsed_tags:
+            author, message = self.parsed_tags[tag]
+            user, date, tz = author
+            date_tz = (date, tz)
+        else:
+            message = "Added tag %s for changeset %s" % (tag, hgshort(node))
+            user = None
+            date_tz = None
         ctx = memctx(self.repo,
             (branch_tip(self.repo, branch_tag), self.NULL_PARENT),
-            "Added tag %s for changeset %s" % (tag, hgshort(node)),
-            ['.hgtags'], get_filectx, extra={'branch': branch_tag})
+            message,
+            ['.hgtags'], get_filectx, user, date_tz, {'branch': branch_tag})
 
         tmp = encoding.encoding
         encoding.encoding = 'utf-8'
         node = self.repo.commitctx(ctx)
         encoding.encoding = tmp
-
 
 
 def main():
