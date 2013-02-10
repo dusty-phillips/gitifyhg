@@ -643,49 +643,7 @@ class GitExporter(object):
                 if not pushbookmark(self.repo, bookmark, old, node):
                     continue
             elif ref.startswith('refs/tags/'):
-                tag = git_to_hg_spaces(ref[len('refs/tags/'):])
-                # Calling self.repo.tag() doesn't append the tag to the correct
-                # commit. So I copied some of localrepo._tag into here.
-                # But that method, like much of mercurial's code, is ugly.
-                # So I then rewrote it.
-
-                try:
-                    fp = self.repo.wfile('.hgtags', 'rb+')
-                except IOError as e:
-                    if e.errno != errno.ENOENT:
-                        raise
-                    fp = self.repo.wfile('.hgtags', 'ab')
-                    prevtags = ''
-                else:
-                    prevtags = fp.read()
-
-                fp.seek(0, 2)
-                if prevtags and prevtags[-1] != '\n':
-                    fp.write('\n')
-                encoded_tag = encoding.fromlocal(tag)
-                fp.write('%s %s\n' % (hghex(node), encoded_tag))
-                fp.close()
-
-                def get_filectx(repo, memctx, file):
-                    return memfilectx(file, repo.wfile('.hgtags', 'rb').read())
-                # FIXME: This is using default user and dates.
-                # It looks to me like git lightweight tags don't store
-                # usernames or dates, so defaults may be all we have access
-                # to. However, we should also support heavyweight tags and
-                # messages.
-                #
-                # Problem #2: It always pushes to default. How do we figure
-                # out where to commit the tagged commit?
-                branch_tag = self.repo[node].branch()
-                ctx = memctx(self.repo,
-                    (branch_tip(self.repo, branch_tag), self.NULL_PARENT),
-                    "Added tag %s for changeset %s" % (tag, hgshort(node)),
-                    ['.hgtags'], get_filectx, extra={'branch': branch_tag})
-
-                tmp = encoding.encoding
-                encoding.encoding = 'utf-8'
-                node = self.repo.commitctx(ctx)
-                encoding.encoding = tmp
+                self.write_tag(ref)
             else:
                 # transport-helper/fast-export bugs
                 log("Fast-export unexpected ref: %s" % ref, "WARNING")
@@ -842,6 +800,53 @@ class GitExporter(object):
 
     def do_feature(self):
         pass  # Ignore
+
+    def write_tag(self, ref):
+        node = self.parsed_refs[ref]
+        tag = git_to_hg_spaces(ref[len('refs/tags/'):])
+        # Calling self.repo.tag() doesn't append the tag to the correct
+        # commit. So I copied some of localrepo._tag into here.
+        # But that method, like much of mercurial's code, is ugly.
+        # So I then rewrote it.
+
+        try:
+            fp = self.repo.wfile('.hgtags', 'rb+')
+        except IOError as e:
+            if e.errno != errno.ENOENT:
+                raise
+            fp = self.repo.wfile('.hgtags', 'ab')
+            prevtags = ''
+        else:
+            prevtags = fp.read()
+
+        fp.seek(0, 2)
+        if prevtags and prevtags[-1] != '\n':
+            fp.write('\n')
+        encoded_tag = encoding.fromlocal(tag)
+        fp.write('%s %s\n' % (hghex(node), encoded_tag))
+        fp.close()
+
+        def get_filectx(repo, memctx, file):
+            return memfilectx(file, repo.wfile('.hgtags', 'rb').read())
+        # FIXME: This is using default user and dates.
+        # It looks to me like git lightweight tags don't store
+        # usernames or dates, so defaults may be all we have access
+        # to. However, we should also support heavyweight tags and
+        # messages.
+        #
+        # Problem #2: It always pushes to default. How do we figure
+        # out where to commit the tagged commit?
+        branch_tag = self.repo[node].branch()
+        ctx = memctx(self.repo,
+            (branch_tip(self.repo, branch_tag), self.NULL_PARENT),
+            "Added tag %s for changeset %s" % (tag, hgshort(node)),
+            ['.hgtags'], get_filectx, extra={'branch': branch_tag})
+
+        tmp = encoding.encoding
+        encoding.encoding = 'utf-8'
+        node = self.repo.commitctx(ctx)
+        encoding.encoding = tmp
+
 
 
 def main():
