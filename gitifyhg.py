@@ -358,7 +358,7 @@ class HGRemote(object):
                     output()
                     return
             head = head if head != 'default' else 'master'
-            self.bookmarks[head] = node
+            #self.bookmarks[head] = node
 
         self.headnode = (head, node)
 
@@ -432,6 +432,8 @@ class HGImporter(object):
                     self.hgremote.headnode[0],
                     'bookmarks',
                     self.hgremote.headnode[1])
+            elif ref == 'refs/heads/master':
+                self.do_branch('default')
             elif ref.startswith('refs/heads/branches/'):
                 self.do_branch(ref[len('refs/heads/branches/'):])
             elif ref.startswith('refs/heads/'):
@@ -492,7 +494,15 @@ class HGImporter(object):
 
     def process_ref(self, name, kind, head):
 
+        # FIXME: I really need a better variable name here.
         kind_name = "%s/%s" % (kind, name)
+        if kind_name == "branches/default":
+            # I have no idea where 'bookmarks' comes from in this case.
+            # I don't think there is meant to be many bookmarks/master ref,
+            # but this is what I had to do to make tests pass when special
+            # casing the master/default dichotomy. Something is still fishy
+            # here, but it's less fishy than it was. See issue #34.
+            kind_name = "bookmarks/master"
         tip = self.marks.tips.get(kind_name, 0)
 
         revs = xrange(tip, head.rev() + 1)
