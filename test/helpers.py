@@ -95,6 +95,19 @@ def assert_hg_count(count, rev=None):
         assert sh.grep(sh.hg.log(), 'changeset:').stdout.count(b'\n') == count
 
 
+def assert_hg_messages(expected_lines):
+    '''Assert that logging all hg messages in order provides the given lines
+    of output.
+
+    :param expected_lines: The a list of str messages  that were passed into
+        git or hg when commited, in reverser order
+        (ie: most recent commits at the top or left)
+    :return True if the message lines match the hg repo in the current directory
+        False otherwise.'''
+    actual_lines = sh.hg.log(template="{desc}\n").strip().split('\n')
+    assert actual_lines == expected_lines
+
+
 def assert_hg_author(author='Git Author <git@author.email>', rev="tip"):
     output = sh.hg.log(template='{author}', rev=rev).stdout.strip()
     assert author == output
