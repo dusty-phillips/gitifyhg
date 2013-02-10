@@ -1,4 +1,4 @@
-# Copyright 2012 Dusty Phillips
+# Copyright 2012-2013 Dusty Phillips
 
 # This file is part of gitifyhg.
 
@@ -16,13 +16,9 @@
 # along with gitifyhg.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import pytest
 import sh
-import sys
-import os
-from path import path as p
-from .helpers import (make_hg_commit, clone_repo, assert_git_count,
-    assert_hg_count, assert_git_messages, assert_git_author, write_to_test_file)
+from .helpers import (make_hg_commit, clone_repo, assert_git_author)
+
 
 def test_author_all_good(git_dir, hg_repo):
     sh.cd(hg_repo)
