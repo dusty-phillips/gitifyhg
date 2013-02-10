@@ -24,7 +24,8 @@ from .helpers import (clone_repo,
     assert_hg_count, assert_git_messages, write_to_test_file)
 
 
-def test_unicode_path(tmpdir, git_dir):
+def test_unicode_path(tmpdir, git_dir, monkeypatch):
+    monkeypatch.setenv('LANG', 'en_US.utf8')
     tmpdir = p(tmpdir.strpath).abspath()
     hg_base = tmpdir.joinpath(u'hg\u2020base')  # an hg repo to clone from
     hg_base.mkdir()
