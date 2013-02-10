@@ -27,7 +27,7 @@ a mercurial repository from right inside git. You do not need to adapt your
 git workflow in any way aside from cloning a gitifyhg url.
 
 This is the most robust and usable git to hg bridge currently available.
-It has a large test suite (over 70 tests) and better
+It has a large test suite (over 70 tests) and
 better documentation. I've tested it on several large mercurial repositories
 that break with various other git-to-hg bridge projects. It has been tested
 daily in normal workflow scenarios.
