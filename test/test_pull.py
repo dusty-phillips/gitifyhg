@@ -37,7 +37,7 @@ def test_pull_named_remote(git_dir, hg_repo):
     git_repo = git_dir.joinpath("hg_repo")
     sh.git.init(git_repo)
     sh.cd(git_repo)
-    sh.git.remote("add", "--fetch", "the-remote", "gitifyhg::"+hg_repo)
+    sh.git.remote("add", "--fetch", "the-remote", "gitifyhg::" + hg_repo)
     sh.git.pull("the-remote", "master")
     assert_git_count(1)
     sh.cd(hg_repo)

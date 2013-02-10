@@ -18,11 +18,9 @@
 
 import pytest
 import sh
-import sys
-import os
 from path import path as p
 from .helpers import (make_hg_commit, clone_repo, assert_git_count,
-    assert_hg_count, assert_git_messages, write_to_test_file)
+    assert_git_messages, write_to_test_file)
 
 
 def test_basic_clone(git_dir, hg_repo):

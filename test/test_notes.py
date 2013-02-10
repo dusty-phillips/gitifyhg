@@ -16,8 +16,6 @@
 # along with gitifyhg.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from path import path as p
-import sys
 import pytest
 import sh
 from .helpers import (make_hg_commit, make_git_commit, clone_repo,
@@ -62,7 +60,7 @@ def test_pull_rename_remote(git_dir, hg_repo):
     git_repo = git_dir.joinpath("hg_repo")
     sh.git.init(git_repo)
     sh.cd(git_repo)
-    sh.git.remote("add", "--fetch", "the-remote", "gitifyhg::"+hg_repo)
+    sh.git.remote("add", "--fetch", "the-remote", "gitifyhg::" + hg_repo)
     sh.git.pull("the-remote", "master")
     assert_git_count(1)
     sh.cd(hg_repo)
