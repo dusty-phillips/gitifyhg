@@ -22,28 +22,26 @@ This git remote allows you to do local development in a git repository and push
 changes to an upstream mercurial repository. It does this seamlessly and allows
 pushing and pulling to named branches in the upstream repository.
 
-It tries not to affect the upstream mercurial repo in any way. Thus, only a
-restricted git workflow is available to you. 
-
-gitifyhg does not rely on hg-git, and allows you to push and pull to and from
+``gitifyhg`` does not rely on hg-git, and allows you to push and pull to and from
 a mercurial repository from right inside git. You do not need to adapt your
 git workflow in any way aside from cloning a gitifyhg url.
 
-This is the most robust and usable git to hg bridge currently available. I have
-studied as many other projects as I could find, and have covered as many use
-cases as possible. It has a large test suite (over 70 tests) and better
+This is the most robust and usable git to hg bridge currently available.
+It has a large test suite (over 70 tests) and better
 better documentation. I've tested it on several large mercurial repositories
-that break with various other git-to-hg bridge projects.
+that break with various other git-to-hg bridge projects. It has been tested
+daily in normal workflow scenarios.
 
 That said, gitifyhg is not yet complete. Some of the features that
 are not fully working include:
 
 * anonymous branches are dropped, only the tip of a named branch is kept
 * remote bookmark support is sketchy
+* remote branch tracking is not 100% stable
 
 However, if you're looking for a git-svn type of workflow that allows you to
-clone mercurial repositories, work in local git branches, and rebase your
-branches, you've found it. Further, all of these problems are fixable.
+clone mercurial repositories, work in local git branches, rebase those
+branches and push them back to mercurial,, you've found it. It works. Try it.
  
 URLS
 ----
@@ -73,7 +71,7 @@ work equally well on other Unix-like operating systems like *BSD or Solari.
 All bets are off with Windows, but please let us know if it works or you fixed
 it.
 
-gitifyhg explicitly depends on:
+``gitifyhg`` explicitly depends on:
 
 * `path.py <https://github.com/jaraco/path.py>`_
 * `Mercurial <http://mercurial.selenic.com/>`_
@@ -81,7 +79,7 @@ gitifyhg explicitly depends on:
 These packages will be installed automatically by ``easy_install``, 
 ``pip``, ``setup.py install``, or ``setup.py develop``.
 
-gitifyhg also expects the following to be installed on your os:
+``gitifyhg`` also expects the following to be installed on your os:
 
 * `python2 <http://python.org/>`_
 * `git <http://git-scm.com/>`_
