@@ -656,10 +656,6 @@ class GitExporter(object):
                 if prevtags and prevtags[-1] != '\n':
                     fp.write('\n')
                 encoded_tag = encoding.fromlocal(tag)
-                if (self.repo._tagscache.tagtypes and
-                    tag in self.repo._tagscache.tagtypes):
-                    old = self.repo.tags().get(tag, nullid)
-                    fp.write('%s %s\n' % (hghex(old), encoded_tag))
                 fp.write('%s %s\n' % (hghex(node), encoded_tag))
                 fp.close()
 
@@ -673,10 +669,11 @@ class GitExporter(object):
                 #
                 # Problem #2: It always pushes to default. How do we figure
                 # out where to commit the tagged commit?
+                branch_tag = self.repo[node].branch()
                 ctx = memctx(self.repo,
-                    (self.repo.branchtip('default'), self.NULL_PARENT),
+                    (self.repo.branchtip(branch_tag), self.NULL_PARENT),
                     "Added tag %s for changeset %s" % (tag, hgshort(node)),
-                    ['.hgtags'], get_filectx)
+                    ['.hgtags'], get_filectx, extra={'branch': branch_tag})
 
                 tmp = encoding.encoding
                 encoding.encoding = 'utf-8'

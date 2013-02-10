@@ -374,10 +374,21 @@ def test_push_messaged_tag(git_dir, hg_repo):
     assert False
 
 
-@pytest.mark.xfail
 def test_push_tag_different_branch(git_dir, hg_repo):
-    # The code pushes to default no matter what, this needs fixing.
-    assert False
+    sh.cd(hg_repo)
+    sh.hg.branch("branch_one")
+    make_hg_commit("b")
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+    sh.git.checkout("origin/branches/branch_one", track=True)
+    sh.git.tag("this_is_a_tag")
+    sh.git.push(tags=True, _err=sys.stderr)
+
+    sh.cd(hg_repo)
+    assert "this_is_a_tag" in sh.hg.tags().stdout
+    assert_hg_count(3)
+    sh.hg.update('tip')  # tip is the commit that added the tag
+    assert sh.hg.branch().stdout.strip() == "branch_one"
 
 
 def test_push_tag_with_spaces(git_dir, hg_repo):
