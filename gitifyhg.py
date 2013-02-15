@@ -24,7 +24,6 @@ import os
 import json
 import re
 import subprocess
-import errno
 from path import path as p
 from time import strftime
 
@@ -44,7 +43,6 @@ from mercurial import encoding
 from mercurial.bookmarks import listbookmarks, readcurrent, pushbookmark
 from mercurial.util import sha1
 from mercurial import hg
-from mercurial.node import nullid
 from mercurial.node import hex as hghex  # What idiot overroad a builtin?
 from mercurial.node import short as hgshort
 
