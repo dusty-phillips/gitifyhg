@@ -406,7 +406,6 @@ def test_push_tag_with_spaces(git_dir, hg_repo):
     assert "this is a tag" in sh.hg.tags().stdout
 
 
-@pytest.mark.xfail
 def test_push_only_new_tag(git_dir, hg_repo):
     sh.cd(hg_repo)
     sh.hg.tag("an_old_tag")

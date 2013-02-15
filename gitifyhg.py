@@ -45,6 +45,7 @@ from mercurial.util import sha1
 from mercurial import hg
 from mercurial.node import hex as hghex  # What idiot overroad a builtin?
 from mercurial.node import short as hgshort
+from mercurial.scmutil import revsingle
 
 
 DEBUG_GITIFYHG = os.environ.get("DEBUG_GITIFYHG") != None
@@ -805,31 +806,30 @@ class GitExporter(object):
     def write_tag(self, ref):
         node = self.parsed_refs[ref]
         tag = git_to_hg_spaces(ref[len('refs/tags/'):])
+        branch = self.repo[node].branch()
         # Calling self.repo.tag() doesn't append the tag to the correct
         # commit. So I copied some of localrepo._tag into here.
         # But that method, like much of mercurial's code, is ugly.
         # So I then rewrote it.
 
-        try:
-            fp = self.repo.wfile('.hgtags', 'rb+')
-        except IOError as e:
-            if e.errno != errno.ENOENT:
-                raise
-            fp = self.repo.wfile('.hgtags', 'ab')
-            prevtags = ''
+        tags_revision = revsingle(self.repo, branch_tip(self.repo, branch))
+        if '.hgtags' in tags_revision:
+            old_tags = tags_revision['.hgtags'].data()
         else:
-            prevtags = fp.read()
+            old_tags = ''
+        newtags = [old_tags]
+        if old_tags and old_tags[-1] != '\n':
+            newtags.append('\n')
 
-        fp.seek(0, 2)
-        if prevtags and prevtags[-1] != '\n':
-            fp.write('\n')
         encoded_tag = encoding.fromlocal(tag)
-        fp.write('%s %s\n' % (hghex(node), encoded_tag))
-        fp.close()
+        tag_line = '%s %s' % (hghex(node), encoded_tag)
+        if tag_line in old_tags:
+            return  # Don't commit a tag that was previously committed
+        newtags.append(tag_line)
 
         def get_filectx(repo, memctx, file):
-            return memfilectx(file, repo.wfile('.hgtags', 'rb').read())
-        branch_tag = self.repo[node].branch()
+            return memfilectx(file, ''.join(newtags))
+
         if tag in self.parsed_tags:
             author, message = self.parsed_tags[tag]
             user, date, tz = author
@@ -839,9 +839,8 @@ class GitExporter(object):
             user = None
             date_tz = None
         ctx = memctx(self.repo,
-            (branch_tip(self.repo, branch_tag), self.NULL_PARENT),
-            message,
-            ['.hgtags'], get_filectx, user, date_tz, {'branch': branch_tag})
+            (branch_tip(self.repo, branch), self.NULL_PARENT), message,
+            ['.hgtags'], get_filectx, user, date_tz, {'branch': branch})
 
         tmp = encoding.encoding
         encoding.encoding = 'utf-8'
