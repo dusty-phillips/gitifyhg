@@ -165,6 +165,43 @@ information associated with that tag when you run ``git push --tags``.
 If you have any trouble, please let us know via the issue tracker, preferably
 with pull requests containing test cases.
 
+Communicating with Mercurial Users
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+One problem with using git to access Mercurial repos is that the sha identifers
+in the two DVCSs are different. This makes it difficult to discuss or share
+patches on mailing lists or other mediums.
+
+Gitifyhg alleviates this by storing Mercurial's sha1 identifiers in a git-notes
+ref. If you need to discuss SHA1s with upstream Mercurial users, issue
+the following commands
+
+```bash
+$ ls .git/refs/notes/
+hg  hg-ceda6818a39a022ef11ba5ee2d7964f57cb3accf
+# note the SHA1 above and adapt the following command
+git symbolic-ref refs/notes/hg refs/notes/hg-ceda6818a39a022ef11ba5ee2d7964f57cb3accf
+git config core.notesRef refs/notes/hg
+```
+
+From now on, your git-log output will include lines that look like the
+following for each pulled ref:
+
+```
+Notes (hg):
+    e6eabc9d7e24f55e829d0848380f6645e57f4b6a
+```
+
+That is the Mercurial SHA1 identifier of the commit in question; you can paste
+that into an e-mail or chat message to discuss a specific commit with other
+users.
+
+If somebody else mentions a commit by it's hg SHA1 identifier, you can search
+for that commit in git using:
+
+```
+git log --grep=<HGSHA1>
+```
+
 Development
 -----------
 You can hack on gitifyhg by forking the
