@@ -812,7 +812,7 @@ class GitExporter(object):
         # But that method, like much of mercurial's code, is ugly.
         # So I then rewrote it.
 
-        tags_revision = revsingle(self.repo, branch_tip(self.repo, branch))
+        tags_revision = revsingle(self.repo, hghex(branch_tip(self.repo, branch)))
         if '.hgtags' in tags_revision:
             old_tags = tags_revision['.hgtags'].data()
         else:
