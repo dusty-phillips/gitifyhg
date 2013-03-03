@@ -26,13 +26,12 @@ pushing and pulling to named branches in the upstream repository.
 a mercurial repository from right inside git. You do not need to adapt your
 git workflow in any way aside from cloning a gitifyhg url.
 
-To the best of our knowledge, his is the most robust and usable git to hg bridge
+To the best of our knowledge, this is the most robust and usable git to hg bridge
 currently available. It has a large test suite and better documentation than
 the `alternatives we know about <https://github.com/buchuki/gitifyhg/wiki/List-of-git-hg-bridges>`_.
-It has ben testedit on several large mercurial repositories (including that
+It has been tested on several large mercurial repositories (including that
 of mercurial itself and the pypy repository) that break with various other
-git-to-hg bridge projects. It has been tested
-daily in normal workflow scenarios.
+git-to-hg bridge projects and is used daily in normal workflow scenarios.
 
 That said, gitifyhg is not yet complete. Some of the features that
 are not fully working include:
@@ -56,20 +55,20 @@ URLS
 
 Dependencies
 ------------
-``gitifyhg`` has been tested to run on cPython 2.6 and 2.7. Any python that
+``gitifyhg`` has been tested to run on CPython 2.6 and 2.7. Any python that
 supports Mercurial should be supported. Sadly, this excludes both pypy and
-cPython 3.
+CPython 3.
 
-``gitifyhg`` requires at least Mercurial 1.9, older versions are curently
+``gitifyhg`` requires at least Mercurial 1.9, older versions are currently
 not supported. We perform continuous testing against various Mercurial
 versions ranging from 1.9 to 2.5. However, this does not completely rule
 out the possibility of compatibility issues, so we recommend using Mercurial
 2.4.x or 2.5.x, as this is what ``gitifyhg`` is primarily developed for.
 Should you actually encounter any compatibility issues with any older or
-newer Mercurial versions, please submit ann issue.
+newer Mercurial versions, please submit an issue.
 
 It has been tested on Arch Linux and Mac OS X. In general it should
-work equally well on other Unix-like operating systems like *BSD or Solari.
+work equally well on other Unix-like operating systems like *BSD or Solaris.
 All bets are off with Windows, but please let us know if it works or you fixed
 it.
 
@@ -81,7 +80,7 @@ it.
 These packages will be installed automatically by ``easy_install``, 
 ``pip``, ``setup.py install``, or ``setup.py develop``.
 
-``gitifyhg`` also expects the following to be installed on your os:
+``gitifyhg`` also expects the following to be installed on your OS:
 
 * `python2 <http://python.org/>`_
 * `git <http://git-scm.com/>`_
@@ -130,7 +129,7 @@ to work on. Then change to the tracked branch and ``git pull`` to get
 upstream changes. Rebase your working branch onto that branch before pushing ::
 
   git checkout -b working_<branchname>
-  # hack add commit ad naseum
+  # hack add commit ad nauseam
   git checkout branches/<branchname>
   git pull
   git checkout working_<branchname>
@@ -169,7 +168,7 @@ with pull requests containing test cases.
 
 Communicating with Mercurial Users
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-One problem with using git to access Mercurial repos is that the sha identifers
+One problem with using git to access Mercurial repos is that the sha identifiers
 in the two DVCSs are different. This makes it difficult to discuss or share
 patches on mailing lists or other mediums.
 
@@ -213,7 +212,7 @@ We recommend developing in a `virtualenv <http://www.virtualenv.org/>`_ ::
 
 There is currently a problem where if you have a development version of gitifyhg
 in an active virtualenv and a stable version installed at the system level, git
-will pick the system level gitifyhg regardless ofthe PATH setting in the
+will pick the system level gitifyhg regardless of the PATH setting in the
 virtualenv. The only workaround I have found is to temporarily uninstall the
 system version.
 
@@ -228,7 +227,7 @@ The git remote prints INPUT and OUTPUT lines for each of these to help
 introspect the protocol.
 
 We expect pep8 compliance on contributions. If possible, enable highlighting
-of pep8 violations in your editor before commiting.
+of pep8 violations in your editor before committing.
 
 The gitifyhg mailing list is hosted on 
 `Google groups <https://groups.google.com/group/gitifyhg>`_, but we
