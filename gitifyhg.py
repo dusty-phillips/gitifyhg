@@ -38,7 +38,7 @@ os.environ['HGRCPATH'] = ''
 
 from mercurial.ui import ui
 from mercurial.context import memctx, memfilectx
-from mercurial.error import Abort
+from mercurial.error import Abort, RepoError
 from mercurial import encoding
 from mercurial.bookmarks import listbookmarks, readcurrent, pushbookmark
 from mercurial.util import sha1
@@ -311,8 +311,15 @@ class HGRemote(object):
 
         local_path = self.remotedir.joinpath('clone')
         if not local_path.exists():
-            self.peer, dstpeer = hg.clone(myui, {}, url.encode('utf-8'),
-                local_path.encode('utf-8'), update=False, pull=True)
+            try:
+                self.peer, dstpeer = hg.clone(myui, {}, url.encode('utf-8'),
+                    local_path.encode('utf-8'), update=False, pull=True)
+            except (RepoError, Abort) as e:
+                sys.stderr.write("abort: %s\n" % e)
+                if e.hint:
+                    sys.stderr.write("(%s)\n" % e.hint)
+                sys.exit(-1)
+
             self.repo = dstpeer.local()
         else:
             self.repo = hg.repository(myui, local_path.encode('utf-8'))

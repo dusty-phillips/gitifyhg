@@ -447,3 +447,11 @@ def test_clone_replace_dir_by_symlink(git_dir, hg_repo):
 
     assert p('dir_or_link').isfile()
     assert p('dir_or_link').islink()
+
+
+def test_clone_remote_fail(git_dir):
+    # Ensure it has an error message instead of a exception if you try
+    # to clone something which cannot be cloned.
+    err = sh.git.clone("gitifyhg::ssh://hg@hg.example.domain/repo",
+        _ok_code=128).stderr
+    assert "Traceback" not in err
