@@ -44,6 +44,7 @@ from mercurial.bookmarks import listbookmarks, readcurrent, pushbookmark
 from mercurial.util import sha1
 from mercurial import hg
 from mercurial.node import hex as hghex  # What idiot overroad a builtin?
+from mercurial.node import bin as hgbin
 from mercurial.node import short as hgshort
 from mercurial.scmutil import revsingle
 
@@ -149,7 +150,9 @@ def branch_tip(repo, branch):
 
 
 class HGMarks(object):
-    '''Maps integer marks to specific string mercurial revision identifiers.'''
+    '''Maps integer marks to specific string mercurial revision identifiers.
+    Identifiers are passed as binary nodes and converted to/from hex strings
+    before and after storage.'''
 
     def __init__(self, storage_path):
         ''':param storage_path: The file that marks are stored in between calls.
@@ -187,24 +190,23 @@ class HGMarks(object):
             file)
 
     def mark_to_revision(self, mark):
-        # not sure making this an int is a good thing...
-        return int(self.marks_to_revisions[mark])
+        return hgbin(self.marks_to_revisions[mark])
 
     def revision_to_mark(self, revision):
-        return self.revisions_to_marks[str(revision)]
+        return self.revisions_to_marks[hghex(revision)]
 
     def get_mark(self, revision):
-        self. last_mark += 1
-        self.revisions_to_marks[str(revision)] = self.last_mark
+        self.last_mark += 1
+        self.revisions_to_marks[hghex(revision)] = self.last_mark
         return self.last_mark
 
     def new_mark(self, revision, mark):
-        self.revisions_to_marks[str(revision)] = mark
-        self.marks_to_revisions[mark] = int(revision)
+        self.revisions_to_marks[hghex(revision)] = mark
+        self.marks_to_revisions[mark] = hghex(revision)
         self.last_mark = mark
 
     def is_marked(self, revision):
-        return str(revision) in self.revisions_to_marks
+        return hghex(revision) in self.revisions_to_marks
 
     def new_notes_mark(self):
         self.last_mark += 1
@@ -526,7 +528,8 @@ class HGImporter(object):
         count = 0
 
         for rev in revs:
-            if self.marks.is_marked(rev):
+            node = self.repo[rev].node()
+            if self.marks.is_marked(node):
                 continue
 
             (manifest, user, (time, tz), files, description, extra
@@ -554,16 +557,16 @@ class HGImporter(object):
                 output('reset %s/%s' % (self.prefix, kind_name))
 
             output("commit %s/%s" % (self.prefix, kind_name))
-            output("mark :%d" % (self.marks.get_mark(rev)))
+            output("mark :%d" % (self.marks.get_mark(node)))
             output("author %s" % (author))
             output("committer %s" % (committer))
             output("data %d" % (len(description)))
             output(description)
 
             if parents:
-                output("from :%s" % (self.marks.revision_to_mark(parents[0])))
+                output("from :%s" % (self.marks.revision_to_mark(self.repo[parents[0]].node())))
                 if len(parents) > 1:
-                    output("merge :%s" % (self.marks.revision_to_mark(parents[1])))
+                    output("merge :%s" % (self.marks.revision_to_mark(self.repo[parents[1]].node())))
 
             for file in modified:
                 filecontext = self.repo[rev].filectx(file)
@@ -584,7 +587,7 @@ class HGImporter(object):
 
         # make sure the ref is updated
         output("reset %s/%s" % (self.prefix, kind_name))
-        output("from :%u" % self.marks.revision_to_mark(head.rev()))
+        output("from :%u" % self.marks.revision_to_mark(head.node()))
         output()
 
         self.marks.tips[kind_name] = head.rev()
@@ -708,7 +711,7 @@ class GitExporter(object):
 
         from_mark = self.parser.read_mark()
         from_revision = self.marks.mark_to_revision(from_mark)
-        self.parsed_refs[ref] = self.repo.changelog.node(int(from_revision))
+        self.parsed_refs[ref] = from_revision
 
         # skip a line
         self.parser.read_line()
@@ -749,14 +752,12 @@ class GitExporter(object):
             extra['committer'] = "%s %u %u" % committer
 
         if from_mark:
-            parent_from = self.repo.changelog.node(
-                self.marks.mark_to_revision(from_mark))
+            parent_from = self.marks.mark_to_revision(from_mark)
         else:
             parent_from = self.NULL_PARENT
 
         if merge_mark:
-            parent_merge = self.repo.changelog.node(
-                self.marks.mark_to_revision(merge_mark))
+            parent_merge = self.marks.mark_to_revision(merge_mark)
         else:
             parent_merge = self.NULL_PARENT
 
@@ -792,10 +793,8 @@ class GitExporter(object):
         node = self.repo.commitctx(ctx)
         encoding.encoding = tmp
 
-        rev = self.repo[node].rev()
-
         self.parsed_refs[ref] = node
-        self.marks.new_mark(rev, commit_mark)
+        self.marks.new_mark(node, commit_mark)
         self.processed_marks.add(str(commit_mark))
         self.processed_nodes.append(node)
 
