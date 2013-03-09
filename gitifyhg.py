@@ -172,12 +172,14 @@ class HGMarks(object):
             self.marks_to_revisions = dict([(int(v), k) for k, v in
                     self.revisions_to_marks.iteritems()])
             self.notes_mark = loaded.get('notes-mark', None)
+            self.marks_version = loaded.get('marks-version', 1)
         else:
             self.tips = {}
             self.revisions_to_marks = {}
             self.marks_to_revisions = {}
             self.last_mark = 0
             self.notes_mark = None
+            self.marks_version = 2
 
     def store(self):
         '''Save marks to the storage file.'''
@@ -186,8 +188,19 @@ class HGMarks(object):
                 'tips': self.tips,
                 'revisions_to_marks': self.revisions_to_marks,
                 'last-mark': self.last_mark,
-                'notes-mark': self.notes_mark},
+                'notes-mark': self.notes_mark,
+                'marks-version': self.marks_version},
             file)
+
+    def upgrade_marks(self, hgrepo):
+        if self.marks_version == 1: # Convert from integer reversions to hgsha1
+            log("Upgrading marks-hg from hg sequence number to SHA1", "WARNING")
+            self.marks_to_revisions = dict(
+                (mark, hghex(hgrepo.changelog.node(int(rev)))) for mark, rev in self.marks_to_revisions.iteritems())
+            self.revisions_to_marks = dict(
+                (hghex(hgrepo.changelog.node(int(rev))), mark) for rev, mark in self.revisions_to_marks.iteritems())
+            self.marks_version = 2
+            log("Upgrade complete", "WARNING")
 
     def mark_to_revision(self, mark):
         return hgbin(self.marks_to_revisions[mark])
@@ -327,6 +340,8 @@ class HGRemote(object):
             self.repo = hg.repository(myui, local_path.encode('utf-8'))
             self.peer = hg.peer(myui, {}, url.encode('utf-8'))
             self.repo.pull(self.peer, heads=None, force=True)
+
+        self.marks.upgrade_marks(self.repo)
 
     def process(self):
         '''Process the messages coming in on stdin using the git-remote
