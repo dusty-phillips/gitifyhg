@@ -24,14 +24,14 @@ setup(
     url="https://github.com/buchuki/gitifyhg",
     description="Use git as client for hg repos",
     version="0.7.2",
-    py_modules=["gitifyhg"],
+    packages=['gitifyhg'],
     install_requires=[
         'path.py>=2.5',
         'Mercurial>=1.9.1',
     ],
     entry_points={
         'console_scripts': [
-            'git-remote-gitifyhg = gitifyhg:main',
+            'git-remote-gitifyhg = gitifyhg.gitifyhg:main',
         ],
     },
     classifiers=[
