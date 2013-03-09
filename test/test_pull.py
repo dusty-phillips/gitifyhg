@@ -1,4 +1,4 @@
-# Copyright 2012 Dusty Phillips
+# Copyright 2012-2013 Dusty Phillips
 
 # This file is part of gitifyhg.
 
