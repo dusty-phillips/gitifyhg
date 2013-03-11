@@ -417,3 +417,14 @@ def test_push_only_new_tag(git_dir, hg_repo):
     sh.cd(hg_repo)
     assert "this_is_a_tag" in sh.hg.tags().stdout
     assert_hg_count(3)
+
+
+def test_push_after_rm_file_with_spaces(git_dir, hg_repo):
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+    make_git_commit("a", filename = "name with spaces")
+
+    sh.git.rm("name with spaces")
+    sh.git.commit(message="b")
+
+    sh.git.push()
