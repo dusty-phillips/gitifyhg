@@ -259,7 +259,6 @@ def main():
     '''Main entry point for the git-remote-gitifyhg command. Parses sys.argv
     and constructs a parser from the result.
     '''
-    log("WTF")
     HGRemote(*[x.decode('utf-8') for x in sys.argv[1:3]]).process()
     try:
         sys.stderr.close()
