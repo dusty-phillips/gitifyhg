@@ -37,8 +37,8 @@ That said, gitifyhg is not yet complete. Some of the features that
 are not fully working include:
 
 * anonymous branches are dropped, only the tip of a named branch is kept
-* remote bookmark support is sketchy
-* remote branch tracking is not 100% stable
+* remote branch and bookmark tracking is not 100% stable
+* pushing octopus merges is not supported 
 
 However, if you are looking for a git-svn type of workflow that allows you to
 clone mercurial repositories, work in local git branches, rebase those
