@@ -28,6 +28,7 @@ from mercurial.scmutil import revsingle
 
 from .util import log, die, output, git_to_hg_spaces, hgmode, branch_tip
 
+
 class GitExporter(object):
 
     '''A processor when the remote receives a git-remote `export` command.
@@ -50,6 +51,7 @@ class GitExporter(object):
     def process(self):
         self.marks.store()  # checkpoint
         new_branch = False
+        push_bookmarks = []
         self.parser.read_line()
         for line in self.parser.read_block('done'):
             command = line.split()[0]
@@ -68,6 +70,7 @@ class GitExporter(object):
                 old = old.hex() if old else ''
                 if not pushbookmark(self.repo, bookmark, old, node):
                     continue
+                push_bookmarks.append((bookmark, old, node))
             elif ref.startswith('refs/tags/'):
                 self.write_tag(ref)
             else:
@@ -78,6 +81,8 @@ class GitExporter(object):
         success = False
         try:
             self.repo.push(self.hgremote.peer, force=False, newbranch=new_branch)
+            for bookmark, old, new in push_bookmarks:
+                self.hgremote.peer.pushkey('bookmarks', bookmark, old, new)
             self.marks.store()
             success = True
         except Abort as e:
@@ -268,4 +273,3 @@ class GitExporter(object):
         encoding.encoding = 'utf-8'
         node = self.repo.commitctx(ctx)
         encoding.encoding = tmp
-
