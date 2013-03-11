@@ -367,6 +367,25 @@ def test_push_tag_with_subsequent_commits(git_dir, hg_repo):
         'b', 'a'])
 
 
+def test_push_tag_with_previous_commits(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    hgsha1 = sh.hg.id(id=True).stdout.strip()
+    sh.hg.tag("an_old_tag")
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+    make_git_commit("b")
+    sh.git.tag("this_is_a_tag")
+    sh.git.push("origin", "HEAD", tags=True, _err=sys.stderr)
+
+    sh.cd(hg_repo)
+    assert "this_is_a_tag" in sh.hg.tags().stdout
+    assert_hg_count(4)
+    sh.hg.update(2)
+    hgsha = sh.hg.id(id=True).stdout.strip()
+    assert_hg_messages(['Added tag this_is_a_tag for changeset %s' % hgsha,
+        'b', 'Added tag an_old_tag for changeset %s' % hgsha1, 'a'])
+
+
 def test_push_messaged_tag(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(git_repo)
