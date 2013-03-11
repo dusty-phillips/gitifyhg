@@ -143,7 +143,7 @@ prefix ::
 
   git checkout -b "branches/my_new_branch"
   # hack add commit
-  git push --set_upstream origin branches/my_new_branch
+  git push --set-upstream origin branches/my_new_branch
 
 And that's really it, you just use standard git commands and the remote
 takes care of the details. Just be cautious of incoming anonymous branches,
