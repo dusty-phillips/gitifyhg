@@ -79,6 +79,34 @@ def branch_tip(repo, branch):
         return repo.branchtags()[branch]
 
 
+def ref_to_name_kind(ref):
+    '''Converts a git ref into a name (e.g., the name of that branch, tag, etc.)
+    and its hg kind (one of 'bookmarks', 'tags', or 'branches').'''
+    if ref == 'refs/heads/master':
+        return ('default', 'branches')
+    elif ref.startswith('refs/heads/branches/'):
+        return (ref[len('refs/heads/branches/'):], 'branches')
+    elif ref.startswith('refs/heads/'):
+        return (ref[len('refs/heads/'):], 'bookmarks')
+    elif ref.startswith('refs/tags/'):
+        return (ref[len('refs/tags/'):], 'tags')
+    else:
+        assert False, "unexpected ref: %s" % ref
+
+
+def make_kind_name(kind, name):
+    # FIXME: This function should be called something better.
+    if kind == 'branches' and name == 'default':
+        # I have no idea where 'bookmarks' comes from in this case.
+        # I don't think there is meant to be many bookmarks/master ref,
+        # but this is what I had to do to make tests pass when special
+        # casing the master/default dichotomy. Something is still fishy
+        # here, but it's less fishy than it was. See issue #34.
+        return "bookmarks/master"
+    else:
+        return "%s/%s" % (kind, name)
+
+
 class HGMarks(object):
     '''Maps integer marks to specific string mercurial revision identifiers.
     Identifiers are passed as binary nodes and converted to/from hex strings

@@ -26,7 +26,8 @@ from mercurial.node import short as hgshort
 from mercurial.bookmarks import pushbookmark
 from mercurial.scmutil import revsingle
 
-from .util import log, die, output, git_to_hg_spaces, hgmode, branch_tip
+from .util import (log, die, output, git_to_hg_spaces, hgmode, branch_tip,
+    ref_to_name_kind, make_kind_name)
 
 
 class GitExporter(object):
@@ -59,11 +60,13 @@ class GitExporter(object):
                 die('unhandled command: %s' % line)
             getattr(self, 'do_%s' % command)()
 
+        updated_refs = {}
         for ref, node in self.parsed_refs.iteritems():
             if ref.startswith('refs/heads/branches'):
                 branch = ref[len('refs/heads/branches'):]
                 if git_to_hg_spaces(branch) not in self.hgremote.branches:
                     new_branch = True
+                updated_refs[ref] = node
             elif ref.startswith('refs/heads/'):
                 bookmark = ref[len('refs/heads/'):]
                 old = self.hgremote.bookmarks.get(bookmark)
@@ -71,8 +74,10 @@ class GitExporter(object):
                 if not pushbookmark(self.repo, bookmark, old, node):
                     continue
                 push_bookmarks.append((bookmark, old, node))
+                updated_refs[ref] = node
             elif ref.startswith('refs/tags/'):
                 self.write_tag(ref)
+                updated_refs[ref] = node
             else:
                 # transport-helper/fast-export bugs
                 log("Fast-export unexpected ref: %s" % ref, "WARNING")
@@ -96,9 +101,25 @@ class GitExporter(object):
                 die("unknown hg exception: %s" % e)
         # TODO: handle network/other errors?
 
-        for ref in self.parsed_refs:
+        for ref, node in updated_refs.items():
             if success:
-                output("ok %s" % ref)
+                status = ""
+                name, kind = ref_to_name_kind(ref)
+                kind_name = make_kind_name(kind, name)
+                last_known_rev = self.marks.tips.get(kind_name)
+                new_rev = self.repo[node].rev()
+                if last_known_rev is not None and last_known_rev == new_rev:
+                    # up to date status tells git that nothing has changed
+                    # during the push for this ref, which prevents it from
+                    # printing pointless status info to the user such as:
+                    #  * [new branch]      master -> master
+                    status = " up to date"
+                output("ok %s%s" % (ref, status))
+
+                # this rev is now the new tip. without this, the user would have
+                # to do a pull immediately after a push for gitifyhg to realize
+                # that the git repo is up to date.
+                self.marks.tips[kind_name] = new_rev
             else:
                 output("error %s non-fast forward" % ref)  # TODO: other errors as well
         output()
