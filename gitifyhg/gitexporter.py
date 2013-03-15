@@ -73,7 +73,7 @@ class GitExporter(object):
                 old = old.hex() if old else ''
                 if not pushbookmark(self.repo, bookmark, old, node):
                     continue
-                push_bookmarks.append((bookmark, old, node))
+                push_bookmarks.append((bookmark, old, hghex(node)))
                 updated_refs[ref] = node
             elif ref.startswith('refs/tags/'):
                 self.write_tag(ref)
