@@ -449,3 +449,34 @@ def test_push_after_rm_file_with_spaces(git_dir, hg_repo):
     sh.git.commit(message="b")
 
     sh.git.push()
+
+def test_push_up_to_date(git_dir, hg_repo):
+    git_repo = clone_repo(git_dir, hg_repo)
+
+    # push with a newly-cloned repo
+    sh.cd(git_repo)
+    assert "new branch" not in sh.git.push().stderr
+
+    # push with a commit on hg default/git master (because it's handled
+    # differently)
+    sh.cd(hg_repo)
+    make_hg_commit("x")
+    sh.cd(git_repo)
+    sh.git.pull()
+    assert "new branch" not in sh.git.push().stderr
+
+    # push with a commit on non-default branch
+    sh.cd(hg_repo)
+    sh.hg.branch("new_branch")
+    make_hg_commit("y")
+    sh.cd(git_repo)
+    sh.git.pull()
+    sh.git.checkout("origin/branches/new_branch", track=True)
+    assert "new branch" not in sh.git.push().stderr
+
+    # push a commit from git
+    make_git_commit("z")
+    out = sh.git.push().stderr
+    assert "new branch" in out
+    assert "branches/new_branch -> branches/new_branch" in out
+
