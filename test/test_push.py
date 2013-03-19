@@ -45,6 +45,13 @@ def test_simple_push_updates_remote(hg_repo, git_dir):
     assert_git_count(2, ref='origin')
 
 
+@pytest.mark.xfail
+def test_simple_push_updates_remote_dont_create_bookmark(hg_repo, git_dir):
+    test_simple_push_updates_remote(hg_repo, git_dir)
+    sh.cd(hg_repo)
+    assert sh.hg.bookmarks().stdout.find("no bookmarks set") > 0
+
+
 def test_empty_repo(tmpdir):
     tmpdir = p(tmpdir.strpath).abspath()
     hg_base = tmpdir.joinpath('hg_base')
