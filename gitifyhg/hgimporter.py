@@ -24,7 +24,8 @@ import re
 from mercurial import encoding
 
 from .util import (log, output, actual_stdout, gittz, gitmode,
-    git_to_hg_spaces, hg_to_git_spaces, branch_tip)
+    git_to_hg_spaces, hg_to_git_spaces, branch_tip, ref_to_name_kind,
+    make_kind_name)
 
 AUTHOR = re.compile(r'^([^<>]+)?(<(?:[^<>]*)>| [^ ]*@.*|[<>].*)$')
 
@@ -85,18 +86,17 @@ class HGImporter(object):
                     self.hgremote.headnode[0],
                     'bookmarks',
                     self.hgremote.headnode[1])
-            elif ref == 'refs/heads/master':
-                self.do_branch('default')
-            elif ref.startswith('refs/heads/branches/'):
-                self.do_branch(ref[len('refs/heads/branches/'):])
-            elif ref.startswith('refs/heads/'):
-                bookmark = ref[len('refs/heads/'):]
-                self.process_ref(bookmark,
-                    'bookmarks',
-                    self.hgremote.bookmarks[git_to_hg_spaces(bookmark)])
-            elif ref.startswith('refs/tags/'):
-                tag = ref[len('refs/tags/'):]
-                self.process_ref(tag, 'tags', self.repo[git_to_hg_spaces(tag)])
+            else:
+                name, kind = ref_to_name_kind(ref)
+                if kind == 'branches':
+                    head = self.branch_head(name)
+                elif kind == 'bookmarks':
+                    head = self.hgremote.bookmarks[git_to_hg_spaces(name)]
+                elif kind == 'tags':
+                    head = self.repo[git_to_hg_spaces(name)]
+                else:
+                    assert False, "unexpected kind: %s" % kind
+                self.process_ref(name, kind, head)
 
             self.process_notes()
 
@@ -105,7 +105,7 @@ class HGImporter(object):
         encoding.encoding = tmp
         output('done')
 
-    def do_branch(self, branch):
+    def branch_head(self, branch):
         branch = git_to_hg_spaces(branch)
         try:
             heads = self.hgremote.branches[branch]
@@ -119,8 +119,7 @@ class HGImporter(object):
         except KeyError:
             return
 
-        head = self.repo[tip]
-        self.process_ref(hg_to_git_spaces(branch), 'branches', head)
+        return self.repo[tip]
 
     def process_notes(self):
         last_notes_mark = self.marks.notes_mark if self.marks.notes_mark is not None else 0
@@ -144,16 +143,7 @@ class HGImporter(object):
         output()
 
     def process_ref(self, name, kind, head):
-
-        # FIXME: I really need a better variable name here.
-        kind_name = "%s/%s" % (kind, name)
-        if kind_name == "branches/default":
-            # I have no idea where 'bookmarks' comes from in this case.
-            # I don't think there is meant to be many bookmarks/master ref,
-            # but this is what I had to do to make tests pass when special
-            # casing the master/default dichotomy. Something is still fishy
-            # here, but it's less fishy than it was. See issue #34.
-            kind_name = "bookmarks/master"
+        kind_name = make_kind_name(kind, name)
         tip = self.marks.tips.get(kind_name, 0)
 
         revs = xrange(tip, head.rev() + 1)
