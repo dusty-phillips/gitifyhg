@@ -32,9 +32,10 @@ AUTHOR = re.compile(r'^([^<>]+)?(<(?:[^<>]*)>| [^ ]*@.*|[<>].*)$')
 
 def sanitize_author(author):
     '''Mercurial allows a more freeform user string than git, so we have to
-    massage it to be compatible. Git expects "name <email>".'''
+    massage it to be compatible. Git expects "name <email>", where email can be
+    empty (as long as it's surrounded by <>).'''
     name = ''
-    email = 'unknown'
+    email = ''
     author = author.replace('"', '')
     match = AUTHOR.match(author)
     if match:
@@ -48,10 +49,10 @@ def sanitize_author(author):
         else:
             name = author
 
-    if name:
-        return "%s <%s>" % (name, email)
-    else:
-        return "<%s>" % (email)
+    if not name:
+        name = 'Unknown'
+
+    return "%s <%s>" % (name, email)
 
 
 class HGImporter(object):

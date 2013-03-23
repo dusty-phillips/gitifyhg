@@ -33,7 +33,7 @@ def test_author_no_email(git_dir, hg_repo):
     make_hg_commit("b", user="no email supplied")
 
     clone_repo(git_dir, hg_repo)
-    assert_git_author(author='no email supplied <unknown>')
+    assert_git_author(author='no email supplied <>')
 
 
 def test_author_only_email(git_dir, hg_repo):
@@ -41,7 +41,7 @@ def test_author_only_email(git_dir, hg_repo):
     make_hg_commit("b", user="<email@example.com>")
 
     clone_repo(git_dir, hg_repo)
-    assert_git_author(author='<email@example.com>')
+    assert_git_author(author='Unknown <email@example.com>')
 
 
 def test_author_only_email_no_quote(git_dir, hg_repo):
@@ -49,7 +49,7 @@ def test_author_only_email_no_quote(git_dir, hg_repo):
     make_hg_commit("b", user="email@example.com")
 
     clone_repo(git_dir, hg_repo)
-    assert_git_author(author='<email@example.com>')
+    assert_git_author(author='Unknown <email@example.com>')
 
 
 def test_author_no_space_before_email(git_dir, hg_repo):
