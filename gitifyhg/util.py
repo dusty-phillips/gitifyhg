@@ -9,6 +9,11 @@ from mercurial.node import bin as hgbin
 DEBUG_GITIFYHG = os.environ.get("DEBUG_GITIFYHG") != None
 
 
+BRANCH = 'branch'
+BOOKMARK = 'bookmark'
+TAG = 'tag'
+
+
 # hijack stdout to prevent mercurial from inadvertently talking to git.
 # interactive=off and ui.pushbuffer() don't seem to work.
 class DummyOut(object):
@@ -79,32 +84,33 @@ def branch_tip(repo, branch):
         return repo.branchtags()[branch]
 
 
-def ref_to_name_kind(ref):
+def ref_to_name_reftype(ref):
     '''Converts a git ref into a name (e.g., the name of that branch, tag, etc.)
-    and its hg kind (one of 'bookmarks', 'tags', or 'branches').'''
+    and its hg type (one of BRANCH, BOOKMARK, or TAG).'''
     if ref == 'refs/heads/master':
-        return ('default', 'branches')
+        return ('default', BRANCH)
     elif ref.startswith('refs/heads/branches/'):
-        return (ref[len('refs/heads/branches/'):], 'branches')
+        return (ref[len('refs/heads/branches/'):], BRANCH)
     elif ref.startswith('refs/heads/'):
-        return (ref[len('refs/heads/'):], 'bookmarks')
+        return (ref[len('refs/heads/'):], BOOKMARK)
     elif ref.startswith('refs/tags/'):
-        return (ref[len('refs/tags/'):], 'tags')
+        return (ref[len('refs/tags/'):], TAG)
     else:
         assert False, "unexpected ref: %s" % ref
 
 
-def make_kind_name(kind, name):
-    # FIXME: This function should be called something better.
-    if kind == 'branches' and name == 'default':
-        # I have no idea where 'bookmarks' comes from in this case.
-        # I don't think there is meant to be many bookmarks/master ref,
-        # but this is what I had to do to make tests pass when special
-        # casing the master/default dichotomy. Something is still fishy
-        # here, but it's less fishy than it was. See issue #34.
-        return "bookmarks/master"
-    else:
-        return "%s/%s" % (kind, name)
+def name_reftype_to_ref(name, reftype):
+    '''Converts a name and type (e.g., '1.0' and 'tags') into a git ref.'''
+    if reftype == BRANCH:
+        if name == 'default':
+            return 'refs/heads/master'
+        else:
+            return 'refs/heads/branches/%s' % name
+    elif reftype == BOOKMARK:
+        return 'refs/heads/%s' % name
+    elif reftype == TAG:
+        return 'refs/tags/%s' % name
+    assert False, "unknown reftype: %s" % reftype
 
 
 class HGMarks(object):
@@ -137,7 +143,7 @@ class HGMarks(object):
             self.marks_to_revisions = {}
             self.last_mark = 0
             self.notes_mark = None
-            self.marks_version = 2
+            self.marks_version = 3
 
     def store(self):
         '''Save marks to the storage file.'''
@@ -150,14 +156,20 @@ class HGMarks(object):
                 'marks-version': self.marks_version},
             file)
 
-    def upgrade_marks(self, hgrepo):
+    def upgrade_marks(self, hgremote):
         if self.marks_version == 1:  # Convert from integer reversions to hgsha1
             log("Upgrading marks-hg from hg sequence number to SHA1", "WARNING")
             self.marks_to_revisions = dict(
-                (mark, hghex(hgrepo.changelog.node(int(rev)))) for mark, rev in self.marks_to_revisions.iteritems())
+                (mark, hghex(hgremote.repo.changelog.node(int(rev)))) for mark, rev in self.marks_to_revisions.iteritems())
             self.revisions_to_marks = dict(
-                (hghex(hgrepo.changelog.node(int(rev))), mark) for rev, mark in self.revisions_to_marks.iteritems())
+                (hghex(hgremote.repo.changelog.node(int(rev))), mark) for rev, mark in self.revisions_to_marks.iteritems())
             self.marks_version = 2
+            log("Upgrade complete", "WARNING")
+        if self.marks_version == 2:  # Convert tips to use gitify refs as keys
+            log("Upgrading marks-hg tips", "WARNING")
+            self.tips = dict(
+                ("%s/%s" % (hgremote.prefix, reftype_and_name), tip) for reftype_and_name, tip in self.tips.iteritems())
+            self.marks_version = 3
             log("Upgrade complete", "WARNING")
 
     def mark_to_revision(self, mark):

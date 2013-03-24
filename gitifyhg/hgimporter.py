@@ -24,8 +24,8 @@ import re
 from mercurial import encoding
 
 from .util import (log, output, actual_stdout, gittz, gitmode,
-    git_to_hg_spaces, hg_to_git_spaces, branch_tip, ref_to_name_kind,
-    make_kind_name)
+    git_to_hg_spaces, hg_to_git_spaces, branch_tip, ref_to_name_reftype,
+    BRANCH, BOOKMARK, TAG)
 
 AUTHOR = re.compile(r'^([^<>]+)?(<(?:[^<>]*)>| [^ ]*@.*|[<>].*)$')
 
@@ -85,19 +85,19 @@ class HGImporter(object):
             if ref == 'HEAD':
                 self.process_ref(
                     self.hgremote.headnode[0],
-                    'bookmarks',
+                    BOOKMARK,
                     self.hgremote.headnode[1])
             else:
-                name, kind = ref_to_name_kind(ref)
-                if kind == 'branches':
+                name, reftype = ref_to_name_reftype(ref)
+                if reftype == BRANCH:
                     head = self.branch_head(name)
-                elif kind == 'bookmarks':
+                elif reftype == BOOKMARK:
                     head = self.hgremote.bookmarks[git_to_hg_spaces(name)]
-                elif kind == 'tags':
+                elif reftype == TAG:
                     head = self.repo[git_to_hg_spaces(name)]
                 else:
-                    assert False, "unexpected kind: %s" % kind
-                self.process_ref(name, kind, head)
+                    assert False, "unexpected reftype: %s" % reftype
+                self.process_ref(name, reftype, head)
 
             self.process_notes()
 
@@ -143,9 +143,9 @@ class HGImporter(object):
             output(hgsha1)
         output()
 
-    def process_ref(self, name, kind, head):
-        kind_name = make_kind_name(kind, name)
-        tip = self.marks.tips.get(kind_name, 0)
+    def process_ref(self, name, reftype, head):
+        gitify_ref = self.hgremote.make_gitify_ref(name, reftype)
+        tip = self.marks.tips.get(gitify_ref, 0)
 
         revs = xrange(tip, head.rev() + 1)
         count = 0
@@ -177,9 +177,9 @@ class HGImporter(object):
                 modified, removed = self.repo[rev].manifest().keys(), []
 
             if not parents and rev:
-                output('reset %s/%s' % (self.prefix, kind_name))
+                output('reset %s' % gitify_ref)
 
-            output("commit %s/%s" % (self.prefix, kind_name))
+            output("commit %s" % gitify_ref)
             output("mark :%d" % (self.marks.get_mark(node)))
             output("author %s" % (author))
             output("committer %s" % (committer))
@@ -209,11 +209,11 @@ class HGImporter(object):
                 output("#############################################################")
 
         # make sure the ref is updated
-        output("reset %s/%s" % (self.prefix, kind_name))
+        output("reset %s" % gitify_ref)
         output("from :%u" % self.marks.revision_to_mark(head.node()))
         output()
 
-        self.marks.tips[kind_name] = head.rev()
+        self.marks.tips[gitify_ref] = head.rev()
         self.commit_count += count
 
     def get_filechanges(self, context, parent):
