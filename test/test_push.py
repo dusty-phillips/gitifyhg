@@ -493,7 +493,7 @@ def test_git_push_messages(git_dir, hg_repo):
     # and, of course, a new branch should say "new branch"
     sh.git.checkout(b="branches/test_branch")
     make_git_commit("y")
-    out = sh.git.push("origin", "branches/test_branch").stderr
+    out = sh.git.push("--set-upstream", "origin", "branches/test_branch").stderr
     assert "new branch" in out
     assert "branches/test_branch -> branches/test_branch" in out
 
