@@ -24,7 +24,7 @@ import re
 from mercurial import encoding
 
 from .util import (log, output, actual_stdout, gittz, gitmode,
-    git_to_hg_spaces, hg_to_git_spaces, branch_tip, ref_to_name_reftype,
+    git_to_hg_spaces, hg_to_git_spaces, branch_head, ref_to_name_reftype,
     BRANCH, BOOKMARK, TAG)
 
 AUTHOR = re.compile(r'^([^<>]+)?(<(?:[^<>]*)>| [^ ]*@.*|[<>].*)$')
@@ -90,7 +90,7 @@ class HGImporter(object):
             else:
                 name, reftype = ref_to_name_reftype(ref)
                 if reftype == BRANCH:
-                    head = self.branch_head(name)
+                    head = branch_head(self.hgremote, git_to_hg_spaces(name))
                 elif reftype == BOOKMARK:
                     head = self.hgremote.bookmarks[git_to_hg_spaces(name)]
                 elif reftype == TAG:
@@ -105,22 +105,6 @@ class HGImporter(object):
 
         encoding.encoding = tmp
         output('done')
-
-    def branch_head(self, branch):
-        branch = git_to_hg_spaces(branch)
-        try:
-            heads = self.hgremote.branches[branch]
-            if len(heads) > 1:
-                log("Branch '%s' has more than one head, consider merging" % (
-                    branch), "WARNING")
-                tip = branch_tip(self.repo, branch)
-            else:
-                tip = heads[0]
-
-        except KeyError:
-            return
-
-        return self.repo[tip]
 
     def process_notes(self):
         last_notes_mark = self.marks.notes_mark if self.marks.notes_mark is not None else 0

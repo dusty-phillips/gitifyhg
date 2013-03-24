@@ -84,6 +84,22 @@ def branch_tip(repo, branch):
         return repo.branchtags()[branch]
 
 
+def branch_head(hgremote, branch):
+    try:
+        heads = hgremote.branches[branch]
+    except KeyError:
+        return
+
+    if len(heads) > 1:
+        log("Branch '%s' has more than one head, consider merging" % (
+            branch), "WARNING")
+        tip = branch_tip(hgremote.repo, branch)
+    else:
+        tip = heads[0]
+
+    return hgremote.repo[tip]
+
+
 def ref_to_name_reftype(ref):
     '''Converts a git ref into a name (e.g., the name of that branch, tag, etc.)
     and its hg type (one of BRANCH, BOOKMARK, or TAG).'''
@@ -195,3 +211,31 @@ class HGMarks(object):
         self.last_mark += 1
         self.notes_mark = self.last_mark
         return self.notes_mark
+
+class GitMarks(object):
+    '''Maps integer marks to git commit hashes.'''
+
+    def __init__(self, storage_path):
+        ''':param storage_path: The file that marks are stored in between calls.'''
+        self.storage_path = storage_path
+        self.load()
+
+    def load(self):
+        '''Load the marks from the storage file.'''
+        # TODO: Combine remove_processed_git_marks with this, perhaps by using
+        # an OrderedDict to write entires back out in the order they came in.
+        self.marks_to_hashes = {}
+        if self.storage_path.exists():
+            with self.storage_path.open() as file:
+                for line in file:
+                    if not line.startswith(':'):
+                        die("invalid line in marks-git: " + line)
+                    mark, sha1 = line[1:].split()
+                    self.marks_to_hashes[mark] = sha1
+
+    def has_mark(self, mark):
+        return str(mark) in self.marks_to_hashes
+
+    def mark_to_hash(self, mark):
+        return self.marks_to_hashes[str(mark)]
+

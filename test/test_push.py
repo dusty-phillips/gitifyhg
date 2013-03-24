@@ -455,7 +455,7 @@ def test_push_up_to_date(git_dir, hg_repo):
 
     # push with a newly-cloned repo
     sh.cd(git_repo)
-    assert "new branch" not in sh.git.push().stderr
+    assert "Everything up-to-date" in sh.git.push().stderr
 
     # push with a commit on hg default/git master (because it's handled
     # differently)
@@ -463,7 +463,7 @@ def test_push_up_to_date(git_dir, hg_repo):
     make_hg_commit("x")
     sh.cd(git_repo)
     sh.git.pull()
-    assert "new branch" not in sh.git.push().stderr
+    assert "Everything up-to-date" in sh.git.push().stderr
 
     # push with a commit on non-default branch
     sh.cd(hg_repo)
@@ -472,11 +472,34 @@ def test_push_up_to_date(git_dir, hg_repo):
     sh.cd(git_repo)
     sh.git.pull()
     sh.git.checkout("origin/branches/new_branch", track=True)
-    assert "new branch" not in sh.git.push().stderr
+    assert "Everything up-to-date" in sh.git.push().stderr
 
     # push a commit from git
     make_git_commit("z")
     out = sh.git.push().stderr
-    assert "new branch" in out
+    assert "Everything up-to-date" not in out
     assert "branches/new_branch -> branches/new_branch" in out
+
+def test_git_push_messages(git_dir, hg_repo):
+    git_repo = clone_repo(git_dir, hg_repo)
+
+    # pushing a change on an existing branch shouldn't say "new branch"
+    sh.cd(git_repo)
+    make_git_commit("x")
+    out = sh.git.push().stderr
+    assert "new branch" not in out
+    assert "master -> master" in out
+
+    # and, of course, a new branch should say "new branch"
+    sh.git.checkout(b="branches/test_branch")
+    make_git_commit("y")
+    out = sh.git.push("origin", "branches/test_branch").stderr
+    assert "new branch" in out
+    assert "branches/test_branch -> branches/test_branch" in out
+
+    # just to be safe, make sure a commit on the no-longer-new branch is ok
+    make_git_commit("z")
+    out = sh.git.push().stderr
+    assert "new branch" not in out
+    assert "branches/test_branch -> branches/test_branch" in out
 
