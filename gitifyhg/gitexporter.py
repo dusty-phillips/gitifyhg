@@ -27,7 +27,7 @@ from mercurial.bookmarks import pushbookmark
 from mercurial.scmutil import revsingle
 
 from .util import (log, die, output, git_to_hg_spaces, hgmode, branch_tip,
-    ref_to_name_kind, make_kind_name)
+    ref_to_name_reftype, BRANCH, BOOKMARK, TAG)
 
 
 class GitExporter(object):
@@ -62,26 +62,25 @@ class GitExporter(object):
 
         updated_refs = {}
         for ref, node in self.parsed_refs.iteritems():
-            if ref.startswith('refs/heads/branches'):
-                branch = ref[len('refs/heads/branches'):]
-                if git_to_hg_spaces(branch) not in self.hgremote.branches:
-                    new_branch = True
-                updated_refs[ref] = node
-            elif ref.startswith('refs/heads/'):
-                bookmark = ref[len('refs/heads/'):]
-                old = self.hgremote.bookmarks.get(bookmark)
-                old = old.hex() if old else ''
-                if not pushbookmark(self.repo, bookmark, old, node):
-                    continue
-                push_bookmarks.append((bookmark, old, hghex(node)))
-                updated_refs[ref] = node
-            elif ref.startswith('refs/tags/'):
-                self.write_tag(ref)
-                updated_refs[ref] = node
-            else:
-                # transport-helper/fast-export bugs
-                log("Fast-export unexpected ref: %s" % ref, "WARNING")
+            if ref.startswith(self.hgremote.prefix):
+                # This seems to be a git fast-export bug
                 continue
+            name, reftype = ref_to_name_reftype(ref)
+            name = git_to_hg_spaces(name)
+            if reftype == BRANCH:
+                if name not in self.hgremote.branches:
+                    new_branch = True
+            elif reftype == BOOKMARK:
+                old = self.hgremote.bookmarks.get(name)
+                old = old.hex() if old else ''
+                if not pushbookmark(self.repo, name, old, node):
+                    continue
+                push_bookmarks.append((name, old, hghex(node)))
+            elif reftype == TAG:
+                self.write_tag(name, node)
+            else:
+                assert False, "unexpected reftype: %s" % reftype
+            updated_refs[ref] = node
 
         success = False
         try:
@@ -104,9 +103,9 @@ class GitExporter(object):
         for ref, node in updated_refs.items():
             if success:
                 status = ""
-                name, kind = ref_to_name_kind(ref)
-                kind_name = make_kind_name(kind, name)
-                last_known_rev = self.marks.tips.get(kind_name)
+                name, reftype = ref_to_name_reftype(ref)
+                gitify_ref = self.hgremote.make_gitify_ref(name, reftype)
+                last_known_rev = self.marks.tips.get(gitify_ref)
                 new_rev = self.repo[node].rev()
                 if last_known_rev is not None and last_known_rev == new_rev:
                     # up to date status tells git that nothing has changed
@@ -206,9 +205,9 @@ class GitExporter(object):
                         self.repo[parent_from].manifest():
                     files[file] = {'ctx': self.repo[parent_from][file]}
 
-        if ref.startswith('refs/heads/branches/'):
-            extra['branch'] = git_to_hg_spaces(
-                ref[len('refs/heads/branches/'):])
+        name, reftype = ref_to_name_reftype(ref)
+        if reftype == BRANCH:
+            extra['branch'] = git_to_hg_spaces(name)
 
         def get_filectx(repo, memctx, file):
             filespec = files[file]
@@ -246,9 +245,7 @@ class GitExporter(object):
     def do_feature(self):
         pass  # Ignore
 
-    def write_tag(self, ref):
-        node = self.parsed_refs[ref]
-        tag = git_to_hg_spaces(ref[len('refs/tags/'):])
+    def write_tag(self, name, node):
         branch = self.repo[node].branch()
         # Calling self.repo.tag() doesn't append the tag to the correct
         # commit. So I copied some of localrepo._tag into here.
@@ -264,7 +261,7 @@ class GitExporter(object):
         if old_tags and old_tags[-1] != '\n':
             newtags.append('\n')
 
-        encoded_tag = encoding.fromlocal(tag)
+        encoded_tag = encoding.fromlocal(name)
         tag_line = '%s %s' % (hghex(node), encoded_tag)
         if tag_line in old_tags:
             return  # Don't commit a tag that was previously committed
@@ -273,12 +270,12 @@ class GitExporter(object):
         def get_filectx(repo, memctx, file):
             return memfilectx(file, ''.join(newtags))
 
-        if tag in self.parsed_tags:
-            author, message = self.parsed_tags[tag]
+        if name in self.parsed_tags:
+            author, message = self.parsed_tags[name]
             user, date, tz = author
             date_tz = (date, tz)
         else:
-            message = "Added tag %s for changeset %s" % (tag, hgshort(node))
+            message = "Added tag %s for changeset %s" % (name, hgshort(node))
             user = None
             date_tz = None
         ctx = memctx(self.repo,

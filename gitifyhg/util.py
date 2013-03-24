@@ -9,6 +9,11 @@ from mercurial.node import bin as hgbin
 DEBUG_GITIFYHG = os.environ.get("DEBUG_GITIFYHG") != None
 
 
+BRANCH = 'branch'
+BOOKMARK = 'bookmark'
+TAG = 'tag'
+
+
 # hijack stdout to prevent mercurial from inadvertently talking to git.
 # interactive=off and ui.pushbuffer() don't seem to work.
 class DummyOut(object):
@@ -79,32 +84,49 @@ def branch_tip(repo, branch):
         return repo.branchtags()[branch]
 
 
-def ref_to_name_kind(ref):
+def branch_head(hgremote, branch):
+    try:
+        heads = hgremote.branches[branch]
+    except KeyError:
+        return
+
+    if len(heads) > 1:
+        log("Branch '%s' has more than one head, consider merging" % (
+            branch), "WARNING")
+        tip = branch_tip(hgremote.repo, branch)
+    else:
+        tip = heads[0]
+
+    return hgremote.repo[tip]
+
+
+def ref_to_name_reftype(ref):
     '''Converts a git ref into a name (e.g., the name of that branch, tag, etc.)
-    and its hg kind (one of 'bookmarks', 'tags', or 'branches').'''
+    and its hg type (one of BRANCH, BOOKMARK, or TAG).'''
     if ref == 'refs/heads/master':
-        return ('default', 'branches')
+        return ('default', BRANCH)
     elif ref.startswith('refs/heads/branches/'):
-        return (ref[len('refs/heads/branches/'):], 'branches')
+        return (ref[len('refs/heads/branches/'):], BRANCH)
     elif ref.startswith('refs/heads/'):
-        return (ref[len('refs/heads/'):], 'bookmarks')
+        return (ref[len('refs/heads/'):], BOOKMARK)
     elif ref.startswith('refs/tags/'):
-        return (ref[len('refs/tags/'):], 'tags')
+        return (ref[len('refs/tags/'):], TAG)
     else:
         assert False, "unexpected ref: %s" % ref
 
 
-def make_kind_name(kind, name):
-    # FIXME: This function should be called something better.
-    if kind == 'branches' and name == 'default':
-        # I have no idea where 'bookmarks' comes from in this case.
-        # I don't think there is meant to be many bookmarks/master ref,
-        # but this is what I had to do to make tests pass when special
-        # casing the master/default dichotomy. Something is still fishy
-        # here, but it's less fishy than it was. See issue #34.
-        return "bookmarks/master"
-    else:
-        return "%s/%s" % (kind, name)
+def name_reftype_to_ref(name, reftype):
+    '''Converts a name and type (e.g., '1.0' and 'tags') into a git ref.'''
+    if reftype == BRANCH:
+        if name == 'default':
+            return 'refs/heads/master'
+        else:
+            return 'refs/heads/branches/%s' % name
+    elif reftype == BOOKMARK:
+        return 'refs/heads/%s' % name
+    elif reftype == TAG:
+        return 'refs/tags/%s' % name
+    assert False, "unknown reftype: %s" % reftype
 
 
 class HGMarks(object):
@@ -137,7 +159,7 @@ class HGMarks(object):
             self.marks_to_revisions = {}
             self.last_mark = 0
             self.notes_mark = None
-            self.marks_version = 2
+            self.marks_version = 3
 
     def store(self):
         '''Save marks to the storage file.'''
@@ -150,14 +172,20 @@ class HGMarks(object):
                 'marks-version': self.marks_version},
             file)
 
-    def upgrade_marks(self, hgrepo):
+    def upgrade_marks(self, hgremote):
         if self.marks_version == 1:  # Convert from integer reversions to hgsha1
             log("Upgrading marks-hg from hg sequence number to SHA1", "WARNING")
             self.marks_to_revisions = dict(
-                (mark, hghex(hgrepo.changelog.node(int(rev)))) for mark, rev in self.marks_to_revisions.iteritems())
+                (mark, hghex(hgremote.repo.changelog.node(int(rev)))) for mark, rev in self.marks_to_revisions.iteritems())
             self.revisions_to_marks = dict(
-                (hghex(hgrepo.changelog.node(int(rev))), mark) for rev, mark in self.revisions_to_marks.iteritems())
+                (hghex(hgremote.repo.changelog.node(int(rev))), mark) for rev, mark in self.revisions_to_marks.iteritems())
             self.marks_version = 2
+            log("Upgrade complete", "WARNING")
+        if self.marks_version == 2:  # Convert tips to use gitify refs as keys
+            log("Upgrading marks-hg tips", "WARNING")
+            self.tips = dict(
+                ("%s/%s" % (hgremote.prefix, reftype_and_name), tip) for reftype_and_name, tip in self.tips.iteritems())
+            self.marks_version = 3
             log("Upgrade complete", "WARNING")
 
     def mark_to_revision(self, mark):
@@ -183,3 +211,31 @@ class HGMarks(object):
         self.last_mark += 1
         self.notes_mark = self.last_mark
         return self.notes_mark
+
+class GitMarks(object):
+    '''Maps integer marks to git commit hashes.'''
+
+    def __init__(self, storage_path):
+        ''':param storage_path: The file that marks are stored in between calls.'''
+        self.storage_path = storage_path
+        self.load()
+
+    def load(self):
+        '''Load the marks from the storage file.'''
+        # TODO: Combine remove_processed_git_marks with this, perhaps by using
+        # an OrderedDict to write entires back out in the order they came in.
+        self.marks_to_hashes = {}
+        if self.storage_path.exists():
+            with self.storage_path.open() as file:
+                for line in file:
+                    if not line.startswith(':'):
+                        die("invalid line in marks-git: " + line)
+                    mark, sha1 = line[1:].split()
+                    self.marks_to_hashes[mark] = sha1
+
+    def has_mark(self, mark):
+        return str(mark) in self.marks_to_hashes
+
+    def mark_to_hash(self, mark):
+        return self.marks_to_hashes[str(mark)]
+
