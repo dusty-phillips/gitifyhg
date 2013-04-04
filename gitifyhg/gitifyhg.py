@@ -39,7 +39,8 @@ from mercurial.util import sha1
 from mercurial import hg
 from mercurial.bookmarks import listbookmarks, readcurrent
 
-from .util import log, die, output, actual_stdout, HGMarks, hg_to_git_spaces
+from .util import (log, die, output, actual_stdout, branch_head, GitMarks,
+    HGMarks, hg_to_git_spaces, name_reftype_to_ref, BRANCH, BOOKMARK, TAG)
 from .hgimporter import HGImporter
 from .gitexporter import GitExporter
 
@@ -124,6 +125,7 @@ class HGRemote(object):
         self.remotedir = gitdir.joinpath('hg', self.uuid)
         self.marks_git_path = self.remotedir.joinpath('marks-git')
         self.marks = HGMarks(self.remotedir.joinpath('marks-hg'))
+        self.git_marks = GitMarks(self.marks_git_path)
         self.parsed_refs = {}
         self.blob_marks = {}
         self.branches = {}
@@ -158,7 +160,25 @@ class HGRemote(object):
             self.peer = hg.peer(myui, {}, url.encode('utf-8'))
             self.repo.pull(self.peer, heads=None, force=True)
 
-        self.marks.upgrade_marks(self.repo)
+        self.marks.upgrade_marks(self)
+
+    def make_gitify_ref(self, name, reftype):
+        if reftype == BRANCH:
+            if name == 'default':
+                # I have no idea where 'bookmarks' comes from in this case.
+                # I don't think there is meant to be many bookmarks/master ref,
+                # but this is what I had to do to make tests pass when special
+                # casing the master/default dichotomy. Something is still fishy
+                # here, but it's less fishy than it was. See issue #34.
+                return "%s/bookmarks/master" % self.prefix
+            else:
+                return '%s/branches/%s' % (self.prefix, name)
+        elif reftype == BOOKMARK:
+            return '%s/bookmarks/%s' % (self.prefix, name)
+        elif reftype == TAG:
+            return '%s/tags/%s' % (self.prefix, name)
+        else:
+            assert False, "unknown reftype: %s" % reftype
 
     def process(self):
         '''Process the messages coming in on stdin using the git-remote
@@ -179,15 +199,24 @@ class HGRemote(object):
         '''
         output(u"import")
         output(u"export")
-        output(u"refspec refs/heads/branches/*:%s/branches/*" % self.prefix)
-        output(u"refspec refs/heads/*:%s/bookmarks/*" % self.prefix)
-        output(u"refspec refs/tags/*:%s/tags/*" % self.prefix)
+        for reftype in (BRANCH, BOOKMARK, TAG):
+            output(u"refspec %s:%s" %
+                (name_reftype_to_ref('*', reftype),
+                 self.make_gitify_ref('*', reftype)))
 
         if self.marks_git_path.exists():
             output(u"*import-marks %s" % self.marks_git_path)
         output(u"*export-marks %s" % self.marks_git_path)
 
         output()
+
+    def _change_hash(self, changectx):
+        node = changectx.node()
+        if node and self.marks.is_marked(node):
+            mark = self.marks.revision_to_mark(node)
+            if self.git_marks.has_mark(mark):
+               return self.git_marks.mark_to_hash(mark)
+        return '?'
 
     def do_list(self, parser):
         '''List all references in the mercurial repository. This includes
@@ -231,20 +260,23 @@ class HGRemote(object):
 
         # list the named branch references
         for branch in self.branches:
-            if branch != "default":
-                output("? refs/heads/branches/%s" % hg_to_git_spaces(branch))
-            else:
-                output("? refs/heads/master")
+            output("%s %s" %
+                    (self._change_hash(branch_head(self, branch)),
+                     name_reftype_to_ref(hg_to_git_spaces(branch), BRANCH)))
 
         # list the bookmark references
-        for bookmark in self.bookmarks:
+        for bookmark, changectx in self.bookmarks.items():
             if bookmark != "master":
-                output("? refs/heads/%s" % hg_to_git_spaces(bookmark))
+                output("%s %s" %
+                        (self._change_hash(changectx),
+                         name_reftype_to_ref(hg_to_git_spaces(bookmark), BOOKMARK)))
 
         # list the tags
         for tag, node in self.repo.tagslist():
             if tag != "tip":
-                output("? refs/tags/%s" % hg_to_git_spaces(tag))
+                output("%s %s" %
+                        (self._change_hash(self.repo[node]),
+                         name_reftype_to_ref(hg_to_git_spaces(tag), TAG)))
 
         output()
 
