@@ -6,28 +6,28 @@
 # https://bitbucket.org/durin42/hg-git/src
 #
 
-test_description='Test remote-hg output compared to hg-git'
+test_description='Test gitifyhg output compared to hg-git'
 
 . ./test-lib.sh
 
-if ! test_have_prereq PYTHON; then
-	skip_all='skipping remote-hg tests; python not available'
-	test_done
-fi
+# if ! test_have_prereq PYTHON; then
+# 	skip_all='skipping gitifyhg tests; python not available'
+# 	test_done
+# fi
 
-if ! "$PYTHON_PATH" -c 'import mercurial'; then
-	skip_all='skipping remote-hg tests; mercurial not available'
-	test_done
-fi
-
-if ! "$PYTHON_PATH" -c 'import hggit'; then
-	skip_all='skipping remote-hg tests; hg-git not available'
-	test_done
-fi
+# if ! "$PYTHON_PATH" -c 'import mercurial'; then
+# 	skip_all='skipping gitifyhg tests; mercurial not available'
+# 	test_done
+# fi
+# 
+# if ! "$PYTHON_PATH" -c 'import hggit'; then
+# 	skip_all='skipping gitifyhg tests; hg-git not available'
+# 	test_done
+# fi
 
 # clone to a git repo with git
 git_clone_git () {
-	git clone -q "hg::$PWD/$1" $2
+	git clone -q "gitifyhg::$PWD/$1" $2
 }
 
 # clone to an hg repo with git
@@ -36,7 +36,7 @@ hg_clone_git () {
 	hg init $2 &&
 	hg -R $2 bookmark -i master &&
 	cd $1 &&
-	git push -q "hg::$PWD/../$2" 'refs/tags/*:refs/tags/*' 'refs/heads/*:refs/heads/*'
+	git push -q "gitifyhg::$PWD/../$2" 'refs/tags/*:refs/tags/*' 'refs/heads/*:refs/heads/*'
 	) &&
 
 	(cd $2 && hg -q update)
@@ -63,7 +63,7 @@ hg_push_git () {
 	cd $2
 	old=$(git symbolic-ref --short HEAD)
 	git checkout -q -b tmp &&
-	git fetch -q "hg::$PWD/../$1" 'refs/tags/*:refs/tags/*' 'refs/heads/*:refs/heads/*' &&
+	git fetch -q "gitifyhg::$PWD/../$1" 'refs/tags/*:refs/tags/*' 'refs/heads/*:refs/heads/*' &&
 	git checkout -q $old &&
 	git branch -q -D tmp 2> /dev/null || true
 	)
@@ -95,11 +95,11 @@ setup () {
 	echo "debugrawcommit = -d \"0 0\""
 	echo "tag = -d \"0 0\""
 	echo "[extensions]"
-	echo "hgext.bookmarks ="
+	#echo "hgext.bookmarks ="
 	echo "hggit ="
 	) >> "$HOME"/.hgrc &&
 	git config --global receive.denycurrentbranch warn
-	git config --global remote-hg.hg-git-compat true
+	#git config --global remote-hg.hg-git-compat true
 
 	export HGEDITOR=/usr/bin/true
 

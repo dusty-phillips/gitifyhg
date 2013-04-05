@@ -10,15 +10,15 @@ test_description='Test remote-hg'
 
 . ./test-lib.sh
 
-if ! test_have_prereq PYTHON; then
-	skip_all='skipping remote-hg tests; python not available'
-	test_done
-fi
+# if ! test_have_prereq PYTHON; then
+# 	skip_all='skipping remote-hg tests; python not available'
+# 	test_done
+# fi
 
-if ! "$PYTHON_PATH" -c 'import mercurial'; then
-	skip_all='skipping remote-hg tests; mercurial not available'
-	test_done
-fi
+# if ! "$PYTHON_PATH" -c 'import mercurial'; then
+# 	skip_all='skipping remote-hg tests; mercurial not available'
+# 	test_done
+# fi
 
 check () {
 	(cd $1 &&
@@ -49,7 +49,7 @@ test_expect_success 'cloning' '
   hg commit -m zero
   ) &&
 
-  git clone "hg::$PWD/hgrepo" gitrepo &&
+  git clone "gitifyhg::$PWD/hgrepo" gitrepo &&
   check gitrepo zero master
 '
 
@@ -63,12 +63,12 @@ test_expect_success 'cloning with branches' '
   hg commit -m next
   ) &&
 
-  git clone "hg::$PWD/hgrepo" gitrepo &&
+  git clone "gitifyhg::$PWD/hgrepo" gitrepo &&
   check gitrepo next next &&
 
   (cd hgrepo && hg checkout default) &&
 
-  git clone "hg::$PWD/hgrepo" gitrepo2 &&
+  git clone "gitifyhg::$PWD/hgrepo" gitrepo2 &&
   check gitrepo2 zero master
 '
 
@@ -82,7 +82,7 @@ test_expect_success 'cloning with bookmarks' '
   hg commit -m feature-a
   ) &&
 
-  git clone "hg::$PWD/hgrepo" gitrepo &&
+  git clone "gitifyhg::$PWD/hgrepo" gitrepo &&
   check gitrepo feature-a feature-a
 '
 
@@ -94,7 +94,7 @@ test_expect_success 'cloning with detached head' '
   hg update -r 0
   ) &&
 
-  git clone "hg::$PWD/hgrepo" gitrepo &&
+  git clone "gitifyhg::$PWD/hgrepo" gitrepo &&
   check gitrepo zero master
 '
 
@@ -107,7 +107,7 @@ test_expect_success 'update bookmark' '
   ) &&
 
   (
-  git clone "hg::$PWD/hgrepo" gitrepo &&
+  git clone "gitifyhg::$PWD/hgrepo" gitrepo &&
   cd gitrepo &&
   git checkout devel &&
   echo devel > content &&
