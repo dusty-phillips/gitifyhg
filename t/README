@@ -1,0 +1,12 @@
+TODO: Document how to run the tests. For now, please consult
+ https://github.com/mlafeldt/sharness/blob/master/README.git
+
+Some simple commands for running the tests:
+
+ make test
+
+ make TEST_OPTS="--verbose" test
+
+ ./test-hg.t
+
+ ./test-hg.t --verbose
