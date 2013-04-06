@@ -53,6 +53,13 @@ test_expect_success 'cloning' '
   check gitrepo zero master
 '
 
+
+# Note: In the following test, remote-hg checks for "next next" here
+# in the first "check". That is, it checks that the active branch
+# in the git clone matches the active branch in the hg remote.
+# This agrees with the git semantics for cloning.
+# But we (for now?) intentionally follow the hg semantics instead,
+# which sets the working tree to the default branch instead.
 test_expect_success 'cloning with branches' '
   test_when_finished "rm -rf gitrepo*" &&
 
@@ -64,7 +71,7 @@ test_expect_success 'cloning with branches' '
   ) &&
 
   git clone "gitifyhg::$PWD/hgrepo" gitrepo &&
-  check gitrepo next next &&
+  check gitrepo zero master &&
 
   (cd hgrepo && hg checkout default) &&
 
@@ -72,6 +79,9 @@ test_expect_success 'cloning with branches' '
   check gitrepo2 zero master
 '
 
+# See above: In the following test, remote-hg checks for
+# "feature-a feature-a", but we instead check for "feature-a master"
+# which matches hg (but not git) semantics.
 test_expect_success 'cloning with bookmarks' '
   test_when_finished "rm -rf gitrepo*" &&
 
@@ -83,9 +93,10 @@ test_expect_success 'cloning with bookmarks' '
   ) &&
 
   git clone "gitifyhg::$PWD/hgrepo" gitrepo &&
-  check gitrepo feature-a feature-a
+  check gitrepo feature-a master
 '
 
+# Again, see above comments for why this test differs from remote-hg.
 test_expect_success 'cloning with detached head' '
   test_when_finished "rm -rf gitrepo*" &&
 
@@ -95,7 +106,7 @@ test_expect_success 'cloning with detached head' '
   ) &&
 
   git clone "gitifyhg::$PWD/hgrepo" gitrepo &&
-  check gitrepo zero master
+  check gitrepo feature-a master
 '
 
 test_expect_success 'update bookmark' '
