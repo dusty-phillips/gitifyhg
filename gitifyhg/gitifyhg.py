@@ -113,11 +113,15 @@ class GitRemoteParser(object):
 
 class HGRemote(object):
     def __init__(self, alias, url):
-        if hg.islocal(url.encode('utf-8')):
-            url = p(url).abspath()
-            # Force git to use an absolute path in the future
-            cmd = ['git', 'config', 'remote.%s.url' % alias, "gitifyhg::%s" % url]
-            subprocess.call(cmd)
+
+        # check for the case where we are invoked via "git pull gitifyhg::URL";
+        # in this case, the "alias" may contain things like spaces, and so we should
+        # not use it e.g. as a refspec prefix. Instead, replace it by its SHA-1 hash.
+        if alias == "gitifyhg::" + url:
+            self.isTmpClone = True
+            alias = sha1(alias).hexdigest()
+        else:
+            self.isTmpClone = False
 
         # use hash of URL as unique identifier in various places.
         # this has the advantage over 'alias' that it stays constant
@@ -138,6 +142,23 @@ class HGRemote(object):
         self.alias = alias
         self.url = url
         self.build_repo(url)
+
+        # Update the config for this remote with a sanitized URL,
+        # turning relative paths into absolute ones if necessary.
+        # Of course this only makes we are called as part of a pull/push
+        # from a git remote listed in the .git/config, not for a temporary
+        # clone
+        if not self.isTmpClone:
+            self.fix_path(alias, self.peer or self.repo, url)
+
+    def fix_path(self, alias, repo, orig_url):
+        repo_url, _ = hg.parseurl(repo.url())
+        url, _ = hg.parseurl(orig_url)
+        if str(url) == str(repo_url):
+            return
+        # Force git to use an absolute path in the future
+        cmd = ['git', 'config', 'remote.%s.url' % alias, "gitifyhg::%s" % repo_url]
+        subprocess.call(cmd)
 
     def build_repo(self, url):
         '''Make the Mercurial repo object self.repo available. If the local
@@ -198,7 +219,9 @@ class HGRemote(object):
                 die('unhandled command: %s' % line)
             getattr(self, 'do_%s' % command)(parser)
 
-        self.marks.store()
+        # store marks (unless this is a temporary clone)
+        if not self.isTmpClone:
+            self.marks.store()
 
     def do_capabilities(self, parser):
         '''Process the capabilities request when incoming from git-remote.
