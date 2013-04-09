@@ -142,6 +142,10 @@ class HGRemote(object):
         myui = ui()
         myui.setconfig('ui', 'interactive', 'off')
         myui.setconfig('extensions', 'mq', '')
+        # FIXME: the following is a hack to achieve hg-git / remote-git compatibility
+        # at least for *local* operations. still need to figure out what the right
+        # thing to do is.
+        myui.setconfig('phases', 'publish', False)
 
         local_path = self.remotedir.joinpath('clone')
         if not local_path.exists():
