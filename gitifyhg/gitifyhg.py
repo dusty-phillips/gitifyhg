@@ -96,7 +96,7 @@ class GitRemoteParser(object):
         user += ' <' + email + '>'
 
         date = int(date)
-        tz = -((int(tz) / 100) * 3600) + ((int(tz) % 100) * 60)
+        tz = -(((int(tz) / 100) * 3600) + ((int(tz) % 100) * 60))
         return (user, date, tz)
 
     def read_block(self, sentinel):
