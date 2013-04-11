@@ -22,6 +22,7 @@
 import sys
 import os
 import re
+import argparse
 import subprocess
 from path import path as p
 
@@ -36,11 +37,13 @@ os.environ['HGRCPATH'] = ''
 from mercurial.ui import ui
 from mercurial.error import Abort, RepoError
 from mercurial.util import sha1
+from mercurial.util import version as hg_version
 from mercurial import hg
 from mercurial.bookmarks import listbookmarks, readcurrent
 
 from .util import (log, die, output, actual_stdout, branch_head, GitMarks,
-    HGMarks, hg_to_git_spaces, name_reftype_to_ref, BRANCH, BOOKMARK, TAG)
+    HGMarks, hg_to_git_spaces, name_reftype_to_ref, BRANCH, BOOKMARK, TAG,
+    version, deactivate_stdout)
 from .hgimporter import HGImporter
 from .gitexporter import GitExporter
 
@@ -286,12 +289,36 @@ class HGRemote(object):
     def do_export(self, parser):
         GitExporter(self, parser).process()
 
+def log_versions(level="DEBUG"):
+    log("gitifyhg version %s" % version(), level=level)
+    log("Mercurial version %s" % hg_version(), level=level)
+    log("Python version %s" % (sys.version.replace("\n", "")), level=level)
 
 def main():
     '''Main entry point for the git-remote-gitifyhg command. Parses sys.argv
     and constructs a parser from the result.
     '''
-    HGRemote(*[x.decode('utf-8') for x in sys.argv[1:3]]).process()
+    log_versions()
+
+    name = os.path.basename(sys.argv[0]).replace("git-remote-", "")
+    parser = argparse.ArgumentParser(description="""This is a remote helper for git to interact with hg.
+        You should generally not call this executable directly; it will be called
+        by git if you put this executable on your PATH and set your git remote to
+        "%s::<mercurial_repo>".
+        """ % (name))
+    parser.add_argument("git", nargs="*", help="Arguments from git (remote, url)")
+    parser.add_argument("-v", "--version", default=False, action="store_true",
+                        help="Print version number only")
+    args = parser.parse_args()
+    if args.version:
+        log_versions("VERSION")
+        sys.exit(0)
+    if not args.git:
+        parser.print_help()
+        sys.exit(0)
+
+    deactivate_stdout()
+    HGRemote(*[x.decode('utf-8') for x in args.git]).process()
     try:
         sys.stderr.close()
     except:
