@@ -22,7 +22,7 @@
 import sys
 import os
 import re
-import argparse
+import optparse
 import subprocess
 from path import path as p
 
@@ -301,24 +301,25 @@ def main():
     log_versions()
 
     name = os.path.basename(sys.argv[0]).replace("git-remote-", "")
-    parser = argparse.ArgumentParser(description="""This is a remote helper for git to interact with hg.
+    description = """This is a remote helper for git to interact with hg.
         You should generally not call this executable directly; it will be called
-        by git if you put this executable on your PATH and set your git remote to
-        "%s::<mercurial_repo>".
-        """ % (name))
-    parser.add_argument("git", nargs="*", help="Arguments from git (remote, url)")
-    parser.add_argument("-v", "--version", default=False, action="store_true",
-                        help="Print version number only")
-    args = parser.parse_args()
-    if args.version:
+        by git if you put this executable on your PATH and set your git remote to:
+            %s::<mercurial_repo>
+        """ % name
+
+    parser = optparse.OptionParser(usage="usage: %prog [options] <git arguments>", description=description)
+    parser.add_option("-v", "--version", default=False, action="store_true",
+                      help="Print version number only")
+    opts, args = parser.parse_args()
+    if opts.version:
         log_versions("VERSION")
         sys.exit(0)
-    if not args.git:
+    if not args:
         parser.print_help()
         sys.exit(0)
 
     deactivate_stdout()
-    HGRemote(*[x.decode('utf-8') for x in args.git]).process()
+    HGRemote(*[x.decode('utf-8') for x in args]).process()
     try:
         sys.stderr.close()
     except:
