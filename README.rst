@@ -216,7 +216,7 @@ will pick the system level gitifyhg regardless of the PATH setting in the
 virtualenv. The only workaround I have found is to temporarily uninstall the
 system version.
 
-If you want debugging information out of gitifyhg, set the GITIFYHG_DEBUG=on 
+If you want debugging information out of gitifyhg, set the DEBUG_GITIFYHG=on 
 environment variable. This is done automatically if you are running the test
 suite.
 
