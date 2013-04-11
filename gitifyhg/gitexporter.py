@@ -27,7 +27,7 @@ from mercurial.bookmarks import pushbookmark
 from mercurial.scmutil import revsingle
 
 from .util import (log, die, output, git_to_hg_spaces, hgmode, branch_tip,
-    ref_to_name_reftype, BRANCH, BOOKMARK, TAG)
+    ref_to_name_reftype, BRANCH, BOOKMARK, TAG, user_config)
 
 
 class GitExporter(object):
@@ -48,6 +48,7 @@ class GitExporter(object):
         self.parser = parser
         self.processed_marks = set()
         self.processed_nodes = []
+        self.hgrc = user_config()
 
     def process(self):
         self.marks.store()  # checkpoint
@@ -276,8 +277,8 @@ class GitExporter(object):
             date_tz = (date, tz)
         else:
             message = "Added tag %s for changeset %s" % (name, hgshort(node))
-            user = None
-            date_tz = None
+            user = self.hgrc.get("ui", "username", None)
+            date_tz = None # XXX insert current date here
         ctx = memctx(self.repo,
             (branch_tip(self.repo, branch), self.NULL_PARENT), message,
             ['.hgtags'], get_filectx, user, date_tz, {'branch': branch})

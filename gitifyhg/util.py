@@ -4,6 +4,8 @@ import json
 
 from mercurial.node import hex as hghex  # What idiot overroad a builtin?
 from mercurial.node import bin as hgbin
+from mercurial.config import config
+from mercurial.scmutil import userrcpath
 
 
 DEBUG_GITIFYHG = os.environ.get("DEBUG_GITIFYHG") != None
@@ -138,6 +140,20 @@ def name_reftype_to_ref(name, reftype):
         return 'refs/tags/%s' % name
     assert False, "unknown reftype: %s" % reftype
 
+def user_config():
+    """Read the Mercurial user configuration
+
+    This is typically ~/.hgrc on POSIX.  This is returned
+    as a Mercurial.config.config object.
+    """
+    hgrc = config()
+    for cfg in userrcpath():
+        if not os.path.exists(cfg):
+            log("NOT reading missing cfg: " + cfg)
+            continue
+        log("Reading config: " + cfg)
+        hgrc.read(cfg)
+    return hgrc
 
 class HGMarks(object):
     '''Maps integer marks to specific string mercurial revision identifiers.
