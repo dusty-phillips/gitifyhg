@@ -41,7 +41,7 @@ from mercurial.util import version as hg_version
 from mercurial import hg
 from mercurial.bookmarks import listbookmarks, readcurrent
 
-from .util import (log, die, output, actual_stdout, branch_head, GitMarks,
+from .util import (log, die, output, branch_head, GitMarks,
     HGMarks, hg_to_git_spaces, name_reftype_to_ref, BRANCH, BOOKMARK, TAG,
     version, deactivate_stdout)
 from .hgimporter import HGImporter
@@ -193,7 +193,6 @@ class HGRemote(object):
             if command not in ('capabilities', 'list', 'import', 'export'):
                 die('unhandled command: %s' % line)
             getattr(self, 'do_%s' % command)(parser)
-            actual_stdout.flush()
 
         self.marks.store()
 
