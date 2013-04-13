@@ -13,17 +13,19 @@ BRANCH = 'branch'
 BOOKMARK = 'bookmark'
 TAG = 'tag'
 
-
-# hijack stdout to prevent mercurial from inadvertently talking to git.
-# interactive=off and ui.pushbuffer() don't seem to work.
-class DummyOut(object):
-    def write(self, x):
-        pass
-
-    def flush(self):
-        pass
 actual_stdout = sys.stdout
-sys.stdout = DummyOut()
+def deactivate_stdout():
+    """Hijack stdout to prevent mercurial from inadvertently talking to git.
+
+    Mere interactive=off and ui.pushbuffer() don't seem to work.
+    """
+    class DummyOut(object):
+        def write(self, x):
+            pass
+
+        def flush(self):
+            pass
+    sys.stdout = DummyOut()
 
 
 def log(msg, level="DEBUG"):
@@ -43,6 +45,14 @@ def output(msg=''):
         msg = msg.encode('utf-8')
     log("OUT: %s" % msg)
     print >> actual_stdout, msg
+
+def version():
+    """Return version of gitifyhg"""
+    try:
+        import pkg_resources
+        return pkg_resources.get_distribution("gitifyhg").version
+    except Exception:
+        return "UNKNOWN"
 
 
 def gittz(tz):
