@@ -23,7 +23,7 @@ import re
 
 from mercurial import encoding
 
-from .util import (log, output, actual_stdout, gittz, gitmode,
+from .util import (log, output, gittz, gitmode,
     git_to_hg_spaces, hg_to_git_spaces, branch_head, ref_to_name_reftype,
     BRANCH, BOOKMARK, TAG)
 
@@ -73,7 +73,6 @@ class HGImporter(object):
             output("feature import-marks=%s" % self.hgremote.marks_git_path)
         output("feature export-marks=%s" % self.hgremote.marks_git_path)
         output("feature notes")
-        actual_stdout.flush()
 
         tmp = encoding.encoding
         encoding.encoding = 'utf-8'

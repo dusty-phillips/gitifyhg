@@ -15,7 +15,7 @@ BRANCH = 'branch'
 BOOKMARK = 'bookmark'
 TAG = 'tag'
 
-actual_stdout = sys.stdout
+actual_stdout = os.fdopen(sys.stdout.fileno(), 'w', 0) # Ensure stdout is unbuffered
 def deactivate_stdout():
     """Hijack stdout to prevent mercurial from inadvertently talking to git.
 
