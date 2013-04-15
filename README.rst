@@ -242,19 +242,14 @@ Tests are continuously run by Travis-CI: |BuildStatus|_
 .. |BuildStatus| image:: https://secure.travis-ci.org/buchuki/gitifyhg.png
 .. _BuildStatus: http://travis-ci.org/buchuki/gitifyhg
 
-You can use `tox <http://tox.testrun.org/>`_ to set up a local test environment ::
+Note that testing has recently changed. We used to use `py.test <http://pytest.org/>`_
+and `tox <http://tox.testrun.org/>`_ to run our tests. We've recently switched to
+`sharness <https://github.com/mlafeldt/sharness>`_ both because it's easier to
+test command-line tools with and because it is the same infrastructure used by
+git itself.
 
-  pip install tox
-  tox -e py27
-
-Or install the test dependencies manually and run
-`py.test <http://pytest.org/>`_ directly in the virtualenv ::
-
-  pip install pytest
-  pip install sh
-  py.test -k <name of test>
-
-You will probably find it convenient to pass the `tb=short` switch to py.test.
+To test with sharness, simply `cd t` and run `make`. You can run individual
+test files with `./test-name.t`.
 
 License
 -------
