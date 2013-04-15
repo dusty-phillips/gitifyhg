@@ -25,7 +25,7 @@ from mercurial import encoding
 
 from .util import (log, output, gittz, gitmode,
     git_to_hg_spaces, hg_to_git_spaces, branch_head, ref_to_name_reftype,
-    BRANCH, BOOKMARK, TAG)
+    BRANCH, BOOKMARK, TAG, relative_path)
 
 AUTHOR = re.compile(r'^([^<>]+)?(<(?:[^<>]*)>| [^ ]*@.*|[<>].*)$')
 
@@ -178,11 +178,11 @@ class HGImporter(object):
                 filecontext = self.repo[rev].filectx(file)
                 data = filecontext.data()
                 output("M %s inline %s" % (
-                    gitmode(filecontext.flags()), filecontext.path()))
+                    gitmode(filecontext.flags()), relative_path(filecontext.path())))
                 output("data %d" % len(data))
                 output(data)
             for file in removed:
-                output("D %s" % (file))
+                output("D %s" % (relative_path(file)))
             output()
 
             count += 1
