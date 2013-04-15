@@ -17,6 +17,7 @@
 
 
 from path import path as p
+import os
 import sys
 import pytest
 import sh
@@ -503,3 +504,25 @@ def test_git_push_messages(git_dir, hg_repo):
     assert "new branch" not in out
     assert "branches/test_branch -> branches/test_branch" in out
 
+def test_push_lightweight_tag(git_dir, hg_repo):
+    """Ensure lightweight tags author names are set from ~/.hgrc"""
+    user = "Lite Wait <lite@wait.tag>"
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(git_repo)
+    make_git_commit("""[ui]
+username = %s
+""" % user, filename='.hgrc')
+
+    # Reset HOME so we can have our own ~/.hgrc
+    orig_home, os.environ["HOME"] = os.environ["HOME"], os.path.abspath(git_repo)
+    try:
+        sh.git.tag("lightweight")
+        out = sh.git.push("--tags")
+        assert "lightweight" in out.stderr
+
+        # Determine mercurial username
+        sh.cd(hg_repo)
+        assert_hg_count(3) # Initial commit, one file commit made here, plus a tag commit
+        assert ("User %s" % user) in sh.hg.export("tip")
+    finally:
+        os.environ["HOME"] = orig_home
