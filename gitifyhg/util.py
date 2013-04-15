@@ -155,6 +155,11 @@ def user_config():
         hgrc.read(cfg)
     return hgrc
 
+def relative_path(path):
+    """Ensure path is relative"""
+    return os.path.relpath(path, '/') if os.path.isabs(path) else path
+
+
 class HGMarks(object):
     '''Maps integer marks to specific string mercurial revision identifiers.
     Identifiers are passed as binary nodes and converted to/from hex strings
