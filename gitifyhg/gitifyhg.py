@@ -244,7 +244,7 @@ class HGRemote(object):
         if node and self.marks.is_marked(node):
             mark = self.marks.revision_to_mark(node)
             if self.git_marks.has_mark(mark):
-               return self.git_marks.mark_to_hash(mark)
+                return self.git_marks.mark_to_hash(mark)
         return '?'
 
     def do_list(self, parser):
@@ -315,10 +315,12 @@ class HGRemote(object):
     def do_export(self, parser):
         GitExporter(self, parser).process()
 
+
 def log_versions(level="DEBUG"):
     log("gitifyhg version %s" % version(), level=level)
     log("Mercurial version %s" % hg_version(), level=level)
     log("Python version %s" % (sys.version.replace("\n", "")), level=level)
+
 
 def main():
     '''Main entry point for the git-remote-gitifyhg command. Parses sys.argv
