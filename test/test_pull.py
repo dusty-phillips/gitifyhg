@@ -185,3 +185,49 @@ def test_pull_tag_with_spaces(git_dir, hg_repo):
     sh.cd(git_repo)
     sh.git.pull()
     assert "tag___one" in sh.git.tag()
+
+
+def test_pull_branch_with_slashes(git_dir, hg_repo):
+    sh.cd(hg_repo)
+    sh.hg.branch("feature/one")
+    make_hg_commit("b")
+    sh.hg.branch("feature")
+    make_hg_commit("c")
+    git_repo = clone_repo(git_dir, hg_repo)
+    sh.cd(hg_repo)
+    sh.hg.update("feature/one")
+    make_hg_commit("d")
+    sh.hg.update("feature")
+    sh.hg.branch("feature/two")
+    make_hg_commit("e")
+
+    def assert_branches(expected):
+        assert [b.strip() for b in sorted(sh.git('branch', '--list', '-a', 'origin/*'))] == sorted(expected)
+
+    sh.cd(git_repo)
+    assert_branches(["remotes/origin/HEAD -> origin/master",
+                     "remotes/origin/branches/feature",
+                     "remotes/origin/branches/feature_SLASH_one",
+                     "remotes/origin/master",
+                     ])
+
+    sh.git.checkout("origin/branches/feature", track=True)
+    assert_git_messages(["c", "b", "a"])
+    assert_git_count(3)
+    sh.git.checkout("origin/branches/feature_SLASH_one", track=True)
+    assert_git_messages(["b", "a"])
+    assert_git_count(2)
+    sh.git.pull()
+    assert_branches(["remotes/origin/HEAD -> origin/master",
+                     "remotes/origin/branches/feature",
+                     "remotes/origin/branches/feature_SLASH_one",
+                     "remotes/origin/branches/feature_SLASH_two",
+                     "remotes/origin/master",
+                     ])
+    assert_git_messages(["d", "b", "a"])
+    assert_git_count(3)
+    sh.git.checkout("origin/branches/feature_SLASH_two", track=True)
+    sh.git.pull()
+    assert_git_messages(["e", "c", "b", "a"])
+    assert_git_count(4)
+

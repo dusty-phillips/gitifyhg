@@ -14,6 +14,10 @@ DEBUG_GITIFYHG = os.environ.get("DEBUG_GITIFYHG") != None
 BRANCH = 'branch'
 BOOKMARK = 'bookmark'
 TAG = 'tag'
+NAMES_HG_TO_GIT = {' ': '___',
+                   '/': '_SLASH_',
+                   }
+
 
 actual_stdout = os.fdopen(sys.stdout.fileno(), 'w', 0) # Ensure stdout is unbuffered
 def deactivate_stdout():
@@ -75,16 +79,17 @@ def hgmode(mode):
     return modes.get(mode, '')
 
 
-def hg_to_git_spaces(name):
-    '''Spaces are allowed in mercurial, but not in git. We convert them to
-    the unlikely string ___'''
-    return name.replace(' ', '___')
+def name_hg_to_git(name):
+    """Translate names from hg to git"""
+    for mapFrom, mapTo in NAMES_HG_TO_GIT.iteritems():
+        name = name.replace(mapFrom, mapTo)
+    return name
 
-
-def git_to_hg_spaces(name):
-    '''But when we push back to mercurial, we need to convert it the other way.'''
-    return name.replace('___', ' ')
-
+def name_git_to_hg(name):
+    """Translate names from git to hg"""
+    for mapTo, mapFrom in NAMES_HG_TO_GIT.iteritems():
+        name = name.replace(mapFrom, mapTo)
+    return name
 
 def branch_tip(repo, branch):
     '''HG has a lovely branch_tip method, but it requires mercurial 2.4

@@ -42,7 +42,7 @@ from mercurial import hg
 from mercurial.bookmarks import listbookmarks, readcurrent
 
 from .util import (log, die, output, branch_head, GitMarks,
-    HGMarks, hg_to_git_spaces, name_reftype_to_ref, BRANCH, BOOKMARK, TAG,
+    HGMarks, name_hg_to_git, name_reftype_to_ref, BRANCH, BOOKMARK, TAG,
     version, deactivate_stdout)
 from .hgimporter import HGImporter
 from .gitexporter import GitExporter
@@ -264,21 +264,21 @@ class HGRemote(object):
         for branch in self.branches:
             output("%s %s" %
                     (self._change_hash(branch_head(self, branch)),
-                     name_reftype_to_ref(hg_to_git_spaces(branch), BRANCH)))
+                     name_reftype_to_ref(name_hg_to_git(branch), BRANCH)))
 
         # list the bookmark references
         for bookmark, changectx in self.bookmarks.items():
             if bookmark != "master":
                 output("%s %s" %
                         (self._change_hash(changectx),
-                         name_reftype_to_ref(hg_to_git_spaces(bookmark), BOOKMARK)))
+                         name_reftype_to_ref(name_hg_to_git(bookmark), BOOKMARK)))
 
         # list the tags
         for tag, node in self.repo.tagslist():
             if tag != "tip":
                 output("%s %s" %
                         (self._change_hash(self.repo[node]),
-                         name_reftype_to_ref(hg_to_git_spaces(tag), TAG)))
+                         name_reftype_to_ref(name_hg_to_git(tag), TAG)))
 
         output()
 

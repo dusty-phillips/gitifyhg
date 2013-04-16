@@ -26,7 +26,7 @@ from mercurial.node import short as hgshort
 from mercurial.bookmarks import pushbookmark
 from mercurial.scmutil import revsingle
 
-from .util import (log, die, output, git_to_hg_spaces, hgmode, branch_tip,
+from .util import (log, die, output, name_git_to_hg, hgmode, branch_tip,
     ref_to_name_reftype, BRANCH, BOOKMARK, TAG, user_config)
 
 
@@ -67,7 +67,7 @@ class GitExporter(object):
                 # This seems to be a git fast-export bug
                 continue
             name, reftype = ref_to_name_reftype(ref)
-            name = git_to_hg_spaces(name)
+            name = name_git_to_hg(name)
             if reftype == BRANCH:
                 if name not in self.hgremote.branches:
                     new_branch = True
@@ -208,7 +208,7 @@ class GitExporter(object):
 
         name, reftype = ref_to_name_reftype(ref)
         if reftype == BRANCH:
-            extra['branch'] = git_to_hg_spaces(name)
+            extra['branch'] = name_git_to_hg(name)
 
         def get_filectx(repo, memctx, file):
             filespec = files[file]
@@ -241,7 +241,7 @@ class GitExporter(object):
         tagger = self.parser.read_author()
         message = self.parser.read_data()
         self.parser.read_line()
-        self.parsed_tags[git_to_hg_spaces(name)] = tagger, message
+        self.parsed_tags[name_git_to_hg(name)] = tagger, message
 
     def do_feature(self):
         pass  # Ignore
