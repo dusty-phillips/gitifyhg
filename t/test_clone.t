@@ -24,8 +24,7 @@ test_expect_success 'basic clone with default branch and two commits' '
   test_cmp hg_base/test_file git_clone/test_file &&
   test -d git_clone/.git &&
   cd git_clone &&
-  test "git log --pretty=format:%B`" = "b${NL}a"
+  test "`git log --pretty=format:%B`" = "b${NL}a"
 '
-
 
 test_done
