@@ -23,6 +23,7 @@ from .helpers import (make_hg_commit, clone_repo, assert_git_count,
     assert_git_messages, write_to_test_file)
 
 
+# ported
 def test_basic_clone(git_dir, hg_repo):
     '''Ensures that a clone of an upstream hg repository with only one branch
     and a couple commits contains the appropriate structure.'''
@@ -41,7 +42,7 @@ def test_basic_clone(git_dir, hg_repo):
     assert_git_messages(['b', 'a'])
     assert len(sh.git.status(short=True).stdout) == 0
 
-
+# ported
 def test_clone_relative(git_dir, hg_repo):
     '''Make sure it doesn't fail if not cloning an absolute path'''
     sh.cd(hg_repo)
@@ -63,7 +64,7 @@ def test_clone_relative(git_dir, hg_repo):
 
     sh.git.pull()
 
-
+# ported
 def test_clone_linear_branch(git_dir, hg_repo):
     '''One branch after the other, no multiple parents.'''
     sh.cd(hg_repo)
@@ -88,7 +89,7 @@ def test_clone_linear_branch(git_dir, hg_repo):
     assert_git_count(2)
     assert_git_messages(['b', 'a'])
 
-
+# ported
 def test_clone_simple_branch(git_dir, hg_repo):
     '''Two divergent branches'''
     sh.cd(hg_repo)
@@ -105,7 +106,7 @@ def test_clone_simple_branch(git_dir, hg_repo):
     assert_git_messages(['b', 'a'])
     assert_git_count(2)
 
-
+# ported
 def test_clone_branch_with_spaces(git_dir, hg_repo):
     sh.cd(hg_repo)
     sh.hg.branch("feature branch")
