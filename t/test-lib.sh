@@ -18,3 +18,8 @@ make_hg_repo() {
     cd ..
 }
 
+make_hg_commit() {
+    echo "$1" >> $2 &&
+    hg commit -m "$1"
+}
+

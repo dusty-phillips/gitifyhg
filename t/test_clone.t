@@ -17,8 +17,7 @@ source ./test-lib.sh
 test_expect_success 'basic clone with default branch and two commits' '
   make_hg_repo &&
   cd hg_base &&
-  echo "b" >> test_file &&
-  hg commit -m "b" &&
+  make_hg_commit b test_file &&
   cd .. &&
   test_expect_code 0 git clone gitifyhg::hg_base git_clone &&
   test_expect_code 0 ls | grep git_clone &&
