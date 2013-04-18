@@ -42,7 +42,6 @@ test_expect_success 'clone linear branch, no multiple parents' '
     test "`git branch -r`" = "  origin/HEAD -> origin/master
   origin/branches/featurebranch
   origin/master" &&
-  echo "$$$" &&
 
     git checkout branches/featurebranch &&
     test_cmp ../hg_repo/test_file test_file &&
