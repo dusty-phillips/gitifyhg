@@ -83,25 +83,4 @@ test_expect_success 'clone merged branch' '
     cd ..
 '
 
-test_expect_success 'clone bookmark' '
-    test_when_finished "rm -rf hg_repo git_clone" &&
-    make_hg_repo &&
-    hg bookmark featurebookmark &&
-    make_hg_commit b test_file &&
-    cd .. &&
-
-    clone_repo &&
-
-    test "`git branch -r`" = "  origin/HEAD -> origin/master
-  origin/featurebookmark
-  origin/master" &&
-
-    git checkout origin/featurebookmark &&
-    assert_git_messages "b${NL}a" &&
-    git checkout master &&
-    assert_git_messages "b${NL}a" &&
-
-    cd ..
-'
-
 test_done
