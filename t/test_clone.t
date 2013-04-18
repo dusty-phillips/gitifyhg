@@ -26,5 +26,21 @@ test_expect_success 'basic clone with default branch and two commits' '
   cd git_clone &&
   assert_git_messages "b${NL}a"
 '
+test_expect_success 'clone linear branch, no multiple parents' '
+  make_hg_repo &&
+  cd hg_repo &&
+  hg branch featurebranch &&
+  make_hg_commit b test_file &&
+  cd .. &&
+  clone_repo &&
+  test_expect_code 0 ls | grep git_clone &&
+  cd git_clone &&
+  assert_git_messages "a" &&
+  git branch -r &&
+  test "`git branch -r`" = "  origin/HEAD -> origin/master
+  origin/branches/featurebranch
+  origin/master"
+'
+
 
 test_done
