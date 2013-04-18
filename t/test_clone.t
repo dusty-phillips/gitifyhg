@@ -39,12 +39,15 @@ test_expect_success 'clone linear branch, no multiple parents' '
     test_expect_code 0 ls | grep git_clone &&
     cd git_clone &&
     assert_git_messages "a" &&
-    git branch -r &&
-    test "`git branch -r`" = "    origin/HEAD -> origin/master
-    origin/branches/featurebranch
-    origin/master"
-'
-test_expect_success ' clone simple divergent branch' '
-    make_hg_repo
-'
+    test "`git branch -r`" = "  origin/HEAD -> origin/master
+  origin/branches/featurebranch
+  origin/master" &&
+  echo "$$$" &&
 
+    git checkout branches/featurebranch &&
+    test_cmp ../hg_repo/test_file test_file &&
+    assert_git_messages "b${NL}a" &&
+
+    cd ..
+'
+test_done
