@@ -18,7 +18,7 @@ make_hg_repo() {
 }
 
 clone_repo() {
-    test_expect_code 0 git clone gitifyhg::hg_repo git_clone &&
+    test_expect_code 0 git clone testgitifyhg::hg_repo git_clone &&
     cd git_clone
 }
 
