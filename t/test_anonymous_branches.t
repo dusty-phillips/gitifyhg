@@ -36,6 +36,7 @@ test_expect_failure 'anonymous branches dont work' '
 '
 
 test_expect_failure 'anonymous branch from named branch' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
     make_hg_repo &&
     hg branch featurebranch &&
     make_hg_commit b test_file &&
