@@ -194,7 +194,7 @@ def test_clone_named_and_anonymous_branch(git_dir, hg_repo):
     # TODO: same more than one head issue as in test_clone_anonymous_branch
     assert False
 
-
+#ported
 def test_clone_bookmark(hg_repo, git_dir):
     sh.cd(hg_repo)
     sh.hg.bookmark("featurebookmark")
@@ -214,6 +214,7 @@ def test_clone_bookmark(hg_repo, git_dir):
     assert_git_count(2)
 
 
+# ported
 def test_clone_bookmark_with_spaces(hg_repo, git_dir):
     sh.cd(hg_repo)
     sh.hg.bookmark("feature bookmark")
