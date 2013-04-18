@@ -9,8 +9,8 @@ export NL='
 '
 
 make_hg_repo() {
-    mkdir hg_base &&
-    cd hg_base &&
+    mkdir hg_repo &&
+    cd hg_repo &&
     hg init &&
     echo 'a\n' >> test_file &&
     hg add test_file &&
