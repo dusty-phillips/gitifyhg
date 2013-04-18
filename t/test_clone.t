@@ -15,6 +15,7 @@ source ./test-lib.sh
 # fi
 
 test_expect_success 'basic clone with default branch and two commits' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
     make_hg_repo &&
     cd hg_repo &&
     make_hg_commit b test_file &&
@@ -24,9 +25,11 @@ test_expect_success 'basic clone with default branch and two commits' '
     test_cmp hg_repo/test_file git_clone/test_file &&
     test -d git_clone/.git &&
     cd git_clone &&
-    assert_git_messages "b${NL}a"
+    assert_git_messages "b${NL}a" &&
+    cd ..
 '
 test_expect_success 'clone linear branch, no multiple parents' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
     make_hg_repo &&
     cd hg_repo &&
     hg branch featurebranch &&
