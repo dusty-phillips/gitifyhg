@@ -14,11 +14,12 @@ make_hg_repo() {
     hg init &&
     echo 'a\n' >> test_file &&
     hg add test_file &&
-    hg commit --message="a" &&
-    cd ..
+    hg commit --message="a"
 }
+
 clone_repo() {
-    test_expect_code 0 git clone gitifyhg::hg_repo git_clone
+    test_expect_code 0 git clone gitifyhg::hg_repo git_clone &&
+    cd git_clone
 }
 
 make_hg_commit() {

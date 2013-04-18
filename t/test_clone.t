@@ -17,27 +17,22 @@ source ./test-lib.sh
 test_expect_success 'basic clone with default branch and two commits' '
     test_when_finished "rm -rf hg_repo git_clone" &&
     make_hg_repo &&
-    cd hg_repo &&
     make_hg_commit b test_file &&
     cd .. &&
     clone_repo &&
-    test_expect_code 0 ls | grep git_clone &&
-    test_cmp hg_repo/test_file git_clone/test_file &&
-    test -d git_clone/.git &&
-    cd git_clone &&
+    test_cmp ../hg_repo/test_file test_file &&
+    test -d .git &&
     assert_git_messages "b${NL}a" &&
+
     cd ..
 '
 test_expect_success 'clone linear branch, no multiple parents' '
     test_when_finished "rm -rf hg_repo git_clone" &&
     make_hg_repo &&
-    cd hg_repo &&
     hg branch featurebranch &&
     make_hg_commit b test_file &&
     cd .. &&
     clone_repo &&
-    test_expect_code 0 ls | grep git_clone &&
-    cd git_clone &&
     assert_git_messages "a" &&
     test "`git branch -r`" = "  origin/HEAD -> origin/master
   origin/branches/featurebranch
@@ -50,10 +45,9 @@ test_expect_success 'clone linear branch, no multiple parents' '
     cd ..
 '
 
-test_expect_success ' clone simple divergent branch' '
+test_expect_success 'clone simple divergent branch' '
     test_when_finished "rm -rf hg_repo git_clone" &&
     make_hg_repo &&
-    cd hg_repo &&
     hg branch featurebranch &&
     make_hg_commit b test_file &&
     hg update default &&
@@ -61,7 +55,6 @@ test_expect_success ' clone simple divergent branch' '
     cd .. &&
 
     clone_repo &&
-    cd git_clone &&
     assert_git_messages "c${NL}a" &&
     git checkout "origin/branches/featurebranch" &&
     assert_git_messages "b${NL}a" &&

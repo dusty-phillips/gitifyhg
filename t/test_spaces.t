@@ -17,12 +17,10 @@ source ./test-lib.sh
 test_expect_success 'basic clone with default branch and two commits' '
     test_when_finished "rm -rf hg_repo git_clone" &&
     make_hg_repo &&
-    cd hg_repo &&
-    hg branch "feature branch"
+    hg branch "feature branch" &&
     make_hg_commit b test_file &&
     cd .. &&
     clone_repo &&
-    cd git_clone &&
     assert_git_messages "a" &&
     test "`git branch -r`" = "  origin/HEAD -> origin/master
   origin/branches/feature___branch
