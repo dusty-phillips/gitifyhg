@@ -23,6 +23,7 @@ clone_repo() {
 
 make_hg_commit() {
     echo "$1" >> $2 &&
+    hg add $2 &&
     hg commit -m "$1"
 }
 

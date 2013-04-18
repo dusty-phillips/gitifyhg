@@ -50,4 +50,24 @@ test_expect_success 'clone linear branch, no multiple parents' '
 
     cd ..
 '
+
+test_expect_success ' clone simple divergent branch' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+    make_hg_repo &&
+    cd hg_repo &&
+    hg branch featurebranch &&
+    make_hg_commit b test_file &&
+    hg update default &&
+    make_hg_commit c c &&
+    cd .. &&
+
+    clone_repo &&
+    cd git_clone &&
+    assert_git_messages "c${NL}a" &&
+    git checkout "origin/branches/featurebranch" &&
+    assert_git_messages "b${NL}a" &&
+
+    cd ..
+'
+
 test_done
