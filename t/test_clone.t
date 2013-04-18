@@ -19,12 +19,12 @@ test_expect_success 'basic clone with default branch and two commits' '
   cd hg_repo &&
   make_hg_commit b test_file &&
   cd .. &&
-  test_expect_code 0 git clone gitifyhg::hg_repo git_clone &&
+  clone_repo &&
   test_expect_code 0 ls | grep git_clone &&
   test_cmp hg_repo/test_file git_clone/test_file &&
   test -d git_clone/.git &&
   cd git_clone &&
-  test "`git log --pretty=format:%B`" = "b${NL}a"
+  assert_git_messages "b${NL}a"
 '
 
 test_done

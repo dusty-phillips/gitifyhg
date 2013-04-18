@@ -17,9 +17,15 @@ make_hg_repo() {
     hg commit --message="a" &&
     cd ..
 }
+clone_repo() {
+    test_expect_code 0 git clone gitifyhg::hg_repo git_clone
+}
 
 make_hg_commit() {
     echo "$1" >> $2 &&
     hg commit -m "$1"
 }
 
+assert_git_messages() {
+    test "`git log --pretty=format:%B`" = "$1"
+}
