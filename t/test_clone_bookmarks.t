@@ -62,4 +62,42 @@ test_expect_success 'clone divergent bookmarks' '
     cd ..
 '
 
+test_expect_success 'clone bookmark not at tip' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+    make_hg_repo &&
+    make_hg_commit b test_file &&
+    hg update -r 0 &&
+    hg bookmark bookmark_one &&
+    hg update tip &&
+
+    cd .. &&
+    clone_repo &&
+
+    test "`git branch -r`" = "  origin/HEAD -> origin/master
+  origin/bookmark_one
+  origin/master" &&
+
+    git checkout bookmark_one &&
+    assert_git_messages "a" &&
+    git checkout master &&
+    assert_git_messages "b${NL}a" &&
+
+    cd ..
+'
+
+# See issue #13
+test_expect_success 'clone bookmark named master not at tip' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+    make_hg_repo &&
+    make_hg_commit b test_file &&
+    hg update -r 0 &&
+    hg bookmark master &&
+    hg update tip &&
+    cd .. &&
+
+    clone_repo &&
+
+    cd ..
+'
+
 test_done

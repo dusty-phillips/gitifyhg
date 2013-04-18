@@ -233,7 +233,7 @@ def test_clone_bookmark_with_spaces(hg_repo, git_dir):
     sh.git.checkout('master')
     assert_git_count(2)
 
-
+# ported
 def test_clone_divergent_bookmarks(hg_repo, git_dir):
     sh.cd(hg_repo)
     sh.hg.bookmark("bookmark_one")
@@ -261,7 +261,7 @@ def test_clone_divergent_bookmarks(hg_repo, git_dir):
     assert_git_count(3)
     assert_git_messages(['d', 'c', 'a'])
 
-
+# ported
 def test_clone_bookmark_not_at_tip(git_dir, hg_repo):
     sh.cd(hg_repo)
     make_hg_commit("b")
@@ -286,7 +286,7 @@ def test_clone_bookmark_not_at_tip(git_dir, hg_repo):
     assert_git_count(2)
     assert_git_messages(['b', 'a'])
 
-
+# ported
 # See issue #13
 def test_clone_bookmark_named_master_not_at_tip(git_dir, hg_repo):
     sh.cd(hg_repo)
