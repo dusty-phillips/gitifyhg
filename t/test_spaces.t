@@ -14,7 +14,7 @@ source ./test-lib.sh
 #    test_done
 # fi
 
-test_expect_success 'basic clone with default branch and two commits' '
+test_expect_success 'clone branch with spaces' '
     test_when_finished "rm -rf hg_repo git_clone" &&
     make_hg_repo &&
     hg branch "feature branch" &&
@@ -33,4 +33,24 @@ test_expect_success 'basic clone with default branch and two commits' '
     cd ..
 
 '
+
+test_expect_success 'clone bookmark with spaces' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+    make_hg_repo &&
+    hg bookmark "feature bookmark"
+    make_hg_commit b test_file
+
+    cd ..
+    clone_repo
+
+    test "`git branch -r`" = "  origin/HEAD -> origin/master
+  origin/feature___bookmark
+  origin/master" &&
+
+    git checkout 'origin/feature___bookmark &&
+    assert_git_messages "b${NL}a" &&
+    git checkout master &&
+    assert_git_messages "b${NL}a" &&
+
+    cd ..
 test_done
