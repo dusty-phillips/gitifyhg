@@ -130,7 +130,7 @@ def test_clone_branch_with_spaces(git_dir, hg_repo):
     assert_git_count(2)
     assert_git_messages(['b', 'a'])
 
-
+#ported
 def test_clone_merged_branch(git_dir, hg_repo):
     sh.cd(hg_repo)
     sh.hg.branch("featurebranch")
@@ -150,6 +150,7 @@ def test_clone_merged_branch(git_dir, hg_repo):
     assert_git_count(2)
 
 
+# ported
 @pytest.mark.xfail
 def test_clone_anonymous_branch(git_dir, hg_repo):
     sh.cd(hg_repo)
@@ -166,7 +167,7 @@ def test_clone_anonymous_branch(git_dir, hg_repo):
     # failure. (Using test cases as todos is a good thing.)
     assert False
 
-
+# ported
 @pytest.mark.xfail
 def test_clone_named_and_anonymous_branch(git_dir, hg_repo):
     sh.cd(hg_repo)
