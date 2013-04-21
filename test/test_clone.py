@@ -310,7 +310,6 @@ def test_clone_tags(git_dir, hg_repo):
     print result.stdout
     assert result.stdout == "THIS_IS_TAGGED\n"
 
-
 # ported
 def test_clone_tag_with_spaces(git_dir, hg_repo):
     sh.cd(hg_repo)
@@ -323,7 +322,7 @@ def test_clone_tag_with_spaces(git_dir, hg_repo):
     result = sh.git.tag()
     assert result.stdout == "THIS___IS___TAGGED\n"
 
-
+# ported
 def test_clone_close_branch(git_dir, hg_repo):
     sh.cd(hg_repo)
     sh.hg.branch('feature')
@@ -357,7 +356,7 @@ def test_clone_remove_file(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(git_repo)
 
-    assert not p('a').exists()
+    assert not p('test_file').exists()
 
 
 # See issue #36

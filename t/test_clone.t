@@ -102,4 +102,28 @@ test_expect_success 'clone basic tag' '
     cd ..
 '
 
+test_expect_success 'clone close branch' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_hg_repo &&
+    hg branch feature &&
+    make_hg_commit b b &&
+    hg update default &&
+    make_hg_commit c c &&
+    hg update feature &&
+    echo d >> b &&
+    hg commit --close-branch -m "d" &&
+
+    cd .. &&
+    clone_repo &&
+    test "`git branch -r`" = "  origin/HEAD -> origin/master
+  origin/branches/feature
+  origin/master" &&
+    assert_git_messages "c${NL}a" &&
+    git checkout origin/branches/feature &&
+    assert_git_messages "d${NL}b${NL}a" &&
+
+    cd ..
+'
+
 test_done
