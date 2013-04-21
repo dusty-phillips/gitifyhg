@@ -346,7 +346,7 @@ def test_clone_close_branch(git_dir, hg_repo):
     sh.git.checkout("origin/branches/feature")
     assert_git_messages(['d', 'b', 'a'])
 
-
+#ported
 def test_clone_remove_file(git_dir, hg_repo):
     sh.cd(hg_repo)
     make_hg_commit("b")
