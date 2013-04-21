@@ -358,7 +358,7 @@ def test_clone_remove_file(git_dir, hg_repo):
 
     assert not p('test_file').exists()
 
-
+#ported
 # See issue #36
 @pytest.mark.xfail
 def test_clone_replace_file_by_dir(git_dir, hg_repo):
@@ -375,6 +375,7 @@ def test_clone_replace_file_by_dir(git_dir, hg_repo):
     assert p('dir_or_file/test_file').exists()
 
 
+# ported
 def test_clone_replace_dir_by_file(git_dir, hg_repo):
     sh.cd(hg_repo)
     sh.mkdir("dir_or_file")
