@@ -297,7 +297,7 @@ def test_clone_bookmark_named_master_not_at_tip(git_dir, hg_repo):
 
     clone_repo(git_dir, hg_repo)
 
-
+# ported
 def test_clone_tags(git_dir, hg_repo):
     sh.cd(hg_repo)
     make_hg_commit("b")
@@ -311,6 +311,7 @@ def test_clone_tags(git_dir, hg_repo):
     assert result.stdout == "THIS_IS_TAGGED\n"
 
 
+# ported
 def test_clone_tag_with_spaces(git_dir, hg_repo):
     sh.cd(hg_repo)
     make_hg_commit("b")

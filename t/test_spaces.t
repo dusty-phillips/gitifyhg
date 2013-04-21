@@ -47,10 +47,29 @@ test_expect_success 'clone bookmark with spaces' '
   origin/feature___bookmark
   origin/master" &&
 
-    git checkout 'origin/feature___bookmark &&
+    git checkout origin/feature___bookmark &&
     assert_git_messages "b${NL}a" &&
     git checkout master &&
     assert_git_messages "b${NL}a" &&
 
     cd ..
+'
+
+test_expect_success 'clone tag with spaces' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_hg_repo &&
+    make_hg_commit b test_file &&
+    hg tag "this is tagged" &&
+    make_hg_commit c test_file &&
+
+    cd .. &&
+    clone_repo &&
+
+    test $(git tag) = "this___is___tagged" &&
+    git checkout this___is___tagged &&
+    assert_git_messages "b${NL}a" &&
+
+    cd ..
+'
 test_done

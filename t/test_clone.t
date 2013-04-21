@@ -74,11 +74,30 @@ test_expect_success 'clone merged branch' '
     hg commit -m "merge" &&
     make_hg_commit d test_file &&
 
+    cd ..
     clone_repo &&
 
     assert_git_messages "d${NL}merge${NL}c${NL}b${NL}a" &&
     git checkout origin/branches/featurebranch &&
     assert_git_messages "b${NL}a"
+
+    cd ..
+'
+
+test_expect_success 'clone basic tag' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_hg_repo &&
+    make_hg_commit b test_file &&
+    hg tag "this_is_tagged" &&
+    make_hg_commit c test_file &&
+
+    cd .. &&
+    clone_repo &&
+
+    test $(git tag) = "this_is_tagged" &&
+    git checkout this_is_tagged &&
+    assert_git_messages "b${NL}a" &&
 
     cd ..
 '
