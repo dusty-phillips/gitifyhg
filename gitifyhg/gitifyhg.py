@@ -156,8 +156,10 @@ class HGRemote(object):
         url, _ = hg.parseurl(orig_url)
         if str(url) == str(repo_url):
             return
+        remote_name = os.path.basename(sys.argv[0]).replace("git-remote-", "")
         # Force git to use an absolute path in the future
-        cmd = ['git', 'config', 'remote.%s.url' % alias, "gitifyhg::%s" % repo_url]
+        cmd = ['git', 'config', 'remote.%s.url' % alias, "%s::%s" % (
+            remote_name, repo_url)]
         subprocess.call(cmd)
 
     def build_repo(self, url):
