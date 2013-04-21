@@ -389,6 +389,7 @@ def test_clone_replace_dir_by_file(git_dir, hg_repo):
     assert p('dir_or_file').isfile()
 
 
+# ported
 def test_clone_replace_file_by_symlink(git_dir, hg_repo):
     sh.cd(hg_repo)
     make_hg_commit("b", filename="link_or_file")
@@ -403,7 +404,7 @@ def test_clone_replace_file_by_symlink(git_dir, hg_repo):
     assert p('link_or_file').isfile()
     assert p('link_or_file').islink()
 
-
+#ported
 def test_clone_replace_symlink_by_file(git_dir, hg_repo):
     sh.cd(hg_repo)
     sh.ln("-s", "test_file", "link_or_file")
@@ -436,7 +437,7 @@ def test_clone_replace_symlink_by_dir(git_dir, hg_repo):
     assert p('dir_or_link').isdir()
     assert p('dir_or_link/test_file').exists()
 
-
+#ported
 def test_clone_replace_dir_by_symlink(git_dir, hg_repo):
     sh.cd(hg_repo)
     sh.mkdir("dir_or_link")

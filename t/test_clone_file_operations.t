@@ -51,6 +51,27 @@ test_expect_failure 'cloning a file replaced with a directory' '
     cd ..
 '
 
+# also issue #36
+test_expect_failure 'clone replacing a symlink with a directory' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_hg_repo &&
+    ln -s test_file dir_or_link &&
+    hg add dir_or_link &&
+    hg commit -m "b" &&
+    hg rm dir_or_link &&
+    mkdir dir_or_link &&
+    make_hg_commit c dir_or_link/test_file &&
+
+    cd .. &&
+    clone_repo &&
+
+    test -d dir_or_link &&
+    test -f dir_or_link/test_file &&
+
+    cd ..
+'
+
 test_expect_success 'clone replace directory with a file' '
     test_when_finished "rm -rf hg_repo git_clone" &&
 
@@ -64,6 +85,45 @@ test_expect_success 'clone replace directory with a file' '
     clone_repo &&
 
     test -f dir_or_file &&
+
+    cd ..
+'
+
+test_expect_success 'clone replace file with a symlink' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_hg_repo &&
+    make_hg_commit b link_or_file &&
+    hg rm link_or_file &&
+    ln -s test_file link_or_file &&
+    hg add link_or_file &&
+    hg commit -m "c" &&
+
+    cd .. &&
+    clone_repo &&
+
+    test -f link_or_file &&
+    test -L link_or_file &&
+
+    cd ..
+'
+
+test_expect_success 'clone replace directory with symlink' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_hg_repo &&
+    mkdir dir_or_link &&
+    make_hg_commit b dir_or_link/test_file &&
+    hg rm dir_or_link/test_file &&
+    ln -s test_file dir_or_link &&
+    hg add dir_or_link &&
+    hg commit -m c
+
+    cd .. &&
+    clone_repo &&
+
+    test -f dir_or_link &&
+    test -L dir_or_link &&
 
     cd ..
 '
