@@ -18,8 +18,10 @@ make_hg_repo() {
 }
 
 clone_repo() {
-    test_expect_code 0 git clone testgitifyhg::hg_repo git_clone &&
-    cd git_clone
+    test_expect_code 0 git clone "testgitifyhg::hg_repo" git_clone &&
+    cd git_clone &&
+    git config user.email "you@example.com" &&
+    git config user.name "Your Name"
 }
 
 make_hg_commit() {
@@ -27,7 +29,16 @@ make_hg_commit() {
     hg add $2 &&
     hg commit -m "$1"
 }
+make_git_commit() {
+    echo "$1" >> $2 &&
+    git add $2 &&
+    git commit -m "$1"
+}
 
 assert_git_messages() {
     test "`git log --pretty=format:%B`" = "$1"
+}
+
+assert_hg_messages() {
+    test `hg log --template="{desc}\n"` = "$1"
 }
