@@ -18,7 +18,6 @@ test_expect_success 'basic clone with default branch and two commits' '
     test_when_finished "rm -rf hg_repo git_clone" &&
     make_hg_repo &&
     make_hg_commit b test_file &&
-    cd .. &&
     clone_repo &&
     test_cmp ../hg_repo/test_file test_file &&
     test -d .git &&
@@ -31,7 +30,6 @@ test_expect_success 'clone linear branch, no multiple parents' '
     make_hg_repo &&
     hg branch featurebranch &&
     make_hg_commit b test_file &&
-    cd .. &&
     clone_repo &&
     assert_git_messages "a" &&
     test "`git branch -r`" = "  origin/HEAD -> origin/master
@@ -52,8 +50,6 @@ test_expect_success 'clone simple divergent branch' '
     make_hg_commit b test_file &&
     hg update default &&
     make_hg_commit c c &&
-    cd .. &&
-
     clone_repo &&
     assert_git_messages "c${NL}a" &&
     git checkout "origin/branches/featurebranch" &&
@@ -74,8 +70,7 @@ test_expect_success 'clone merged branch' '
     hg commit -m "merge" &&
     make_hg_commit d test_file &&
 
-    cd ..
-    clone_repo &&
+ clone_repo &&
 
     assert_git_messages "d${NL}merge${NL}c${NL}b${NL}a" &&
     git checkout origin/branches/featurebranch &&
@@ -92,7 +87,6 @@ test_expect_success 'clone basic tag' '
     hg tag "this_is_tagged" &&
     make_hg_commit c test_file &&
 
-    cd .. &&
     clone_repo &&
 
     test $(git tag) = "this_is_tagged" &&
@@ -114,7 +108,6 @@ test_expect_success 'clone close branch' '
     echo d >> b &&
     hg commit --close-branch -m "d" &&
 
-    cd .. &&
     clone_repo &&
     test "`git branch -r`" = "  origin/HEAD -> origin/master
   origin/branches/feature

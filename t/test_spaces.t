@@ -19,7 +19,6 @@ test_expect_success 'clone branch with spaces' '
     make_hg_repo &&
     hg branch "feature branch" &&
     make_hg_commit b test_file &&
-    cd .. &&
     clone_repo &&
     assert_git_messages "a" &&
     test "`git branch -r`" = "  origin/HEAD -> origin/master
@@ -40,7 +39,6 @@ test_expect_success 'clone bookmark with spaces' '
     hg bookmark "feature bookmark"
     make_hg_commit b test_file
 
-    cd ..
     clone_repo
 
     test "`git branch -r`" = "  origin/HEAD -> origin/master
@@ -63,7 +61,6 @@ test_expect_success 'clone tag with spaces' '
     hg tag "this is tagged" &&
     make_hg_commit c test_file &&
 
-    cd .. &&
     clone_repo &&
 
     test $(git tag) = "this___is___tagged" &&

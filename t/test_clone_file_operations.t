@@ -23,8 +23,6 @@ test_expect_success 'cloning a removed file works' '
     hg rm test_file &&
     hg commit -m "c" &&
 
-    cd .. &&
-    echo "a"
     clone_repo &&
     
     test_expect_code 2 ls test_file &&
@@ -43,7 +41,6 @@ test_expect_failure 'cloning a file replaced with a directory' '
     mkdir dir_or_file &&
     make_hg_commit c dir_or_file/test_file &&
 
-    cd .. &&
     clone_repo &&
     test -d dir_or_file &&
     test -f dir_or_file/test_file &&
@@ -63,7 +60,6 @@ test_expect_failure 'clone replacing a symlink with a directory' '
     mkdir dir_or_link &&
     make_hg_commit c dir_or_link/test_file &&
 
-    cd .. &&
     clone_repo &&
 
     test -d dir_or_link &&
@@ -81,7 +77,6 @@ test_expect_success 'clone replace directory with a file' '
     hg rm dir_or_file/test_file &&
     make_hg_commit "c" dir_or_file &&
 
-    cd .. &&
     clone_repo &&
 
     test -f dir_or_file &&
@@ -99,7 +94,6 @@ test_expect_success 'clone replace file with a symlink' '
     hg add link_or_file &&
     hg commit -m "c" &&
 
-    cd .. &&
     clone_repo &&
 
     test -f link_or_file &&
@@ -119,7 +113,6 @@ test_expect_success 'clone replace directory with symlink' '
     hg add dir_or_link &&
     hg commit -m c
 
-    cd .. &&
     clone_repo &&
 
     test -f dir_or_link &&

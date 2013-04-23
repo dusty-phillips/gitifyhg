@@ -17,7 +17,6 @@ source ./test-lib.sh
 test_expect_success 'simple push from master' '
     test_when_finished "rm -rf hg_repo git_clone" &&
     make_hg_repo &&
-    cd .. &&
     clone_repo &&
     make_git_commit b test_file &&
     git push &&
@@ -35,7 +34,6 @@ test_expect_success 'simple push from master' '
 test_expect_failure 'push not create bookmark' '
     test_when_finished "rm -rf hg_repo git_clone" &&
     make_hg_repo &&
-    cd .. &&
     clone_repo &&
     make_git_commit b test_file &&
     git push &&
@@ -52,7 +50,6 @@ test_expect_success 'test push empty repo' '
     mkdir hg_repo &&
     cd hg_repo &&
     hg init &&
-    cd .. &&
     
     clone_repo &&
     git status | grep "Initial commit" &&
@@ -70,7 +67,7 @@ test_expect_success 'push conflict default' '
     test_when_finished "rm -rf hg_repo git_clone" &&
 
     make_hg_repo &&
-    cd .. &&
+
     clone_repo &&
     cd ../hg_repo &&
     make_hg_commit b test_file &&

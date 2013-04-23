@@ -19,7 +19,6 @@ test_expect_success 'clone bookmark' '
     make_hg_repo &&
     hg bookmark featurebookmark &&
     make_hg_commit b test_file &&
-    cd .. &&
 
     clone_repo &&
 
@@ -45,7 +44,6 @@ test_expect_success 'clone divergent bookmarks' '
     hg bookmark bookmark_two &&
     make_hg_commit d test_file &&
 
-    cd .. &&
     clone_repo &&
 
     test "`git branch -r`" = "  origin/HEAD -> origin/master
@@ -70,7 +68,6 @@ test_expect_success 'clone bookmark not at tip' '
     hg bookmark bookmark_one &&
     hg update tip &&
 
-    cd .. &&
     clone_repo &&
 
     test "`git branch -r`" = "  origin/HEAD -> origin/master
@@ -93,7 +90,6 @@ test_expect_success 'clone bookmark named master not at tip' '
     hg update -r 0 &&
     hg bookmark master &&
     hg update tip &&
-    cd .. &&
 
     clone_repo &&
 

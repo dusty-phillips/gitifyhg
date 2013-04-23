@@ -18,6 +18,7 @@ make_hg_repo() {
 }
 
 clone_repo() {
+    cd .. &&
     test_expect_code 0 git clone "testgitifyhg::hg_repo" git_clone &&
     cd git_clone &&
     git config user.email "you@example.com" &&
