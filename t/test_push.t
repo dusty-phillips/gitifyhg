@@ -80,4 +80,25 @@ test_expect_success 'push conflict default' '
     cd ..
 '
 
+test_expect_success 'push to named branch' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_hg_repo &&
+    hg branch branch_one &&
+    make_hg_commit b test_file &&
+
+    clone_repo &&
+    git checkout -t "origin/branches/branch_one" &&
+    make_git_commit c test_file &&
+    git push &&
+
+    cd ../hg_repo &&
+    hg log --template="{desc}\n" &&
+    assert_hg_messages "c${NL}b${NL}a" &&
+    hg update tip &&
+    test `hg branch` == "branch_one" &&
+
+    cd ..
+'
+
 test_done
