@@ -40,5 +40,5 @@ assert_git_messages() {
 }
 
 assert_hg_messages() {
-    test `hg log --template="{desc}\n"` = "$1"
+    test "`hg log --template=\"{desc}\n\"`" = "$1"
 }
