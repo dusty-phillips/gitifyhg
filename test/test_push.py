@@ -25,7 +25,7 @@ from .helpers import (make_hg_commit, make_git_commit, clone_repo,
     assert_hg_count, assert_git_count, assert_hg_messages,
     assert_hg_author, assert_git_author)
 
-
+#ported
 def test_simple_push_from_master(hg_repo, git_dir):
     clone_repo(git_dir, hg_repo)
     make_git_commit("b")
@@ -37,7 +37,7 @@ def test_simple_push_from_master(hg_repo, git_dir):
     with hg_repo.joinpath("test_file").open() as file:
         assert file.read() == "a\nb"
 
-
+#ported
 def test_simple_push_updates_remote(hg_repo, git_dir):
     clone_repo(git_dir, hg_repo)
     make_git_commit("b")
@@ -45,14 +45,14 @@ def test_simple_push_updates_remote(hg_repo, git_dir):
     sh.git.fetch()
     assert_git_count(2, ref='origin')
 
-
+#ported
 @pytest.mark.xfail
 def test_simple_push_updates_remote_dont_create_bookmark(hg_repo, git_dir):
     test_simple_push_updates_remote(hg_repo, git_dir)
     sh.cd(hg_repo)
     assert sh.hg.bookmarks().stdout.find("no bookmarks set") > 0
 
-
+# ported
 def test_empty_repo(tmpdir):
     tmpdir = p(tmpdir.strpath).abspath()
     hg_base = tmpdir.joinpath('hg_base')
@@ -75,7 +75,7 @@ def test_empty_repo(tmpdir):
     with open(hg_base.joinpath('test_file')) as file:
         assert file.read() == "a"
 
-
+#ported
 def test_push_conflict_default(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(hg_repo)
@@ -84,7 +84,7 @@ def test_push_conflict_default(git_dir, hg_repo):
     make_git_commit("c")
     assert sh.git.push(_ok_code=1).stderr.find("master -> master (non-fast-forward)") > 0
 
-
+#ported
 def test_push_conflict_default_double(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(hg_repo)

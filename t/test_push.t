@@ -46,6 +46,41 @@ test_expect_failure 'push not create bookmark' '
     cd ..
 '
 
+test_expect_success 'test push empty repo' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
 
+    mkdir hg_repo &&
+    cd hg_repo &&
+    hg init &&
+    cd .. &&
+    
+    clone_repo &&
+    git status | grep "Initial commit" &&
+    make_git_commit a test_file &&
+    git push origin master &&
+    cd ../hg_repo &&
+    assert_hg_messages "a" &&
+    hg update &&
+    test_cmp test_file ../git_clone/test_file &&
+
+    cd ..
+'
+
+test_expect_success 'push conflict default' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_hg_repo &&
+    cd .. &&
+    clone_repo &&
+    cd ../hg_repo &&
+    make_hg_commit b test_file &&
+    cd ../git_clone &&
+    make_git_commit c test_file &&
+    test_expect_code 1 git push &&
+    # test it again because we were having issues with it succeeding the second time
+    test_expect_code 1 git push &&
+
+    cd ..
+'
 
 test_done
