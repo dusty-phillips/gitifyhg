@@ -93,12 +93,69 @@ test_expect_success 'push to named branch' '
     git push &&
 
     cd ../hg_repo &&
-    hg log --template="{desc}\n" &&
     assert_hg_messages "c${NL}b${NL}a" &&
     hg update tip &&
     test `hg branch` == "branch_one" &&
 
     cd ..
 '
+
+test_expect_success 'push merged named branch' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_hg_repo &&
+    hg branch branch-one &&
+    make_hg_commit b1 b &&
+    hg update default &&
+    make_hg_commit c1 c &&
+
+    clone_repo &&
+    git merge origin/branches/branch_one &&
+    git push &&
+
+    cd ../hg_repo &&
+    hg update &&
+    hg log --template="{desc}" &&
+    assert_hg_messages "Merge${NL}c1${NL}b1${NL}a"
+
+    cd ..
+'
+
+test_expect_success 'push new named branch' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_hg_repo &&
+    clone_repo &&
+    git checkout -b branches/branch_one &&
+    make_git_commit b test_file &&
+    git push --set-upstream origin branches/branch_one &&
+
+    cd ../hg_repo &&
+    assert_hg_messages "b${NL}a"
+    hg update tip &&
+    test `hg branch` = "branch_one" &&
+
+    cd ..
+'
+
+test_expect_success 'push conflict named branch' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_hg_repo &&
+    hg branch feature &&
+    make_hg_commit b test_file &&
+    clone_repo &&
+    cd ../hg_repo &&
+    make_hg_commit c test_file &&
+    cd ../git_clone &&
+    git checkout --track origin/branches/feature &&
+    make_git_commit d test_file &&
+    test_expect_code 1 git push &&
+
+    cd ..
+'
+
+
+
 
 test_done

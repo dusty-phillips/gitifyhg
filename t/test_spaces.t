@@ -69,4 +69,26 @@ test_expect_success 'clone tag with spaces' '
 
     cd ..
 '
+
+test_expect_success 'push to named branch with spaces' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_hg_repo &&
+    hg branch "branch one" &&
+    make_hg_commit b test_file &&
+
+    clone_repo &&
+    git checkout -t "origin/branches/branch___one" &&
+    make_git_commit c test_file &&
+    git push &&
+
+    cd ../hg_repo &&
+    hg log --template="{desc}\n" &&
+    assert_hg_messages "c${NL}b${NL}a" &&
+    hg update tip &&
+    test "`hg branch`" == "branch one" &&
+
+    cd ..
+'
+
 test_done

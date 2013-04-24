@@ -124,7 +124,7 @@ def test_push_to_named(git_dir, hg_repo):
 
     assert sh.hg.branch().stdout.strip() == "branch_one"
 
-
+# ported
 def test_push_to_named_with_spaces(git_dir, hg_repo):
     sh.cd(hg_repo)
     sh.hg.branch("branch one")
@@ -143,7 +143,7 @@ def test_push_to_named_with_spaces(git_dir, hg_repo):
 
     assert sh.hg.branch().stdout.strip() == "branch one"
 
-
+#ported
 def test_push_named_merge(git_dir, hg_repo):
     sh.cd(hg_repo)
     sh.hg.branch("branch_one")
@@ -160,7 +160,7 @@ def test_push_named_merge(git_dir, hg_repo):
     sh.hg.update()
     assert_hg_count(4)
 
-
+# ported
 def test_push_new_named_branch(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(git_repo)
@@ -175,7 +175,7 @@ def test_push_new_named_branch(git_dir, hg_repo):
 
     assert sh.hg.branch().stdout.strip() == "branch_one"
 
-
+#ported
 def test_push_conflict_named_branch(git_dir, hg_repo):
     sh.cd(hg_repo)
     sh.hg.branch("feature")
