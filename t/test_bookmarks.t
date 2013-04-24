@@ -96,4 +96,53 @@ test_expect_success 'clone bookmark named master not at tip' '
     cd ..
 '
 
+test_expect_success 'push to bookmark' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_hg_repo &&
+    hg bookmark feature &&
+    make_hg_commit b test_file &&
+    clone_repo &&
+    git checkout --track origin/feature &&
+    make_git_commit c test_file &&
+    git push &&
+
+    cd ../hg_repo &&
+    hg update &&
+
+    assert_hg_messages "c${NL}b${NL}a" &&
+    hg bookmark | grep feature &&
+    hg update feature &&
+    test_cmp test_file ../git_clone/test_file &&
+
+    cd ..
+'
+
+test_expect_success 'push multiple bookmarks' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_hg_repo &&
+    hg bookmark feature &&
+    make_hg_commit b test_file &&
+    hg update --rev 0 &&
+    hg bookmark feature2 &&
+    make_hg_commit c test_file &&
+
+    clone_repo &&
+    git checkout --track origin/feature &&
+    make_git_commit d test_file &&
+    git push &&
+
+    cd ../hg_repo &&
+    assert_hg_messages "d${NL}c${NL}b${NL}a" &&
+    assert_hg_messages "a${NL}b${NL}d" "0..feature" &&
+    assert_hg_messages "a${NL}c" "0..feature2" &&
+
+    hg update feature &&
+    hg bookmark | grep feature &&
+    test_cmp test_file ../git_clone/test_file &&
+
+    cd ..
+'
+
 test_done

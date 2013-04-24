@@ -91,4 +91,26 @@ test_expect_success 'push to named branch with spaces' '
     cd ..
 '
 
+test_expect_success 'push to bookmark with spaces' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_hg_repo &&
+    hg bookmark "feature bookmark" &&
+    make_hg_commit b test_file &&
+    clone_repo &&
+    git checkout --track origin/feature___bookmark &&
+    make_git_commit c test_file &&
+    git push &&
+
+    cd ../hg_repo &&
+    hg update &&
+
+    assert_hg_messages "c${NL}b${NL}a" &&
+    hg bookmark | grep "feature bookmark" &&
+    hg update "feature bookmark" &&
+    test_cmp test_file ../git_clone/test_file &&
+
+    cd ..
+'
+
 test_done

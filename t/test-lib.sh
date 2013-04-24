@@ -41,5 +41,9 @@ assert_git_messages() {
 }
 
 assert_hg_messages() {
-    test "`hg log --template=\"{desc}\n\"`" = "$1"
+    if test $# -eq 2 ; then
+        test "`hg log --template=\"{desc}\n\" -r $2`" = "$1"
+    else
+        test "`hg log --template=\"{desc}\n\"`" = "$1"
+    fi
 }
