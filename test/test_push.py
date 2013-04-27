@@ -254,7 +254,6 @@ def test_push_with_multiple_bookmarks(git_dir, hg_repo):
     with hg_repo.joinpath("test_file").open() as file:
         assert file.read() == "a\nbd"
 
-
 # ported
 @pytest.mark.xfail
 def test_fetch_after_bad_push_updates_origin_master(git_dir, hg_repo):
@@ -277,7 +276,7 @@ def test_fetch_after_bad_push_updates_origin_master(git_dir, hg_repo):
     sh.cd(hg_repo)
     assert_hg_count(3)
 
-
+# not porting, encompassed by previous test
 def test_push_after_rebase(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(hg_repo)
@@ -290,7 +289,7 @@ def test_push_after_rebase(git_dir, hg_repo):
     sh.cd(hg_repo)
     assert_hg_count(3)
 
-
+#ported to test_author
 def test_push_email(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(git_repo)
