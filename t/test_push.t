@@ -155,6 +155,27 @@ test_expect_success 'push conflict named branch' '
     cd ..
 '
 
+test_expect_success 'fetch after bad push updates master' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_hg_repo &&
+    clone_repo &&
+    cd ../hg_repo &&
+    make_hg_commit b test_file &&
+    cd ../git_clone &&
+    make_git_commit c c &&
+    test_expect_code 1 git push &&
+    git fetch &&
+    assert_git_messages "b${NL}a" origin/master &&
+    git pull --rebase &&
+    assert_git_messages "c${NL}${NL}b${NL}a" &&
+    git push &&
+    cd ../hg_repo &&
+    hg log --template="{desc}\n"
+    assert_hg_messages "c${NL}b${NL}a" &&
+
+    cd ..
+'
 
 
 

@@ -255,6 +255,7 @@ def test_push_with_multiple_bookmarks(git_dir, hg_repo):
         assert file.read() == "a\nbd"
 
 
+# ported
 @pytest.mark.xfail
 def test_fetch_after_bad_push_updates_origin_master(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
