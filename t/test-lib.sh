@@ -2,6 +2,10 @@
 
 . ./sharness.sh
 
+export GIT_AUTHOR_EMAIL=git.user@example.com
+export GIT_AUTHOR_NAME='Git User'
+export GIT_USER="$GIT_AUTHOR_NAME <$GIT_AUTHOR_EMAIL>"
+export HG_USER="Hg User <hg.user@example.com>"
 export DEBUG_GITIFYHG=on
 export GIT_PAGER=cat
 export HGRCPATH=''  # So extensions like pager don't interfere
@@ -14,21 +18,21 @@ make_hg_repo() {
     hg init &&
     echo 'a\n' >> test_file &&
     hg add test_file &&
-    hg commit --message="a"
+    hg commit --message="a" --user="$HG_USER"
 }
 
 clone_repo() {
     cd .. &&
     test_expect_code 0 git clone "testgitifyhg::hg_repo" git_clone &&
     cd git_clone &&
-    git config user.email "you@example.com" &&
-    git config user.name "Your Name"
+    git config user.email $GIT_AUTHOR_EMAIL &&
+    git config user.name "$GIT_USER"
 }
 
 make_hg_commit() {
     echo "$1" >> $2 &&
     hg add $2 &&
-    hg commit -m "$1"
+    hg commit -m "$1" --user="$HG_USER"
 }
 make_git_commit() {
     echo "$1" >> $2 &&
@@ -50,4 +54,22 @@ assert_hg_messages() {
     else
         test "`hg log --template=\"{desc}\n\"`" = "$1"
     fi
+}
+
+assert_hg_author() {
+    if test $# -eq 2 ; then
+        rev=$2
+    else
+        rev=tip
+    fi
+    test "`hg log --template='{author}' --rev=$rev`" = "$1"
+}
+
+assert_git_author() {
+    if test $# -eq 2 ; then
+        ref=$2
+    else
+        ref=HEAD
+    fi
+    test "`git show -s --format='%an <%ae>' $ref`" = "$1"
 }
