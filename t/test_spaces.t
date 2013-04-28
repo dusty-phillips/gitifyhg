@@ -113,4 +113,18 @@ test_expect_success 'push to bookmark with spaces' '
     cd ..
 '
 
+test_expect_success 'push tag with spaces' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_hg_repo &&
+    clone_repo &&
+    git tag "this___is___a___tag" &&
+    git push --tags &&
+
+    cd ../hg_repo &&
+    hg tags | grep "this is a tag" &&
+
+    cd ..
+'
+
 test_done
