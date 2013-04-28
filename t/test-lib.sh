@@ -36,9 +36,14 @@ make_cloned_repo() {
 }
 
 make_hg_commit() {
+    if test $# -eq 3 ; then
+        user=$3
+    else
+        user=$HG_USER
+    fi
     echo "$1" >> $2 &&
     hg add $2 &&
-    hg commit -m "$1" --user="$HG_USER"
+    hg commit -m "$1" --user="$user"
 }
 make_git_commit() {
     echo "$1" >> "$2" &&

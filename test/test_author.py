@@ -19,7 +19,7 @@
 import sh
 from .helpers import (make_hg_commit, clone_repo, assert_git_author)
 
-
+# ported
 def test_author_all_good(git_dir, hg_repo):
     sh.cd(hg_repo)
     make_hg_commit("b", user="all is good <email@example.com>")
@@ -27,7 +27,7 @@ def test_author_all_good(git_dir, hg_repo):
     clone_repo(git_dir, hg_repo)
     assert_git_author(author='all is good <email@example.com>')
 
-
+#ported
 def test_author_no_email(git_dir, hg_repo):
     sh.cd(hg_repo)
     make_hg_commit("b", user="no email supplied")
@@ -36,6 +36,7 @@ def test_author_no_email(git_dir, hg_repo):
     assert_git_author(author='no email supplied <>')
 
 
+#ported 
 def test_author_only_email(git_dir, hg_repo):
     sh.cd(hg_repo)
     make_hg_commit("b", user="<email@example.com>")
@@ -43,7 +44,7 @@ def test_author_only_email(git_dir, hg_repo):
     clone_repo(git_dir, hg_repo)
     assert_git_author(author='Unknown <email@example.com>')
 
-
+#ported
 def test_author_only_email_no_quote(git_dir, hg_repo):
     sh.cd(hg_repo)
     make_hg_commit("b", user="email@example.com")
@@ -51,7 +52,7 @@ def test_author_only_email_no_quote(git_dir, hg_repo):
     clone_repo(git_dir, hg_repo)
     assert_git_author(author='Unknown <email@example.com>')
 
-
+#ported
 def test_author_no_space_before_email(git_dir, hg_repo):
     sh.cd(hg_repo)
     make_hg_commit("b", user="no space before email<email@example.com>")
@@ -59,7 +60,7 @@ def test_author_no_space_before_email(git_dir, hg_repo):
     clone_repo(git_dir, hg_repo)
     assert_git_author(author='no space before email <email@example.com>')
 
-
+#ported
 # See issue #22
 def test_author_no_email_quoting(git_dir, hg_repo):
     sh.cd(hg_repo)
@@ -68,7 +69,7 @@ def test_author_no_email_quoting(git_dir, hg_repo):
     clone_repo(git_dir, hg_repo)
     assert_git_author(author='no email quoting <email@example.com>')
 
-
+#ported
 # See issue #22
 def test_author_missing_end_quote(git_dir, hg_repo):
     sh.cd(hg_repo)
@@ -77,7 +78,7 @@ def test_author_missing_end_quote(git_dir, hg_repo):
     clone_repo(git_dir, hg_repo)
     assert_git_author(author='missing end quote <email@example.com>')
 
-
+#ported
 def test_author_obfuscated_email(git_dir, hg_repo):
     sh.cd(hg_repo)
     make_hg_commit("b", user="Author <obfuscated (at) email dot address>")
