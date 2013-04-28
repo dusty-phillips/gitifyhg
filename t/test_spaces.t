@@ -147,7 +147,35 @@ test_expect_success 'push after rm file with spaces' '
     cd ..
 '
 
+test_expect_success 'push named branch with spaces' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
 
+    make_hg_repo &&
+    hg branch "feature one" &&
+    make_hg_commit b test_file &&
+    clone_repo &&
+    cd ../hg_repo &&
+    make_hg_commit c test_file &&
+    cd ../git_clone &&
+    git checkout origin/branches/feature___one --track &&
+    assert_git_messages "b${NL}a" &&
+    git pull &&
+    assert_git_messages "c${NL}b${NL}a" &&
+
+    cd ..
+'
+
+test_expect_success 'pull tags with spaces' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_cloned_repo &&
+    hg tag "tag one" &&
+    cd ../git_clone &&
+    git pull &&
+    git tag | grep tag___one &&
+
+    cd ..
+'
 
 
 test_done

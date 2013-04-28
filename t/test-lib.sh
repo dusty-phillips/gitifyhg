@@ -29,6 +29,12 @@ clone_repo() {
     git config user.name "$GIT_USER"
 }
 
+make_cloned_repo() {
+    make_hg_repo &&
+    clone_repo &&
+    cd ../hg_repo
+}
+
 make_hg_commit() {
     echo "$1" >> $2 &&
     hg add $2 &&

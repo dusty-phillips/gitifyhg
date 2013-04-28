@@ -1,6 +1,6 @@
 #!/bin/sh
 
-test_description='Test gitifyhg clones'
+test_description='Test gitifyhg bookmark management'
 
 source ./test-lib.sh
 
@@ -158,7 +158,42 @@ test_expect_success 'push new bookmark' '
     assert_hg_messages "b${NL}a" &&
     hg bookmark | grep anewbranch &&
     hg tip | grep anewbranch &&
-    
+
+    cd ..
+'
+
+test_expect_failure 'pull_from_bookmark' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_hg_repo &&
+    hg bookmark feature &&
+    make_hg_commit b test_file &&
+    hg update -r 0 &&
+    hg bookmark feature2 &&
+    make_hg_commit c test_file &&
+
+    clone_repo &&
+    git checkout origin/feature --track &&
+    assert_git_messages "b${NL}a" &&
+
+    cd ../hg_repo &&
+    hg update feature &&
+    make_hg_commit d test_file &&
+    hg update feature2 &&
+    make_hg_commit e test_file &&
+
+    cd ../git_clone &&
+    git pull origin feature &&
+    assert_git_messages "d${NL}b${NL}a" &&
+    git checkout origin/feature2 --track &&
+    assert_git_messages "c${NL}a" &&
+
+    git pull origin feature2 &&
+    assert_git_messages "e${NL}c${NL}a" &&
+
+    # TODO: Pulling into a bookmark does not seem to be working. Find the
+    # problem and fix.
+
     cd ..
 '
 

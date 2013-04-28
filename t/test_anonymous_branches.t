@@ -60,4 +60,26 @@ test_expect_failure 'anonymous branch from named branch' '
   cd ..
 '
 
+test_expect_failure 'pull from anonymous branch' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_hg_repo &&
+    make_hg_commit b test_file &&
+
+    clone_repo &&
+    cd ../hg_repo &&
+    make_hg_commit c test_file &&
+    hg update --rev=-2 &&
+    make_hg_commit c2 test_file &&
+
+    cd ../git_clone &&
+    git pull &&
+
+    # TODO: pulling anonymous branches are currently pruned, need to test
+    # and assert that they are actually dealt with properly.
+    false &&
+
+    cd ..
+'
+
 test_done

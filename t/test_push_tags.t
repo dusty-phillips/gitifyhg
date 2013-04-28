@@ -1,6 +1,6 @@
 #!/bin/sh
 
-test_description='Test gitifyhg clones'
+test_description='Test gitifyhg push tags'
 
 source ./test-lib.sh
 

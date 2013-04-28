@@ -21,7 +21,7 @@ import sh
 from .helpers import (make_hg_commit, make_git_commit, clone_repo,
     assert_git_count, assert_git_messages)
 
-
+#ported
 def test_basic_pull(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(hg_repo)
@@ -32,7 +32,7 @@ def test_basic_pull(git_dir, hg_repo):
     assert_git_count(2)
     assert_git_messages(["b", "a"])
 
-
+# ported
 def test_pull_named_remote(git_dir, hg_repo):
     git_repo = git_dir.joinpath("hg_repo")
     sh.git.init(git_repo)
@@ -55,7 +55,7 @@ def test_pull_named_remote(git_dir, hg_repo):
     sh.git.pull("new-remote-name", "master")
     assert_git_count(4)
 
-
+# make_repo
 def test_pull_from_named_branch(git_dir, hg_repo):
     sh.cd(hg_repo)
     sh.hg.branch("feature")
@@ -72,7 +72,7 @@ def test_pull_from_named_branch(git_dir, hg_repo):
     assert_git_count(3)
     assert_git_messages(["c", "b", "a"])
 
-
+# ported
 def test_pull_from_named_branch_with_spaces(git_dir, hg_repo):
     sh.cd(hg_repo)
     sh.hg.branch("feature one")
@@ -89,7 +89,7 @@ def test_pull_from_named_branch_with_spaces(git_dir, hg_repo):
     assert_git_count(3)
     assert_git_messages(["c", "b", "a"])
 
-
+# ported
 @pytest.mark.xfail
 def test_pull_anonymous(git_dir, hg_repo):
     sh.cd(hg_repo)
@@ -105,7 +105,7 @@ def test_pull_anonymous(git_dir, hg_repo):
     assert False
     # TODO: anonymous branches are currently being pruned.
 
-
+# ported
 def test_pull_conflict(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     make_git_commit("b")
@@ -115,7 +115,7 @@ def test_pull_conflict(git_dir, hg_repo):
 
     assert "Automatic merge failed" in sh.git.pull(_ok_code=[1]).stdout
 
-
+# ported
 def test_pull_auto_merge(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     make_git_commit("b")
@@ -131,7 +131,7 @@ def test_pull_auto_merge(git_dir, hg_repo):
     #     u"Merge branch 'master' of gitifyhg::%s" % (hg_repo),
     #     u"c", u"b", u"a"])
 
-
+# ported
 @pytest.mark.xfail
 def test_pull_from_bookmark(git_dir, hg_repo):
     sh.cd(hg_repo)
@@ -163,12 +163,13 @@ def test_pull_from_bookmark(git_dir, hg_repo):
     # problem and fix.
 
 
+# not porting
 @pytest.mark.xfail
 def test_pull_from_bookmark_with_spaces(git_dir, hg_repo):
     assert False
     # TODO: Once pulling to a bookmark works, make sure it also works with spaces
 
-
+# ported
 def test_pull_tags(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(hg_repo)
@@ -177,7 +178,7 @@ def test_pull_tags(git_dir, hg_repo):
     sh.git.pull()
     assert "tag1" in sh.git.tag()
 
-
+# ported
 def test_pull_tag_with_spaces(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(hg_repo)
