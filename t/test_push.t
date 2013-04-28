@@ -176,7 +176,35 @@ test_expect_success 'fetch after bad push updates master' '
 
     cd ..
 '
+test_expect_success 'test push after merge' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
 
+    make_hg_repo &&
+    clone_repo &&
+    cd ../hg_repo &&
+    make_hg_commit b "test_file" &&
+    cd ../git_clone &&
+    make_git_commit c c &&
+    git pull && # automatically merges 
+    assert_git_count 4 &&
+    git push &&
+    cd ../hg_repo &&
+    assert_hg_count 4 &&
 
+    cd ..
+'
+
+test_expect_success 'push two commits' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_hg_repo &&
+    clone_repo &&
+    make_git_commit b test_file &&
+    make_git_commit c test_file &&
+    git push &&
+    cd ../hg_repo &&
+    assert_hg_messages "c${NL}b${NL}a"
+    cd ..
+'
 
 test_done

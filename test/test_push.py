@@ -306,7 +306,7 @@ def test_push_email(git_dir, hg_repo):
     assert_git_author(ref="HEAD^")
     assert_git_author(author=hg_user)
 
-
+#ported
 def test_push_after_merge(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(hg_repo)
@@ -329,7 +329,7 @@ def test_push_two_commits(git_dir, hg_repo):
     sh.cd(hg_repo)
     assert_hg_count(3)
 
-
+#ported
 def test_push_new_bookmark(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(git_repo)

@@ -73,3 +73,20 @@ assert_git_author() {
     fi
     test "`git show -s --format='%an <%ae>' $ref`" = "$1"
 }
+assert_git_count() {
+    if test $# -eq 2 ; then
+        ref=$2
+    else
+        ref=HEAD
+    fi
+    test `git rev-list $ref --count` -eq $1
+}
+assert_hg_count() {
+    if test $# -eq 2 ; then
+        rev=$2
+    else
+        rev=tip
+    fi
+    test `hg log -q -r 0:$rev | wc -l` -eq $1
+
+}

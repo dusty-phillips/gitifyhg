@@ -145,4 +145,21 @@ test_expect_success 'push multiple bookmarks' '
     cd ..
 '
 
+test_expect_success 'push new bookmark' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_hg_repo &&
+    clone_repo &&
+    git checkout -b anewbranch &&
+    make_git_commit b test_file &&
+    git push --set-upstream origin anewbranch &&
+
+    cd ../hg_repo &&
+    assert_hg_messages "b${NL}a" &&
+    hg bookmark | grep anewbranch &&
+    hg tip | grep anewbranch &&
+    
+    cd ..
+'
+
 test_done
