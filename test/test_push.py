@@ -319,7 +319,7 @@ def test_push_after_merge(git_dir, hg_repo):
     sh.cd(hg_repo)
     assert_hg_count(4)
 
-
+#ported
 def test_push_two_commits(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(git_repo)
@@ -343,7 +343,7 @@ def test_push_new_bookmark(git_dir, hg_repo):
     sh.hg.update("anewbranch")
     assert "anewbranch" in sh.hg.tip().stdout
 
-
+#ported
 def test_push_tag(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(git_repo)
@@ -504,6 +504,7 @@ def test_git_push_messages(git_dir, hg_repo):
     assert "new branch" not in out
     assert "branches/test_branch -> branches/test_branch" in out
 
+# ported
 def test_push_lightweight_tag(git_dir, hg_repo):
     """Ensure lightweight tags author names are set from ~/.hgrc"""
     user = "Lite Wait <lite@wait.tag>"
