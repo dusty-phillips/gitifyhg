@@ -441,7 +441,7 @@ def test_push_only_new_tag(git_dir, hg_repo):
     assert "this_is_a_tag" in sh.hg.tags().stdout
     assert_hg_count(3)
 
-
+# ported to test_spaces
 def test_push_after_rm_file_with_spaces(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(git_repo)
@@ -452,6 +452,7 @@ def test_push_after_rm_file_with_spaces(git_dir, hg_repo):
 
     sh.git.push()
 
+# ported
 def test_push_up_to_date(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
 
@@ -482,6 +483,7 @@ def test_push_up_to_date(git_dir, hg_repo):
     assert "Everything up-to-date" not in out
     assert "branches/new_branch -> branches/new_branch" in out
 
+# ported
 def test_git_push_messages(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
 

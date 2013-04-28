@@ -127,4 +127,27 @@ test_expect_success 'push tag with spaces' '
     cd ..
 '
 
+test_expect_success 'push after rm file with spaces' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_hg_repo &&
+    clone_repo &&
+    make_git_commit b "name with spaces" &&
+
+    git rm "name with spaces" &&
+    git commit -m "c" &&
+
+    git push &&
+
+    cd ../hg_repo &&
+
+    hg update &&
+    ls &&
+
+    cd ..
+'
+
+
+
+
 test_done

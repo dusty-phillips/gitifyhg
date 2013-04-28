@@ -35,8 +35,8 @@ make_hg_commit() {
     hg commit -m "$1" --user="$HG_USER"
 }
 make_git_commit() {
-    echo "$1" >> $2 &&
-    git add $2 &&
+    echo "$1" >> "$2" &&
+    git add "$2" &&
     git commit -m "$1"
 }
 

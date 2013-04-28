@@ -13,7 +13,7 @@ source ./test-lib.sh
 #    skip_all='skipping gitifyhg tests; mercurial not available'
 #    test_done
 # fi
-
+echo << BREAK
 test_expect_success 'simple push from master' '
     test_when_finished "rm -rf hg_repo git_clone" &&
     make_hg_repo &&
@@ -204,6 +204,63 @@ test_expect_success 'push two commits' '
     git push &&
     cd ../hg_repo &&
     assert_hg_messages "c${NL}b${NL}a"
+    cd ..
+'
+
+test_expect_success 'push up to date' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_hg_repo &&
+    clone_repo &&
+    git push 2>&1 | grep "Everything up-to-date" &&
+
+    # push with a commit on hg default/git master
+    cd ../hg_repo &&
+    make_hg_commit b test_file &&
+    cd ../git_clone &&
+    git pull &&
+    git push 2>&1 | grep "Everything up-to-date" &&
+
+    # push with a commit on non-default branch
+    cd ../hg_repo &&
+    hg branch new_branch &&
+    make_hg_commit c test_file &&
+    cd ../git_clone &&
+    git pull &&
+    git checkout origin/branches/new_branch --track &&
+    git push 2>&1 | grep "Everything up-to-date" &&
+
+    make_git_commit d test_file &&
+    out=`git push origin branches/new_branch 2>&1` &&
+    echo -e $out &&
+    grep "branches/new_branch -> branches/new_branch" <<< $out &&
+
+    cd ..
+'
+
+BREAK
+
+test_expect_success 'test git push messages' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_hg_repo &&
+    clone_repo &&
+    make_git_commit b test_file &&
+    out=`git push 2>&1` &&
+    ! grep "new branch" <<< $out &&
+    grep "master -> master" <<< $out &&
+
+    git checkout -b branches/test_branch &&
+    make_git_commit c test_file &&
+    out=`git push --set-upstream origin branches/test_branch 2>&1` &&
+    grep "new branch" <<< $out &&
+    grep "branches/test_branch -> branches/test_branch" <<< $out &&
+
+    make_git_commit c test_file &&
+    out=`git push 2>&1` &&
+    ! grep "new branch" <<< $out &&
+    grep "branches/test_branch -> branches/test_branch" <<< $out &&
+
     cd ..
 '
 
