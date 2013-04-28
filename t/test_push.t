@@ -13,7 +13,6 @@ source ./test-lib.sh
 #    skip_all='skipping gitifyhg tests; mercurial not available'
 #    test_done
 # fi
-echo << BREAK
 test_expect_success 'simple push from master' '
     test_when_finished "rm -rf hg_repo git_clone" &&
     make_hg_repo &&
@@ -237,8 +236,6 @@ test_expect_success 'push up to date' '
 
     cd ..
 '
-
-BREAK
 
 test_expect_success 'test git push messages' '
     test_when_finished "rm -rf hg_repo git_clone" &&
