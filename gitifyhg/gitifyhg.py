@@ -129,7 +129,8 @@ class HGRemote(object):
         gitdir = p(os.environ['GIT_DIR'].decode('utf-8'))
         self.remotedir = gitdir.joinpath('hg', self.uuid)
         self.marks_git_path = self.remotedir.joinpath('marks-git')
-        self.marks = HGMarks(self.remotedir.joinpath('marks-hg'))
+        self.marks_hg_path = self.remotedir.joinpath('marks-hg')
+        self.marks = HGMarks(self.marks_hg_path)
         self.git_marks = GitMarks(self.marks_git_path)
         self.parsed_refs = {}
         self.blob_marks = {}
@@ -200,7 +201,13 @@ class HGRemote(object):
                 die('unhandled command: %s' % line)
             getattr(self, 'do_%s' % command)(parser)
 
-        self.marks.store()
+        try:
+            self.marks.store()
+        except IOError as e:
+            if e.errno == 2 and e.filename == self.marks_hg_path:
+                log("To debug, set environment variable DEBUG_GITIFYHG and rerun.", "ERROR")
+                die("Error updating marks.")
+            raise
 
     def do_capabilities(self, parser):
         '''Process the capabilities request when incoming from git-remote.
