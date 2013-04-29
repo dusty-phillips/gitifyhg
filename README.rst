@@ -248,7 +248,7 @@ and `tox <http://tox.testrun.org/>`_ to run our tests. We've recently switched t
 test command-line tools with and because it is the same infrastructure used by
 git itself.
 
-To test with sharness, simply `cd t` and run `make`. You can run individual
+To test with sharness, simply `cd test` and run `make`. You can run individual
 test files with `./test-name.t`.
 
 License
