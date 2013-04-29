@@ -101,3 +101,10 @@ assert_hg_count() {
     test `hg log -q -r 0:$rev | wc -l` -eq $1
 
 }
+assert_git_notes() {
+    git notes --ref=hg merge $(basename $(ls .git/refs/notes/hg-*)) &&
+    git log --pretty="format:%N" --notes='hg' | grep -v '^$'
+    echo $1
+    test "`git log --pretty="format:%N" --notes='hg' | grep -v '^$'`" = "$1"
+
+}

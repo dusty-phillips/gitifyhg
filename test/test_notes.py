@@ -21,7 +21,7 @@ import sh
 from .helpers import (make_hg_commit, make_git_commit, clone_repo,
     assert_git_count, assert_git_messages, assert_git_notes)
 
-
+#ported
 def test_basic_clone_with_notes(git_dir, hg_repo):
     '''Ensures that a clone of an upstream hg repository with only one branch
     and a couple commits contains the appropriate structure.'''
@@ -42,7 +42,7 @@ def test_basic_clone_with_notes(git_dir, hg_repo):
     assert len(sh.git.status(short=True).stdout) == 0
     assert_git_notes(hgsha1s)
 
-
+#ported
 def test_basic_pull_with_notes(git_dir, hg_repo):
     git_repo = clone_repo(git_dir, hg_repo)
     sh.cd(hg_repo)
@@ -55,7 +55,7 @@ def test_basic_pull_with_notes(git_dir, hg_repo):
     assert_git_messages(["b", "a"])
     assert_git_notes(hgsha1s)
 
-
+# ported
 def test_pull_rename_remote(git_dir, hg_repo):
     git_repo = git_dir.joinpath("hg_repo")
     sh.git.init(git_repo)
@@ -80,7 +80,7 @@ def test_pull_rename_remote(git_dir, hg_repo):
     assert_git_count(4)
     assert_git_notes(hgsha1s)
 
-
+# ported
 @pytest.mark.xfail
 def test_simple_push_updates_notes(hg_repo, git_dir):
     """Issue #30: don't know how to apply notes without triggering error
@@ -96,7 +96,7 @@ def test_simple_push_updates_notes(hg_repo, git_dir):
     assert_git_count(2, ref='origin')
     assert_git_notes(hgsha1s)
 
-
+#ported
 def test_simple_push_updates_notes_after_contentful_pull(hg_repo, git_dir):
     """Issue #30: check that notes are eventually applied"""
     git_repo = clone_repo(git_dir, hg_repo)
