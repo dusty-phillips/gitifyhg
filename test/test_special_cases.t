@@ -2,7 +2,7 @@
 
 test_description='Test gitifyhg notes'
 
-source ./test-lib.sh
+. ./test-lib.sh
 
 # if ! test_have_prereq PYTHON; then
 #    skip_all='skipping gitifyhg tests; python not available'
@@ -58,7 +58,6 @@ test_expect_success 'unicode paths' '
     cd ../git${SB}clone &&
     git pull &&
     assert_git_messages "${SB}3${NL}${SB}2${NL}${NL}${SB}" &&
-
 
     cd ..
 '

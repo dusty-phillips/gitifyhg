@@ -2,7 +2,7 @@
 
 test_description='Test gitifyhg pull from hg'
 
-source ./test-lib.sh
+. ./test-lib.sh
 
 # if ! test_have_prereq PYTHON; then
 #    skip_all='skipping gitifyhg tests; python not available'
