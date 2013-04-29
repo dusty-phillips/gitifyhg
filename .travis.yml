@@ -16,7 +16,6 @@ before_install:
 # install dependencies and gitifyhg itself;
 # py.test is already preinstalled
 install:
-  - "pip install -q --use-mirrors sh"
   - "pip install -q --use-mirrors path.py>=2.5"
   - "pip install -q --use-mirrors Mercurial==$HG_VERSION"
   - "python setup.py -q install"
@@ -47,7 +46,8 @@ env:
 script:
   - git --version
   - hg --version
-  - py.test --tb=short
+  - cd test
+  - make
 
 # No need to test old hg versions against new python
 matrix:
