@@ -23,7 +23,7 @@ from path import path as p
 from .helpers import (clone_repo,
     assert_hg_count, assert_git_messages, write_to_test_file)
 
-
+#ported
 def test_unicode_path(tmpdir, git_dir, monkeypatch):
     monkeypatch.setenv('LANG', 'en_US.utf8')
     tmpdir = p(tmpdir.strpath).abspath()
@@ -57,7 +57,7 @@ def test_unicode_path(tmpdir, git_dir, monkeypatch):
     sh.git.pull()
     assert_git_messages([u'\u2015', u"\u2020", u"\u2020"])
 
-
+#ported
 def test_executable_bit(git_dir, hg_repo):
     sh.cd(hg_repo)
     write_to_test_file("b")
@@ -87,7 +87,7 @@ def test_executable_bit(git_dir, hg_repo):
     sh.update()
     assert git_repo.joinpath('test_file').access(os.X_OK) == True
 
-
+#ported
 def test_sym_link(git_dir, hg_repo):
     sh.cd(hg_repo)
     write_to_test_file('b')

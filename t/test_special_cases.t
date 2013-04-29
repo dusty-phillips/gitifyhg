@@ -63,6 +63,59 @@ test_expect_success 'unicode paths' '
     cd ..
 '
 
+test_expect_success 'executable bit' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_hg_repo &&
+    echo b >> test_file &&
+    chmod 644 test_file &&
+    hg commit -m "make file" &&
+    chmod 755 test_file &&
+    hg commit -m "make executable" &&
+    chmod 644 test_file &&
+    hg commit -m "make unexecutable" &&
+
+    clone_repo &&
+    test ! -x test_file &&
+    git checkout HEAD^ &&
+    test -x test_file &&
+    git checkout HEAD^ &&
+    test ! -x test_file &&
+
+    git checkout master &&
+    chmod 755 test_file &&
+    git add test_file &&
+    git commit -m "make executable again" &&
+    git push &&
+
+    cd ../hg_repo &&
+    hg update &&
+    test -x test_file &&
+
+    cd ..
+'
+test_expect_success 'symlinks' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+
+    make_hg_repo &&
+    ln -s test_file linked &&
+    hg add linked &&
+    hg commit -m c &&
+
+    clone_repo &&
+    test -L linked &&
+    ln -s test_file second_link &&
+    git add second_link &&
+    git commit -m d &&
+    git push &&
+
+    cd ../hg_repo &&
+    hg update &&
+    test -L second_link &&
+
+    cd ..
+'
+
 test_done
 
 
