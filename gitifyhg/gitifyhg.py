@@ -205,7 +205,10 @@ class HGRemote(object):
             self.marks.store()
         except IOError as e:
             if e.errno == 2 and e.filename == self.marks_hg_path:
-                log("To debug, set environment variable DEBUG_GITIFYHG and rerun.", "ERROR")
+                log("The marks file has been removed. This usually suggests "
+                    "that a git clone operation failed. "
+                    "To debug, set environment variable DEBUG_GITIFYHG "
+                    "and rerun. ", "ERROR")
                 die("Error updating marks.")
             raise
 
