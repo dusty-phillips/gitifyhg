@@ -86,7 +86,7 @@ test_expect_success 'push to named branch with spaces' '
     hg log --template="{desc}\n" &&
     assert_hg_messages "c${NL}b${NL}a" &&
     hg update tip &&
-    test "`hg branch`" == "branch one" &&
+    test "`hg branch`" = "branch one" &&
 
     cd ..
 '
