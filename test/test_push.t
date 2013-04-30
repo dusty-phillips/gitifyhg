@@ -232,7 +232,7 @@ test_expect_success 'push up to date' '
     make_git_commit d test_file &&
     out=`git push origin branches/new_branch 2>&1` &&
     echo -e $out &&
-    grep "branches/new_branch -> branches/new_branch" <<< $out &&
+    echo $out | grep "branches/new_branch -> branches/new_branch" &&
 
     cd ..
 '
@@ -244,19 +244,19 @@ test_expect_success 'test git push messages' '
     clone_repo &&
     make_git_commit b test_file &&
     out=`git push 2>&1` &&
-    ! grep "new branch" <<< $out &&
-    grep "master -> master" <<< $out &&
+    ! echo $out | grep "new branch" &&
+    echo $out | grep "master -> master" &&
 
     git checkout -b branches/test_branch &&
     make_git_commit c test_file &&
     out=`git push --set-upstream origin branches/test_branch 2>&1` &&
-    grep "new branch" <<< $out &&
-    grep "branches/test_branch -> branches/test_branch" <<< $out &&
+    echo $out | grep "new branch" &&
+    echo $out | grep "branches/test_branch -> branches/test_branch" &&
 
     make_git_commit c test_file &&
     out=`git push 2>&1` &&
-    ! grep "new branch" <<< $out &&
-    grep "branches/test_branch -> branches/test_branch" <<< $out &&
+    ! echo $out | grep "new branch" &&
+    echo $out | grep "branches/test_branch -> branches/test_branch" &&
 
     cd ..
 '
