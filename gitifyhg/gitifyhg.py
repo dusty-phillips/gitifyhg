@@ -259,7 +259,10 @@ class HGRemote(object):
 
         # update the named branch references
         for branch in self.repo.branchmap():
-            heads = self.repo.branchheads(branch, closed=True)
+            # FIXME: Probably a git config instead of an env var would make
+            # people happier here.
+            clone_closed = os.environ.get("GITIFYHG_ALLOW_CLOSED_BRANCHES") != None
+            heads = self.repo.branchheads(branch, closed=clone_closed)
             if heads:
                 self.branches[branch] = heads
 

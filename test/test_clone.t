@@ -98,7 +98,9 @@ test_expect_success 'clone basic tag' '
 
 test_expect_success 'clone close branch' '
     test_when_finished "rm -rf hg_repo git_clone" &&
+    test_when_finished "unset GITIFYHG_ALLOW_CLOSED_BRANCHES" &&
 
+    export GITIFYHG_ALLOW_CLOSED_BRANCHES=on &&
     make_hg_repo &&
     hg branch feature &&
     make_hg_commit b b &&
@@ -118,5 +120,28 @@ test_expect_success 'clone close branch' '
 
     cd ..
 '
+
+test_expect_success 'no implicit clone close branch' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+    echo $GITIFYHG_ALLOW_CLOSED_BRANCHES &&
+
+    make_hg_repo &&
+    hg branch feature &&
+    make_hg_commit b b &&
+    hg update default &&
+    make_hg_commit c c &&
+    hg update feature &&
+    echo d >> b &&
+    hg commit --close-branch -m "d" &&
+
+    clone_repo &&
+    git branch -r &&
+    test "`git branch -r`" = "  origin/HEAD -> origin/master
+  origin/master" &&
+    assert_git_messages "c${NL}a" &&
+
+    cd ..
+'
+
 
 test_done
