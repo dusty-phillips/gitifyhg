@@ -15,7 +15,9 @@ BRANCH = 'branch'
 BOOKMARK = 'bookmark'
 TAG = 'tag'
 
-actual_stdout = os.fdopen(sys.stdout.fileno(), 'w', 0) # Ensure stdout is unbuffered
+actual_stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)  # Ensure stdout is unbuffered
+
+
 def deactivate_stdout():
     """Hijack stdout to prevent mercurial from inadvertently talking to git.
 
@@ -47,6 +49,7 @@ def output(msg=''):
         msg = msg.encode('utf-8')
     log("OUT: %s" % msg)
     print >> actual_stdout, msg
+
 
 def version():
     """Return version of gitifyhg"""
@@ -140,6 +143,7 @@ def name_reftype_to_ref(name, reftype):
         return 'refs/tags/%s' % name
     assert False, "unknown reftype: %s" % reftype
 
+
 def user_config():
     """Read the Mercurial user configuration
 
@@ -154,6 +158,7 @@ def user_config():
         log("Reading config: " + cfg)
         hgrc.read(cfg)
     return hgrc
+
 
 def relative_path(path):
     """Ensure path is relative"""
@@ -242,6 +247,7 @@ class HGMarks(object):
         self.last_mark += 1
         self.notes_mark = self.last_mark
         return self.notes_mark
+
 
 class GitMarks(object):
     '''Maps integer marks to git commit hashes.'''
