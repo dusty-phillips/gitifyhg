@@ -47,7 +47,6 @@ script:
   - git --version
   - hg --version
   - cd test
-  - ./test_push.t -v -i  # TEMP because it's failing, but only in travis.
   - make
 
 # No need to test old hg versions against new python
