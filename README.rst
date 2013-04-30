@@ -267,11 +267,16 @@ gitifyhg is copyright 2012-2013 Dusty Phillips and is licensed under the
 
 Credits
 -------
-Dusty Phillips is the primary author of ``gitifyhg``. The current version
-was heavily inspired by and borrows code from Felipe Contreras's 
+Dusty Phillips is the primary author of ``gitifyhg``.
+
+The current version was heavily inspired by and borrows code from Felipe Contreras's
 `git-remote-hg <https://felipec.wordpress.com/2012/11/13/git-remote-hg-bzr-2/>`_
 project.
 
-Max Horn and Jed Brown are also current maintainers of the project.
+Other contributors include (alphabetical order):
 
-Jason Chu and Alex Sydell have also contributed to ``gitifyhg``.
+* Alex Sydell
+* Jason Chu
+* Jed Brown
+* Max Horn
+* Paul Price
