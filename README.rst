@@ -36,9 +36,11 @@ git-to-hg bridge projects and is used daily in normal workflow scenarios.
 That said, gitifyhg is not yet complete. Some of the features that
 are not fully working include:
 
-* anonymous branches are dropped, only the tip of a named branch is kept
+* anonymous branches are dropped, only the tip of a named branch iqs kept
 * remote branch and bookmark tracking is not 100% stable
-* pushing octopus merges is not supported 
+* pushing octopus merges is not supported
+* cloning mercurial branches that are subdirectories of other branches fails
+* cloning duplicate case sensitive names on case insensitive filesystems (mac, windows) fails
 
 However, if you are looking for a git-svn type of workflow that allows you to
 clone mercurial repositories, work in local git branches, rebase those
@@ -162,6 +164,12 @@ a lightweight tag, then gitifyhg will set a default user, date, and commit
 message for you. However, if you create a heavyweight tag using
 ``git tag <tagname> --message="commit message"``, gitifyhg will use the commit
 information associated with that tag when you run ``git push --tags``.
+
+By default, gitifyhg ignores branches that have been closed in Mercurial. This
+supplies a substantial cloning speedup on large repos, and alleviates a few
+issues we are still working out in conflicting branch names. If you would like
+to clone a repository including closed branches, first set the
+GITIFYHG_ALLOW_CLOSED_BRANCHES environment variable.
 
 If you have any trouble, please let us know via the issue tracker, preferably
 with pull requests containing test cases.
