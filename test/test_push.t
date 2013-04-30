@@ -94,7 +94,7 @@ test_expect_success 'push to named branch' '
     cd ../hg_repo &&
     assert_hg_messages "c${NL}b${NL}a" &&
     hg update tip &&
-    test `hg branch` == "branch_one" &&
+    test `hg branch` = "branch_one" &&
 
     cd ..
 '
