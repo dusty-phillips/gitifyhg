@@ -261,4 +261,23 @@ test_expect_success 'test git push messages' '
     cd ..
 '
 
+
+test_expect_success 'handle paths with whitespace' '
+    test_when_finished "rm -rf hg_repo git_clone" &&
+    make_hg_repo &&
+    clone_repo &&
+    make_git_commit b "test file" &&
+    git push &&
+    # Make sure that the remote ref has updated
+    test "`git log --pretty=format:%B origin`" = "b${NL}${NL}a" &&
+
+    cd ../hg_repo &&
+    assert_hg_messages "b${NL}a" &&
+    hg update &&
+    test_cmp "../git_clone/test file" "test file" &&
+
+    cd ..
+'
+
+
 test_done
