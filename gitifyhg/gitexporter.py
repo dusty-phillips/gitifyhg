@@ -181,6 +181,8 @@ class GitExporter(object):
             elif line.startswith('D'):
                 t, path = line.split(' ', 1)
                 filespec = {'deleted': True}
+            if path.startswith('/"') and path.endswith('"') and ' ' in path:
+                path = "/" + path[2:-2]
             files[path] = filespec
 
         user, date, tz = author
