@@ -11,6 +11,7 @@ export GIT_PAGER=cat
 export HGRCPATH="$HOME/.hgrc"
 export NL='
 '
+export PYTHONPATH="$SHARNESS_BUILD_DIRECTORY"
 
 make_hg_repo() {
     hg init hg_repo &&
