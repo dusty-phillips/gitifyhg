@@ -45,6 +45,7 @@ make_hg_commit() {
     hg add $2 &&
     hg commit -m "$1" --user="$user"
 }
+
 make_git_commit() {
     echo "$1" >> "$2" &&
     git add "$2" &&
@@ -84,6 +85,7 @@ assert_git_author() {
     fi
     test "`git show -s --format='%an <%ae>' $ref`" = "$1"
 }
+
 assert_git_count() {
     if test $# -eq 2 ; then
         ref=$2
@@ -92,6 +94,7 @@ assert_git_count() {
     fi
     test `git rev-list $ref --count` -eq $1
 }
+
 assert_hg_count() {
     if test $# -eq 2 ; then
         rev=$2
@@ -101,10 +104,10 @@ assert_hg_count() {
     test `hg log -q -r 0:$rev | wc -l` -eq $1
 
 }
+
 assert_git_notes() {
     git notes --ref=hg merge $(basename $(ls .git/refs/notes/hg-*)) &&
     git log --pretty="format:%N" --notes='hg' | grep -v '^$'
     echo $1
     test "`git log --pretty="format:%N" --notes='hg' | grep -v '^$'`" = "$1"
-
 }
