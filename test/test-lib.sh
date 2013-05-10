@@ -13,9 +13,8 @@ export NL='
 '
 
 make_hg_repo() {
-    mkdir hg_repo &&
+    hg init hg_repo &&
     cd hg_repo &&
-    hg init &&
     echo 'a\n' >> test_file &&
     hg add test_file &&
     hg commit --message="a" --user="$HG_USER"
