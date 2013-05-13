@@ -6,7 +6,7 @@ export GIT_AUTHOR_EMAIL=git.user@example.com
 export GIT_AUTHOR_NAME='Git User'
 export GIT_USER="$GIT_AUTHOR_NAME <$GIT_AUTHOR_EMAIL>"
 export HG_USER="Hg User <hg.user@example.com>"
-export DEBUG_GITIFYHG=on
+export DEBUG_GITIFYHG=$debug
 export GIT_PAGER=cat
 unset HGRCPATH      # Prevent user's environment from affecting hg command
 export NL='
