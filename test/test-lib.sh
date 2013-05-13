@@ -8,7 +8,7 @@ export GIT_USER="$GIT_AUTHOR_NAME <$GIT_AUTHOR_EMAIL>"
 export HG_USER="Hg User <hg.user@example.com>"
 export DEBUG_GITIFYHG=on
 export GIT_PAGER=cat
-export HGRCPATH=''  # So extensions like pager don't interfere
+export HGRCPATH="$HOME/.hgrc"
 export NL='
 '
 
