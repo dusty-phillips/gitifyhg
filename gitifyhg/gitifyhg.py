@@ -29,9 +29,6 @@ from path import path as p
 # Enable "plain" mode to make us resilient against changes to the locale, as we
 # rely on parsing certain messages produced by Mercurial. See issue #26.
 os.environ['HGPLAIN'] = '1'
-# Disable loading of the user's $HOME/.hgrc as extensions can cause weird
-# interactions and it's better to run in a known state.
-os.environ['HGRCPATH'] = ''
 
 
 from mercurial.ui import ui
