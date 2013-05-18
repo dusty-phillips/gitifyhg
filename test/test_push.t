@@ -30,7 +30,7 @@ test_expect_success 'simple push from master' '
     cd ..
 '
 
-test_expect_failure 'push not create bookmark' '
+test_expect_success 'push not create bookmark' '
     test_when_finished "rm -rf hg_repo git_clone" &&
     make_hg_repo &&
     clone_repo &&
@@ -38,7 +38,7 @@ test_expect_failure 'push not create bookmark' '
     git push &&
     cd ../hg_repo &&
 
-    test `hg bookmarks` = "no bookmarks set" &&
+    test "`hg bookmarks`" = "no bookmarks set" &&
 
     cd ..
 '

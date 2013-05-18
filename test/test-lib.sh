@@ -6,16 +6,15 @@ export GIT_AUTHOR_EMAIL=git.user@example.com
 export GIT_AUTHOR_NAME='Git User'
 export GIT_USER="$GIT_AUTHOR_NAME <$GIT_AUTHOR_EMAIL>"
 export HG_USER="Hg User <hg.user@example.com>"
-export DEBUG_GITIFYHG=on
+export DEBUG_GITIFYHG=$debug
 export GIT_PAGER=cat
-export HGRCPATH=''  # So extensions like pager don't interfere
+export HGRCPATH="$HOME/.hgrc"
 export NL='
 '
 
 make_hg_repo() {
-    mkdir hg_repo &&
+    hg init hg_repo &&
     cd hg_repo &&
-    hg init &&
     echo 'a\n' >> test_file &&
     hg add test_file &&
     hg commit --message="a" --user="$HG_USER"
@@ -45,6 +44,7 @@ make_hg_commit() {
     hg add $2 &&
     hg commit -m "$1" --user="$user"
 }
+
 make_git_commit() {
     echo "$1" >> "$2" &&
     git add "$2" &&
@@ -84,6 +84,7 @@ assert_git_author() {
     fi
     test "`git show -s --format='%an <%ae>' $ref`" = "$1"
 }
+
 assert_git_count() {
     if test $# -eq 2 ; then
         ref=$2
@@ -92,6 +93,7 @@ assert_git_count() {
     fi
     test `git rev-list $ref --count` -eq $1
 }
+
 assert_hg_count() {
     if test $# -eq 2 ; then
         rev=$2
@@ -101,10 +103,10 @@ assert_hg_count() {
     test `hg log -q -r 0:$rev | wc -l` -eq $1
 
 }
+
 assert_git_notes() {
     git notes --ref=hg merge $(basename $(ls .git/refs/notes/hg-*)) &&
     git log --pretty="format:%N" --notes='hg' | grep -v '^$'
     echo $1
     test "`git log --pretty="format:%N" --notes='hg' | grep -v '^$'`" = "$1"
-
 }
