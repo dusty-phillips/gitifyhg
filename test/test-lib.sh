@@ -12,6 +12,7 @@ export HGRCPATH="$HOME/.hgrc"
 export NL='
 '
 export PYTHONPATH="$SHARNESS_BUILD_DIRECTORY"
+export PATH="$SHARNESS_TEST_DIRECTORY:$PATH"
 
 make_hg_repo() {
     hg init hg_repo &&
@@ -23,7 +24,7 @@ make_hg_repo() {
 
 clone_repo() {
     cd .. &&
-    test_expect_code 0 git clone "testgitifyhg::hg_repo" git_clone &&
+    test_expect_code 0 git clone "gitifyhg::hg_repo" git_clone &&
     cd git_clone &&
     git config user.email $GIT_AUTHOR_EMAIL &&
     git config user.name "$GIT_USER"
