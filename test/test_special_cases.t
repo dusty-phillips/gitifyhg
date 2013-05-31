@@ -38,7 +38,7 @@ test_expect_success 'unicode paths' '
     hg add file${SB} &&
     hg commit -m ${SB} --user="$HG_USER" &&
     cd .. &&
-    git clone testgitifyhg::hg${SB}repo git${SB}clone &&
+    git clone gitifyhg::hg${SB}repo git${SB}clone &&
     cd git${SB}clone &&
     git config user.email $GIT_AUTHOR_EMAIL &&
     git config user.name "$GIT_USER"
