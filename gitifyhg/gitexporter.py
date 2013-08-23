@@ -239,11 +239,12 @@ class GitExporter(object):
 
     def do_tag(self):
         name = self.parser.line.split()[1]
-        self.parser.read_mark()
+        mark = self.parser.read_mark()
         tagger = self.parser.read_author()
         message = self.parser.read_data()
         self.parser.read_line()
         self.parsed_tags[git_to_hg_spaces(name)] = tagger, message
+        self.parsed_refs["refs/tags/%s" % name] = self.marks.mark_to_revision(mark)
 
     def do_feature(self):
         pass  # Ignore
