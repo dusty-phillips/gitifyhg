@@ -173,6 +173,8 @@ class HGRemote(object):
         self.marks.upgrade_marks(self)
 
     def make_gitify_ref(self, name, reftype):
+        if not isinstance(name, unicode):
+            name = name.decode('utf-8')
         if reftype == BRANCH:
             if name == 'default':
                 # I have no idea where 'bookmarks' comes from in this case.
