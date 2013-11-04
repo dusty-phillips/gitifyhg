@@ -19,16 +19,30 @@
 # but much of it has been rewritten.
 
 from mercurial.context import memctx, memfilectx
-from mercurial import encoding
+from mercurial import encoding, extensions
 from mercurial.error import Abort
 from mercurial.node import hex as hghex  # What idiot overroad a builtin?
 from mercurial.node import short as hgshort
 from mercurial.bookmarks import pushbookmark
 from mercurial.scmutil import revsingle
+from mercurial.util import version as hg_version
+
+from distutils.version import StrictVersion
 
 from .util import (die, output, git_to_hg_spaces, hgmode, branch_tip,
     ref_to_name_reftype, BRANCH, BOOKMARK, TAG, user_config)
 
+class dummyui(object):
+    def debug(self, msg):
+        pass
+
+if StrictVersion(hg_version()) >= StrictVersion('2.8'):
+    stripext = extensions.load(dummyui(), 'strip', '')
+    def strip_revs(repo, processed_nodes):
+        stripext.strip(dummyui(), repo, processed_nodes)
+else:
+    def strip_revs(repo, processed_nodes):
+        repo.mq.strip(repo, processed_nodes)
 
 class GitExporter(object):
 
@@ -96,7 +110,7 @@ class GitExporter(object):
                 self.marks.load()  # restore from checkpoint
                 # strip revs, implementation finds min revision from list
                 if self.processed_nodes:
-                    self.repo.mq.strip(self.repo, self.processed_nodes)
+                    strip_revs(self.repo, self.processed_nodes)
             else:
                 die("unknown hg exception: %s" % e)
         # TODO: handle network/other errors?
