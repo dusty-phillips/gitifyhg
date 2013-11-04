@@ -35,7 +35,7 @@ test_expect_success 'pull named remote' '
     mkdir git_repo &&
     cd git_repo &&
     git init &&
-    git remote add --fetch the_remote gitifyhg::../hg_repo
+    git remote add --fetch the_remote testgitifyhg::../hg_repo
     git pull the_remote master &&
     assert_git_messages a &&
     cd ../hg_repo &&

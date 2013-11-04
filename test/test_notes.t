@@ -54,7 +54,7 @@ test_expect_success 'pull notes rename remote' '
     mkdir git_clone &&
     cd git_clone &&
     git init &&
-    git remote add --fetch the_remote gitifyhg::../hg_repo &&
+    git remote add --fetch the_remote testgitifyhg::../hg_repo &&
     git pull the_remote master &&
     assert_git_messages "a" &&
     cd ../hg_repo &&
