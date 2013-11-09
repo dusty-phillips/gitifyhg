@@ -26,8 +26,7 @@ pushing and pulling to named branches in the upstream repository.
 a mercurial repository from right inside git. You do not need to adapt your
 git workflow in any way aside from cloning a gitifyhg url.
 
-To the best of our knowledge, this is the most robust and usable git to hg bridge
-currently available. It has a large test suite and better documentation than
+This is a robust and usable git to hg bridge that has been tested in production settings. It has a large test suite and better documentation than
 the `alternatives we know about <https://github.com/buchuki/gitifyhg/wiki/List-of-git-hg-bridges>`_.
 It has been tested on several large mercurial repositories (including that
 of mercurial itself and the pypy repository) that break with various other
@@ -45,6 +44,8 @@ are not fully working include:
 However, if you are looking for a git-svn type of workflow that allows you to
 clone mercurial repositories, work in local git branches, rebase those
 branches and push them back to mercurial, you have found it. It works. Try it.
+
+Unfortunately, though, maintenance of gitifyhg has fallen off. You can pick it up if you like, but you may also be interested in working on the `git-remote-hg` script that is shipping with the main git project.  We're told it's more functional than it once was and that the improvements gitifyhg once had over it have been addressed. We have not confirmed this, but it's worth checking out. Because it has support from the git developers, it's probably the best project to get behind at this time.
  
 URLS
 ----
