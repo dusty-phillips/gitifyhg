@@ -133,10 +133,7 @@ def ref_to_name_reftype(ref):
 def name_reftype_to_ref(name, reftype):
     '''Converts a name and type (e.g., '1.0' and 'tags') into a git ref.'''
     if reftype == BRANCH:
-        if name == 'default':
-            return 'refs/heads/master'
-        else:
-            return 'refs/heads/branches/%s' % name
+        return 'refs/heads/branches/%s' % name
     elif reftype == BOOKMARK:
         return 'refs/heads/%s' % name
     elif reftype == TAG:

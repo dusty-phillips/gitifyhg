@@ -22,6 +22,7 @@ test_expect_success 'clone branch with spaces' '
     clone_repo &&
     assert_git_messages "a" &&
     test "`git branch -r`" = "  origin/HEAD -> origin/master
+  origin/branches/default
   origin/branches/feature___branch
   origin/master" &&
 
@@ -42,6 +43,7 @@ test_expect_success 'clone bookmark with spaces' '
     clone_repo
 
     test "`git branch -r`" = "  origin/HEAD -> origin/master
+  origin/branches/default
   origin/feature___bookmark
   origin/master" &&
 

@@ -33,6 +33,7 @@ test_expect_success 'clone linear branch, no multiple parents' '
     clone_repo &&
     assert_git_messages "a" &&
     test "`git branch -r`" = "  origin/HEAD -> origin/master
+  origin/branches/default
   origin/branches/featurebranch
   origin/master" &&
 
@@ -112,6 +113,7 @@ test_expect_success 'clone close branch' '
 
     clone_repo &&
     test "`git branch -r`" = "  origin/HEAD -> origin/master
+  origin/branches/default
   origin/branches/feature
   origin/master" &&
     assert_git_messages "c${NL}a" &&
@@ -137,6 +139,7 @@ test_expect_success 'no implicit clone close branch' '
     clone_repo &&
     git branch -r &&
     test "`git branch -r`" = "  origin/HEAD -> origin/master
+  origin/branches/default
   origin/master" &&
     assert_git_messages "c${NL}a" &&
 

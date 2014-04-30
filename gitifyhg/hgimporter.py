@@ -88,15 +88,19 @@ class HGImporter(object):
                     BOOKMARK,
                     self.hgremote.headnode[1])
             else:
-                name, reftype = ref_to_name_reftype(ref)
-                if reftype == BRANCH:
-                    head = branch_head(self.hgremote, git_to_hg_spaces(name))
-                elif reftype == BOOKMARK:
-                    head = self.hgremote.bookmarks[git_to_hg_spaces(name)]
-                elif reftype == TAG:
-                    head = self.repo[git_to_hg_spaces(name)]
+                if ref == 'refs/heads/master':
+                    name, reftype = 'master', BOOKMARK
+                    head = branch_head(self.hgremote, 'default')
                 else:
-                    assert False, "unexpected reftype: %s" % reftype
+                    name, reftype = ref_to_name_reftype(ref)
+                    if reftype == BRANCH:
+                        head = branch_head(self.hgremote, git_to_hg_spaces(name))
+                    elif reftype == BOOKMARK:
+                        head = self.hgremote.bookmarks[git_to_hg_spaces(name)]
+                    elif reftype == TAG:
+                        head = self.repo[git_to_hg_spaces(name)]
+                    else:
+                        assert False, "unexpected reftype: %s" % reftype
                 self.process_ref(name, reftype, head)
 
             self.process_notes()

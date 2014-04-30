@@ -180,15 +180,7 @@ class HGRemote(object):
         if not isinstance(name, unicode):
             name = name.decode('utf-8')
         if reftype == BRANCH:
-            if name == 'default':
-                # I have no idea where 'bookmarks' comes from in this case.
-                # I don't think there is meant to be many bookmarks/master ref,
-                # but this is what I had to do to make tests pass when special
-                # casing the master/default dichotomy. Something is still fishy
-                # here, but it's less fishy than it was. See issue #34.
-                return "%s/bookmarks/master" % self.prefix
-            else:
-                return '%s/branches/%s' % (self.prefix, name)
+            return '%s/branches/%s' % (self.prefix, name)
         elif reftype == BOOKMARK:
             return '%s/bookmarks/%s' % (self.prefix, name)
         elif reftype == TAG:
@@ -287,6 +279,9 @@ class HGRemote(object):
 
         # list the named branch references
         for branch in self.branches:
+            if branch == 'default':
+                output("%s %s" %
+                        (self._change_hash(branch_head(self, branch)), "refs/heads/master"))
             output("%s %s" %
                     (self._change_hash(branch_head(self, branch)),
                      name_reftype_to_ref(hg_to_git_spaces(branch), BRANCH)))
