@@ -32,6 +32,9 @@ from distutils.version import StrictVersion
 from .util import (die, output, git_to_hg_spaces, hgmode, branch_tip,
     ref_to_name_reftype, BRANCH, BOOKMARK, TAG, user_config)
 
+import subprocess
+import re
+
 class dummyui(object):
     def debug(self, msg):
         pass
@@ -293,7 +296,14 @@ class GitExporter(object):
             date_tz = (date, tz)
         else:
             message = "Added tag %s for changeset %s" % (name, hgshort(node))
-            user = self.hgrc.get("ui", "username", None)
+            cmd = ['git', 'var', 'GIT_COMMITTER_IDENT']
+            process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+            output, _ = process.communicate()
+            m = re.match('^.* <.*>', output)
+            if m:
+                user = m.group(0)
+            else:
+                user = self.hgrc.get("ui", "username", None)
             date_tz = None  # XXX insert current date here
         ctx = memctx(self.repo,
             (branch_tip(self.repo, branch), self.NULL_PARENT), message,

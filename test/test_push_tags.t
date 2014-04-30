@@ -29,14 +29,10 @@ test_expect_success 'push lightweight tag' '
     cd ..
 '
 
-# FIXME: See #77
 test_expect_success 'lightweight tag sets hg username' '
     test_when_finished "rm -rf hg_repo git_clone .hgrc" &&
     user="Lite Wait <litewait@example.com>" &&
 
-    # NOTE: sharness set #HOME to the working directory for us, so this is
-    # the default hgrc.
-    echo "[ui]${NL}username=$user" > .hgrc 
     make_hg_repo &&
     clone_repo &&
     git tag "lightweight" &&
@@ -44,7 +40,7 @@ test_expect_success 'lightweight tag sets hg username' '
 
     cd ../hg_repo &&
     assert_hg_count 2 &&
-    assert_hg_author "$user" &&
+    assert_hg_author "$GIT_USER" &&
 
     cd ..
 '
