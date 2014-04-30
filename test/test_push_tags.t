@@ -73,7 +73,7 @@ test_expect_success 'push tag with previous commits' '
 
     cd ../hg_repo &&
     hg tags | grep this_is_a_tag &&
-    assert_hg_messages "Added tag this_is_a_tag for changeset $(hg id --id -r 2)${NL}b${NL}Added tag an_old_tag for changeset $hgsha1${NL}a" &&
+    assert_hg_messages "Added tag an_old_tag for changeset $hgsha1${NL}Added tag this_is_a_tag for changeset $(hg id --id -r 2)${NL}b${NL}Added tag an_old_tag for changeset $hgsha1${NL}a" &&
 
     cd ..
 '
@@ -127,7 +127,7 @@ test_expect_success 'push only new tag' '
     test `hg tags | wc -l` -eq 3 && # 3 is tip
     hg tags | grep this_is_a_tag &&
     hg tags | grep an_old_tag &&
-    assert_hg_count 3 &&
+    assert_hg_count 4 &&
 
     cd ..
 '

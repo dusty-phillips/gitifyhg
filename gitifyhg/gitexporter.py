@@ -283,8 +283,6 @@ class GitExporter(object):
 
         encoded_tag = encoding.fromlocal(name)
         tag_line = '%s %s' % (hghex(node), encoded_tag)
-        if tag_line in old_tags:
-            return  # Don't commit a tag that was previously committed
         newtags.append(tag_line)
 
         def get_filectx(repo, memctx, file):
