@@ -94,10 +94,7 @@ test_expect_success 'push messaged tag' '
     hg tags | grep this_is_a_tag &&
     assert_hg_messages "I tagged a message and a user${NL}a" &&
     hg log &&
-    # FIXME: I feel like this should be $GIT_USER
-    # but git seems to be passing me the e-mail twice. Is this a bug in
-    # git or something gitifyhg needs to parse?
-    assert_hg_author "$GIT_AUTHOR_NAME $GIT_AUTHOR_EMAIL <$GIT_AUTHOR_EMAIL>" &&
+    assert_hg_author "$GIT_AUTHOR_NAME <$GIT_AUTHOR_EMAIL>" &&
     cd ..
 '
 

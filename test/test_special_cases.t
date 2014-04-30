@@ -41,7 +41,7 @@ test_expect_success 'unicode paths' '
     git clone gitifyhg::hg${SB}repo git${SB}clone &&
     cd git${SB}clone &&
     git config user.email $GIT_AUTHOR_EMAIL &&
-    git config user.name "$GIT_USER"
+    git config user.name "$GIT_AUTHOR_NAME" &&
     assert_git_messages "${SB}" &&
 
     echo ${SB} >> file${SB} &&

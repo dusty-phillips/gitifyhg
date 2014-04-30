@@ -27,7 +27,7 @@ clone_repo() {
     test_expect_code 0 git clone "gitifyhg::hg_repo" git_clone &&
     cd git_clone &&
     git config user.email $GIT_AUTHOR_EMAIL &&
-    git config user.name "$GIT_USER"
+    git config user.name "$GIT_AUTHOR_NAME"
 }
 
 make_cloned_repo() {
