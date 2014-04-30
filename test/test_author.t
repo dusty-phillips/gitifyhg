@@ -55,7 +55,7 @@ test_expect_success 'author no email' '
     make_hg_commit b test_file "no email supplied" &&
 
     clone_repo &&
-    assert_git_author "no email supplied <>" &&
+    assert_git_author "no email supplied <unknown>" &&
 
     cd ..
 '
@@ -104,7 +104,7 @@ test_expect_success 'author no email quoting' '
     make_hg_commit b test_file "no email quoting email@example.com" &&
 
     clone_repo &&
-    assert_git_author "no email quoting <email@example.com>" &&
+    assert_git_author "no email quoting email@example.com <unknown>" &&
 
     cd ..
 '
@@ -141,7 +141,7 @@ test_expect_success 'author abuse quotes' '
     make_hg_commit b test_file "totally >>> bad <<< quote can be used in hg <><><" &&
 
     clone_repo &&
-    assert_git_author "totally <bad  quote can be used in hg>" &&
+    assert_git_author "totally <unknown>" &&
 
     cd ..
 '

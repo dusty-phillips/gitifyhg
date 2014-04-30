@@ -27,32 +27,36 @@ from .util import (log, output, gittz, gitmode,
     git_to_hg_spaces, hg_to_git_spaces, branch_head, ref_to_name_reftype,
     BRANCH, BOOKMARK, TAG, relative_path)
 
-AUTHOR = re.compile(r'^([^<>]+)?(<(?:[^<>]*)>| [^ ]*@.*|[<>].*)$')
-
+AUTHOR_RE = re.compile(r'^([^<>]+?)? ?[<>]([^<>]*)(?:$|>)')
+EMAIL_RE = re.compile(r'([^ \t<>]+@[^ \t<>]+)')
+NAME_RE = re.compile('^([^<>]+)')
 
 def sanitize_author(author):
     '''Mercurial allows a more freeform user string than git, so we have to
     massage it to be compatible. Git expects "name <email>", where email can be
     empty (as long as it's surrounded by <>).'''
-    name = ''
-    email = ''
+
+    name = mail = ''
     author = author.replace('"', '')
-    match = AUTHOR.match(author)
-    if match:
-        if match.group(1):  # handle 'None', e.g for input "<only@email>"
-            name = match.group(1).strip()
-        email = match.group(2).translate(None, "<>").strip()
+    m = AUTHOR_RE.match(author)
+    if m:
+        name = m.group(1)
+        mail = m.group(2).strip()
     else:
-        author = author.translate(None, "<>").strip()
-        if "@" in author:
-            email = author
+        m = EMAIL_RE.match(author)
+        if m:
+            mail = m.group(1)
         else:
-            name = author
+            m = NAME_RE.match(author)
+            if m:
+                name = m.group(1).strip()
 
     if not name:
         name = 'Unknown'
+    if not mail:
+        mail = 'unknown'
 
-    return "%s <%s>" % (name, email)
+    return "%s <%s>" % (name, mail)
 
 
 class HGImporter(object):
