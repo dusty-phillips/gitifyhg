@@ -57,7 +57,7 @@ test_expect_success 'unicode paths' '
 
     cd ../git${SB}clone &&
     git pull &&
-    assert_git_messages "${SB}3${NL}${SB}2${NL}${NL}${SB}" &&
+    assert_git_messages "${SB}3${NL}${SB}2${NL}${SB}" &&
 
     cd ..
 '

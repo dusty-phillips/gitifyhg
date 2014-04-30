@@ -167,7 +167,7 @@ test_expect_success 'fetch after bad push updates master' '
     git fetch &&
     assert_git_messages "b${NL}a" origin/master &&
     git pull --rebase &&
-    assert_git_messages "c${NL}${NL}b${NL}a" &&
+    assert_git_messages "c${NL}b${NL}a" &&
     git push &&
     cd ../hg_repo &&
     hg log --template="{desc}\n"
@@ -296,6 +296,31 @@ test_expect_success 'handle paths with quotes' '
     cd ..
 '
 
+test_expect_success 'simple bidirectional test' '
+    test_when_finished "rm -rf repo_a repo_b repo_c" &&
 
+    (
+    hg init repo_a &&
+    cd repo_a &&
+    echo "a" >> test_file &&
+    hg add test_file &&
+    hg commit --message="a" &&
+    echo "b" >> test_file &&
+    hg commit --message="b"
+    ) &&
+
+    hg init repo_b &&
+
+    (
+    git clone "gitifyhg::repo_a" repo_c &&
+    cd repo_c &&
+    git remote add repo_b gitifyhg::../repo_b &&
+    git push repo_b --all
+    ) &&
+
+    hg -R repo_a log --template="{desc}\n\0" > expected &&
+    hg -R repo_b log --template="{desc}\n\0" > actual &&
+    test_cmp expected actual
+'
 
 test_done

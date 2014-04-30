@@ -159,6 +159,8 @@ class HGImporter(object):
             else:
                 modified, removed = self.repo[rev].manifest().keys(), []
 
+            description += '\n'
+
             if not parents and rev:
                 output('reset %s' % gitify_ref)
 

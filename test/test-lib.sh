@@ -55,9 +55,9 @@ make_git_commit() {
 
 assert_git_messages() {
     if test $# -eq 2 ; then
-        test "`git log --pretty=format:%B $2`" = "$1"
+        test "`git log -z --pretty=format:%B $2`" = "$1"
     else
-        test "`git log --pretty=format:%B`" = "$1"
+        test "`git log -z --pretty=format:%B`" = "$1"
     fi
 }
 
