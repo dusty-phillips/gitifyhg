@@ -176,6 +176,8 @@ class HGImporter(object):
                 if len(parents) > 1:
                     output("merge :%s" % (self.marks.revision_to_mark(self.repo[parents[1]].node())))
 
+            for file in removed:
+                output("D %s" % (relative_path(file)))
             for file in modified:
                 filecontext = self.repo[rev].filectx(file)
                 data = filecontext.data()
@@ -183,8 +185,6 @@ class HGImporter(object):
                     gitmode(filecontext.flags()), relative_path(filecontext.path())))
                 output("data %d" % len(data))
                 output(data)
-            for file in removed:
-                output("D %s" % (relative_path(file)))
             output()
 
             count += 1
