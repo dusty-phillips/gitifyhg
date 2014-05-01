@@ -24,6 +24,7 @@ import os
 import re
 import optparse
 import subprocess
+import hashlib
 from path import path as p
 
 # Enable "plain" mode to make us resilient against changes to the locale, as we
@@ -113,7 +114,10 @@ class GitRemoteParser(object):
 
 class HGRemote(object):
     def __init__(self, alias, url):
-        if hg.islocal(url.encode('utf-8')):
+        if alias[4:] == url:
+            is_tmp = True
+            alias = hashlib.sha1(alias).hexdigest()
+        elif hg.islocal(url.encode('utf-8')):
             url = p(url).abspath()
             # Force git to use an absolute path in the future
             remote_name = os.path.basename(sys.argv[0]).replace("git-remote-", "")
