@@ -37,14 +37,9 @@ make_cloned_repo() {
 }
 
 make_hg_commit() {
-    if test $# -eq 3 ; then
-        user=$3
-    else
-        user=$HG_USER
-    fi
     echo "$1" >> $2 &&
     hg add $2 &&
-    hg commit -m "$1" --user="$user"
+    hg commit -m "$1" --user="${3-$HG_USER}"
 }
 
 make_git_commit() {
@@ -54,55 +49,27 @@ make_git_commit() {
 }
 
 assert_git_messages() {
-    if test $# -eq 2 ; then
-        test "`git log -z --pretty=format:%B $2`" = "$1"
-    else
-        test "`git log -z --pretty=format:%B`" = "$1"
-    fi
+    test "`git log -z --pretty=format:%B ${2-}`" = "$1"
 }
 
 assert_hg_messages() {
-    if test $# -eq 2 ; then
-        test "`hg log --template=\"{desc}\n\" -r $2`" = "$1"
-    else
-        test "`hg log --template=\"{desc}\n\"`" = "$1"
-    fi
+    test "`hg log --template=\"{desc}\n\" ${2+-r $2}`" = "$1"
 }
 
 assert_hg_author() {
-    if test $# -eq 2 ; then
-        rev=$2
-    else
-        rev=tip
-    fi
-    test "`hg log --template='{author}' --rev=$rev`" = "$1"
+    test "`hg log --template='{author}' --rev=${2-tip}`" = "$1"
 }
 
 assert_git_author() {
-    if test $# -eq 2 ; then
-        ref=$2
-    else
-        ref=HEAD
-    fi
-    test "`git show -s --format='%an <%ae>' $ref`" = "$1"
+    test "`git show -s --format='%an <%ae>' ${2-HEAD}`" = "$1"
 }
 
 assert_git_count() {
-    if test $# -eq 2 ; then
-        ref=$2
-    else
-        ref=HEAD
-    fi
-    test `git rev-list $ref --count` -eq $1
+    test `git rev-list ${2-HEAD} --count` -eq $1
 }
 
 assert_hg_count() {
-    if test $# -eq 2 ; then
-        rev=$2
-    else
-        rev=tip
-    fi
-    test `hg log -q -r 0:$rev | wc -l` -eq $1
+    test `hg log -q -r 0:${2-tip} | wc -l` -eq $1
 
 }
 
