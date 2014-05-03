@@ -73,6 +73,7 @@ class HGImporter(object):
             output("feature import-marks=%s" % self.hgremote.marks_git_path)
         output("feature export-marks=%s" % self.hgremote.marks_git_path)
         output("feature notes")
+        output("feature force")
 
         tmp = encoding.encoding
         encoding.encoding = 'utf-8'
