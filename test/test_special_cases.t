@@ -36,7 +36,7 @@ test_expect_success 'unicode paths' '
     echo $SB > file${SB} &&
     hg init &&
     hg add file${SB} &&
-    hg commit -m ${SB} --user="$HG_USER" &&
+    hg commit -m ${SB} &&
     cd .. &&
     git clone gitifyhg::hg${SB}repo git${SB}clone &&
     cd git${SB}clone &&
@@ -53,7 +53,7 @@ test_expect_success 'unicode paths' '
     assert_hg_messages "${SB}2${NL}${SB}" &&
 
     echo ${SB} >> file${SB} &&
-    hg commit -m "${SB}3" --user="$HG_USER" &&
+    hg commit -m "${SB}3" &&
 
     cd ../git${SB}clone &&
     git pull &&

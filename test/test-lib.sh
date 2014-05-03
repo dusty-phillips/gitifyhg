@@ -16,12 +16,17 @@ export NL='
 export PYTHONPATH="$SHARNESS_BUILD_DIRECTORY"
 export PATH="$SHARNESS_TEST_DIRECTORY:$PATH"
 
+cat > "$HOME"/.hgrc <<EOF
+[ui]
+username = $HG_USER
+EOF
+
 make_hg_repo() {
     hg init hg_repo &&
     cd hg_repo &&
     echo 'a\n' >> test_file &&
     hg add test_file &&
-    hg commit --message="a" --user="$HG_USER"
+    hg commit --message="a"
 }
 
 clone_repo() {
@@ -39,7 +44,7 @@ make_cloned_repo() {
 make_hg_commit() {
     echo "$1" >> $2 &&
     hg add $2 &&
-    hg commit -m "$1" --user="${3-$HG_USER}"
+    hg commit -m "$1" "${3+--user=$3}"
 }
 
 make_git_commit() {
