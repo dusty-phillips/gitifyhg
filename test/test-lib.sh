@@ -4,6 +4,8 @@
 
 export GIT_AUTHOR_EMAIL=git.user@example.com
 export GIT_AUTHOR_NAME='Git User'
+export GIT_COMMITTER_EMAIL=git.user@example.com
+export GIT_COMMITTER_NAME='Git User'
 export GIT_USER="$GIT_AUTHOR_NAME <$GIT_AUTHOR_EMAIL>"
 export HG_USER="Hg User <hg.user@example.com>"
 export DEBUG_GITIFYHG=$debug
@@ -25,9 +27,7 @@ make_hg_repo() {
 clone_repo() {
     cd .. &&
     test_expect_code 0 git clone "gitifyhg::hg_repo" git_clone &&
-    cd git_clone &&
-    git config user.email $GIT_AUTHOR_EMAIL &&
-    git config user.name "$GIT_AUTHOR_NAME"
+    cd git_clone
 }
 
 make_cloned_repo() {
