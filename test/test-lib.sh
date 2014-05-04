@@ -42,8 +42,8 @@ make_cloned_repo() {
 }
 
 make_hg_commit() {
-    echo "$1" >> $2 &&
-    hg add $2 &&
+    echo "$1" >> "$2" &&
+    hg add "$2" &&
     hg commit -m "$1" "${3+--user=$3}"
 }
 
