@@ -2,7 +2,7 @@ import os
 import sys
 import json
 
-from mercurial.node import hex as hghex  # What idiot overroad a builtin?
+from mercurial.node import hex as hghex  # What idiot overrode a builtin?
 from mercurial.node import bin as hgbin
 from mercurial.config import config
 from mercurial.scmutil import userrcpath
@@ -200,13 +200,15 @@ class HGMarks(object):
     def store(self):
         '''Save marks to the storage file.'''
         with self.storage_path.open('w') as file:
-            json.dump({
-                'tips': self.tips,
-                'revisions_to_marks': self.revisions_to_marks,
-                'last-mark': self.last_mark,
-                'notes-mark': self.notes_mark,
-                'marks-version': self.marks_version},
-            file)
+            file.write(
+                json.dumps({
+                    'tips': self.tips,
+                    'revisions_to_marks': self.revisions_to_marks,
+                    'last-mark': self.last_mark,
+                    'notes-mark': self.notes_mark,
+                    'marks-version': self.marks_version,
+                }).decode('UTF-8')
+            )
 
     def upgrade_marks(self, hgremote):
         if self.marks_version == 1:  # Convert from integer reversions to hgsha1

@@ -21,7 +21,7 @@
 from mercurial.context import memctx, memfilectx
 from mercurial import encoding, extensions
 from mercurial.error import Abort
-from mercurial.node import hex as hghex  # What idiot overroad a builtin?
+from mercurial.node import hex as hghex  # What idiot overrode a builtin?
 from mercurial.node import short as hgshort
 from mercurial.bookmarks import pushbookmark
 from mercurial.scmutil import revsingle
