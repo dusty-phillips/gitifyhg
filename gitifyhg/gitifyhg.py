@@ -18,7 +18,6 @@
 # Some of this code comes from https://github.com/felipec/git/tree/fc/remote/hg
 # but much of it has been rewritten.
 
-
 import sys
 import os
 import re
@@ -33,20 +32,26 @@ os.environ['HGPLAIN'] = '1'
 # interactions and it's better to run in a known state.
 os.environ['HGRCPATH'] = ''
 
+# Version specific libraries from the Mercurial API
+if hg_version() >= '4.0.1':
+    from mercurial.util import digester
+    from mercurial.bookmarks import _readactive
+else:
+    from mercurial.util import sha1
+    from mercurial.bookmarks import readcurrent
 
+from mercurial import hg
+from mercurial.bookmarks import listbookmarks
 from mercurial.ui import ui
 from mercurial.error import Abort, RepoError
-from mercurial.util import sha1
 from mercurial.util import version as hg_version
-from mercurial import hg
-from mercurial.bookmarks import listbookmarks, readcurrent
 
 from .util import (log, die, output, branch_head, GitMarks,
     HGMarks, hg_to_git_spaces, name_reftype_to_ref, BRANCH, BOOKMARK, TAG,
     version, deactivate_stdout)
+
 from .hgimporter import HGImporter
 from .gitexporter import GitExporter
-
 
 class GitRemoteParser(object):
     '''Parser for stdin that processes the git-remote protocol.'''
@@ -110,7 +115,6 @@ class GitRemoteParser(object):
             yield self.line
             self.line = self.read_line()
 
-
 class HGRemote(object):
     def __init__(self, alias, url):
         if hg.islocal(url.encode('utf-8')):
@@ -124,7 +128,12 @@ class HGRemote(object):
         # use hash of URL as unique identifier in various places.
         # this has the advantage over 'alias' that it stays constant
         # when the user does a "git remote rename old new".
-        self.uuid = sha1(url.encode('utf-8')).hexdigest()
+        if hg_version() >= '4.0.1':
+            d = digester(['md5', 'sha1'])
+            d.update(url.encode('utf-8'))
+            self.uuid = d['sha1']
+        else:
+            self.uuid = sha1(url.encode('utf-8')).hexdigest()
 
         gitdir = p(os.environ['GIT_DIR'].decode('utf-8'))
         self.remotedir = gitdir.joinpath('hg', self.uuid)
@@ -245,7 +254,11 @@ class HGRemote(object):
         current_branch = self.repo.dirstate.branch()
 
         # Update the head reference
-        head = readcurrent(self.repo)
+        if hg_version() >= '4.0.1':
+            head = _readactive(self.repo,self.repo._bookmarks)
+        else:
+            head = readcurrent(self.repo)
+
         if head:
             node = self.repo[head]
         else:
@@ -309,12 +322,10 @@ class HGRemote(object):
     def do_export(self, parser):
         GitExporter(self, parser).process()
 
-
 def log_versions(level="DEBUG"):
     log("gitifyhg version %s" % version(), level=level)
     log("Mercurial version %s" % hg_version(), level=level)
     log("Python version %s" % (sys.version.replace("\n", "")), level=level)
-
 
 def main():
     '''Main entry point for the git-remote-gitifyhg command. Parses sys.argv
@@ -346,7 +357,6 @@ def main():
         sys.stderr.close()
     except:
         pass
-
 
 if __name__ == '__main__':
     sys.exit(main())
