@@ -33,18 +33,18 @@ os.environ['HGPLAIN'] = '1'
 os.environ['HGRCPATH'] = ''
 
 # Version specific libraries from the Mercurial API
+from mercurial import hg
+from mercurial.bookmarks import listbookmarks
+from mercurial.ui import ui
+from mercurial.error import Abort, RepoError
+from mercurial.util import version as hg_version
+
 if hg_version() >= '4.0.1':
     from mercurial.util import digester
     from mercurial.bookmarks import _readactive
 else:
     from mercurial.util import sha1
     from mercurial.bookmarks import readcurrent
-
-from mercurial import hg
-from mercurial.bookmarks import listbookmarks
-from mercurial.ui import ui
-from mercurial.error import Abort, RepoError
-from mercurial.util import version as hg_version
 
 from .util import (log, die, output, branch_head, GitMarks,
     HGMarks, hg_to_git_spaces, name_reftype_to_ref, BRANCH, BOOKMARK, TAG,
