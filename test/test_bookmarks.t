@@ -23,6 +23,7 @@ test_expect_success 'clone bookmark' '
     clone_repo &&
 
     test "`git branch -r`" = "  origin/HEAD -> origin/master
+  origin/branches/default
   origin/featurebookmark
   origin/master" &&
 
@@ -49,6 +50,7 @@ test_expect_success 'clone divergent bookmarks' '
     test "`git branch -r`" = "  origin/HEAD -> origin/master
   origin/bookmark_one
   origin/bookmark_two
+  origin/branches/default
   origin/master" &&
 
     git checkout origin/bookmark_one &&
@@ -72,6 +74,7 @@ test_expect_success 'clone bookmark not at tip' '
 
     test "`git branch -r`" = "  origin/HEAD -> origin/master
   origin/bookmark_one
+  origin/branches/default
   origin/master" &&
 
     git checkout bookmark_one &&

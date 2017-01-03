@@ -29,14 +29,10 @@ test_expect_success 'push lightweight tag' '
     cd ..
 '
 
-# FIXME: See #77
 test_expect_success 'lightweight tag sets hg username' '
     test_when_finished "rm -rf hg_repo git_clone .hgrc" &&
     user="Lite Wait <litewait@example.com>" &&
 
-    # NOTE: sharness set #HOME to the working directory for us, so this is
-    # the default hgrc.
-    echo "[ui]${NL}username=$user" > .hgrc 
     make_hg_repo &&
     clone_repo &&
     git tag "lightweight" &&
@@ -44,7 +40,7 @@ test_expect_success 'lightweight tag sets hg username' '
 
     cd ../hg_repo &&
     assert_hg_count 2 &&
-    assert_hg_author "$user" &&
+    assert_hg_author "$GIT_USER" &&
 
     cd ..
 '
@@ -77,7 +73,7 @@ test_expect_success 'push tag with previous commits' '
 
     cd ../hg_repo &&
     hg tags | grep this_is_a_tag &&
-    assert_hg_messages "Added tag this_is_a_tag for changeset $(hg id --id -r 2)${NL}b${NL}Added tag an_old_tag for changeset $hgsha1${NL}a" &&
+    assert_hg_messages "Added tag an_old_tag for changeset $hgsha1${NL}Added tag this_is_a_tag for changeset $(hg id --id -r 2)${NL}b${NL}Added tag an_old_tag for changeset $hgsha1${NL}a" &&
 
     cd ..
 '
@@ -94,10 +90,7 @@ test_expect_success 'push messaged tag' '
     hg tags | grep this_is_a_tag &&
     assert_hg_messages "I tagged a message and a user${NL}a" &&
     hg log &&
-    # FIXME: I feel like this should be $GIT_USER
-    # but git seems to be passing me the e-mail twice. Is this a bug in
-    # git or something gitifyhg needs to parse?
-    assert_hg_author "$GIT_AUTHOR_NAME $GIT_AUTHOR_EMAIL <$GIT_AUTHOR_EMAIL>" &&
+    assert_hg_author "$GIT_AUTHOR_NAME <$GIT_AUTHOR_EMAIL>" &&
     cd ..
 '
 
@@ -134,7 +127,7 @@ test_expect_success 'push only new tag' '
     test `hg tags | wc -l` -eq 3 && # 3 is tip
     hg tags | grep this_is_a_tag &&
     hg tags | grep an_old_tag &&
-    assert_hg_count 3 &&
+    assert_hg_count 4 &&
 
     cd ..
 '

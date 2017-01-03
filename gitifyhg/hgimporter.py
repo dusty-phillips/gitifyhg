@@ -27,32 +27,36 @@ from .util import (log, output, gittz, gitmode,
     git_to_hg_spaces, hg_to_git_spaces, branch_head, ref_to_name_reftype,
     BRANCH, BOOKMARK, TAG, relative_path)
 
-AUTHOR = re.compile(r'^([^<>]+)?(<(?:[^<>]*)>| [^ ]*@.*|[<>].*)$')
-
+AUTHOR_RE = re.compile(r'^([^<>]+?)? ?[<>]([^<>]*)(?:$|>)')
+EMAIL_RE = re.compile(r'([^ \t<>]+@[^ \t<>]+)')
+NAME_RE = re.compile('^([^<>]+)')
 
 def sanitize_author(author):
     '''Mercurial allows a more freeform user string than git, so we have to
     massage it to be compatible. Git expects "name <email>", where email can be
     empty (as long as it's surrounded by <>).'''
-    name = ''
-    email = ''
+
+    name = mail = ''
     author = author.replace('"', '')
-    match = AUTHOR.match(author)
-    if match:
-        if match.group(1):  # handle 'None', e.g for input "<only@email>"
-            name = match.group(1).strip()
-        email = match.group(2).translate(None, "<>").strip()
+    m = AUTHOR_RE.match(author)
+    if m:
+        name = m.group(1)
+        mail = m.group(2).strip()
     else:
-        author = author.translate(None, "<>").strip()
-        if "@" in author:
-            email = author
+        m = EMAIL_RE.match(author)
+        if m:
+            mail = m.group(1)
         else:
-            name = author
+            m = NAME_RE.match(author)
+            if m:
+                name = m.group(1).strip()
 
     if not name:
         name = 'Unknown'
+    if not mail:
+        mail = 'unknown'
 
-    return "%s <%s>" % (name, email)
+    return "%s <%s>" % (name, mail)
 
 
 class HGImporter(object):
@@ -73,6 +77,7 @@ class HGImporter(object):
             output("feature import-marks=%s" % self.hgremote.marks_git_path)
         output("feature export-marks=%s" % self.hgremote.marks_git_path)
         output("feature notes")
+        output("feature force")
 
         tmp = encoding.encoding
         encoding.encoding = 'utf-8'
@@ -87,15 +92,19 @@ class HGImporter(object):
                     BOOKMARK,
                     self.hgremote.headnode[1])
             else:
-                name, reftype = ref_to_name_reftype(ref)
-                if reftype == BRANCH:
-                    head = branch_head(self.hgremote, git_to_hg_spaces(name))
-                elif reftype == BOOKMARK:
-                    head = self.hgremote.bookmarks[git_to_hg_spaces(name)]
-                elif reftype == TAG:
-                    head = self.repo[git_to_hg_spaces(name)]
+                if ref == 'refs/heads/master':
+                    name, reftype = 'master', BOOKMARK
+                    head = branch_head(self.hgremote, 'default')
                 else:
-                    assert False, "unexpected reftype: %s" % reftype
+                    name, reftype = ref_to_name_reftype(ref)
+                    if reftype == BRANCH:
+                        head = branch_head(self.hgremote, git_to_hg_spaces(name))
+                    elif reftype == BOOKMARK:
+                        head = self.hgremote.bookmarks[git_to_hg_spaces(name)]
+                    elif reftype == TAG:
+                        head = self.repo[git_to_hg_spaces(name)]
+                    else:
+                        assert False, "unexpected reftype: %s" % reftype
                 self.process_ref(name, reftype, head)
 
             self.process_notes()
@@ -159,6 +168,8 @@ class HGImporter(object):
             else:
                 modified, removed = self.repo[rev].manifest().keys(), []
 
+            description += '\n'
+
             if not parents and rev:
                 output('reset %s' % gitify_ref)
 
@@ -174,6 +185,8 @@ class HGImporter(object):
                 if len(parents) > 1:
                     output("merge :%s" % (self.marks.revision_to_mark(self.repo[parents[1]].node())))
 
+            for file in removed:
+                output("D %s" % (relative_path(file)))
             for file in modified:
                 filecontext = self.repo[rev].filectx(file)
                 data = filecontext.data()
@@ -181,8 +194,6 @@ class HGImporter(object):
                     gitmode(filecontext.flags()), relative_path(filecontext.path())))
                 output("data %d" % len(data))
                 output(data)
-            for file in removed:
-                output("D %s" % (relative_path(file)))
             output()
 
             count += 1

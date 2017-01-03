@@ -23,6 +23,7 @@ import os
 import re
 import optparse
 import subprocess
+import hashlib
 from path import path as p
 
 # Enable "plain" mode to make us resilient against changes to the locale, as we
@@ -117,7 +118,10 @@ class GitRemoteParser(object):
 
 class HGRemote(object):
     def __init__(self, alias, url):
-        if hg.islocal(url.encode('utf-8')):
+        if alias[4:] == url:
+            is_tmp = True
+            alias = hashlib.sha1(alias).hexdigest()
+        elif hg.islocal(url.encode('utf-8')):
             url = p(url).abspath()
             # Force git to use an absolute path in the future
             remote_name = os.path.basename(sys.argv[0]).replace("git-remote-", "")
@@ -185,15 +189,7 @@ class HGRemote(object):
         if not isinstance(name, unicode):
             name = name.decode('utf-8')
         if reftype == BRANCH:
-            if name == 'default':
-                # I have no idea where 'bookmarks' comes from in this case.
-                # I don't think there is meant to be many bookmarks/master ref,
-                # but this is what I had to do to make tests pass when special
-                # casing the master/default dichotomy. Something is still fishy
-                # here, but it's less fishy than it was. See issue #34.
-                return "%s/bookmarks/master" % self.prefix
-            else:
-                return '%s/branches/%s' % (self.prefix, name)
+            return '%s/branches/%s' % (self.prefix, name)
         elif reftype == BOOKMARK:
             return '%s/bookmarks/%s' % (self.prefix, name)
         elif reftype == TAG:
@@ -296,6 +292,9 @@ class HGRemote(object):
 
         # list the named branch references
         for branch in self.branches:
+            if branch == 'default':
+                output("%s %s" %
+                        (self._change_hash(branch_head(self, branch)), "refs/heads/master"))
             output("%s %s" %
                     (self._change_hash(branch_head(self, branch)),
                      name_reftype_to_ref(hg_to_git_spaces(branch), BRANCH)))

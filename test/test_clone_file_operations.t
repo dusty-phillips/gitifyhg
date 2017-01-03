@@ -31,7 +31,7 @@ test_expect_success 'cloning a removed file works' '
 '
 
 # See issue #36
-test_expect_failure 'cloning a file replaced with a directory' '
+test_expect_success 'cloning a file replaced with a directory' '
     test_when_finished "rm -rf hg_repo git_clone" &&
 
     make_hg_repo &&
@@ -49,7 +49,7 @@ test_expect_failure 'cloning a file replaced with a directory' '
 '
 
 # also issue #36
-test_expect_failure 'clone replacing a symlink with a directory' '
+test_expect_success 'clone replacing a symlink with a directory' '
     test_when_finished "rm -rf hg_repo git_clone" &&
 
     make_hg_repo &&

@@ -36,12 +36,12 @@ test_expect_success 'unicode paths' '
     echo $SB > file${SB} &&
     hg init &&
     hg add file${SB} &&
-    hg commit -m ${SB} --user="$HG_USER" &&
+    hg commit -m ${SB} &&
     cd .. &&
-    git clone testgitifyhg::hg${SB}repo git${SB}clone &&
+    git clone gitifyhg::hg${SB}repo git${SB}clone &&
     cd git${SB}clone &&
     git config user.email $GIT_AUTHOR_EMAIL &&
-    git config user.name "$GIT_USER"
+    git config user.name "$GIT_AUTHOR_NAME" &&
     assert_git_messages "${SB}" &&
 
     echo ${SB} >> file${SB} &&
@@ -53,11 +53,11 @@ test_expect_success 'unicode paths' '
     assert_hg_messages "${SB}2${NL}${SB}" &&
 
     echo ${SB} >> file${SB} &&
-    hg commit -m "${SB}3" --user="$HG_USER" &&
+    hg commit -m "${SB}3" &&
 
     cd ../git${SB}clone &&
     git pull &&
-    assert_git_messages "${SB}3${NL}${SB}2${NL}${NL}${SB}" &&
+    assert_git_messages "${SB}3${NL}${SB}2${NL}${SB}" &&
 
     cd ..
 '

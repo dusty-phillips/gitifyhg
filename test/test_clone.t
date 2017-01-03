@@ -33,6 +33,7 @@ test_expect_success 'clone linear branch, no multiple parents' '
     clone_repo &&
     assert_git_messages "a" &&
     test "`git branch -r`" = "  origin/HEAD -> origin/master
+  origin/branches/default
   origin/branches/featurebranch
   origin/master" &&
 
@@ -112,6 +113,7 @@ test_expect_success 'clone close branch' '
 
     clone_repo &&
     test "`git branch -r`" = "  origin/HEAD -> origin/master
+  origin/branches/default
   origin/branches/feature
   origin/master" &&
     assert_git_messages "c${NL}a" &&
@@ -137,11 +139,45 @@ test_expect_success 'no implicit clone close branch' '
     clone_repo &&
     git branch -r &&
     test "`git branch -r`" = "  origin/HEAD -> origin/master
+  origin/branches/default
   origin/master" &&
     assert_git_messages "c${NL}a" &&
 
     cd ..
 '
 
+test_expect_success 'ensure commit message match' '
+    test_when_finished "rm -rf repo_a repo_b repo_c" &&
+
+    (
+    hg init repo_a &&
+    cd repo_a &&
+    echo "a" >> test_file &&
+    hg add test_file &&
+    hg commit --message="a" &&
+    echo "b" >> test_file &&
+    hg commit --message="b"
+    ) &&
+
+    (
+    git init repo_b &&
+    cd repo_b &&
+    echo "a" >> test_file &&
+    git add test_file &&
+    git commit -a --message="a" &&
+    echo "b" >> test_file &&
+    git commit -a --message="b"
+    ) &&
+
+    git clone "gitifyhg::repo_a" repo_c &&
+
+    printf "%s\n\0" "b" "a" > expected &&
+    git --git-dir=repo_b/.git log -z --format="%B" > actual &&
+    test_cmp expected actual &&
+    git --git-dir=repo_c/.git log -z --format="%B" > actual &&
+    test_cmp expected actual &&
+    hg -R repo_a log --template="{desc}\n\0" > actual &&
+    test_cmp expected actual
+'
 
 test_done

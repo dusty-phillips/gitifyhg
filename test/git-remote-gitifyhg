@@ -1,0 +1,7 @@
+#!/usr/bin/env python
+#
+# This bin script is intended only for testing.
+# It will not be used by the installed egg.
+
+import gitifyhg.gitifyhg
+gitifyhg.gitifyhg.main()
