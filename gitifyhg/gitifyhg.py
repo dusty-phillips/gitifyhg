@@ -23,7 +23,7 @@ import os
 import re
 import optparse
 import subprocess
-from path import path as p
+from path import Path as p
 
 # Enable "plain" mode to make us resilient against changes to the locale, as we
 # rely on parsing certain messages produced by Mercurial. See issue #26.
