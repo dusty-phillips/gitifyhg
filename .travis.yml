@@ -20,8 +20,8 @@ before_install:
 # install dependencies and gitifyhg itself;
 # py.test is already preinstalled
 install:
-  - "pip install -q --use-mirrors path.py>=2.5"
-  - "pip install -q --use-mirrors http://mercurial.selenic.com/release/mercurial-$HG_VERSION.tar.gz"
+  - "pip install -q path.py>=2.5"
+  - "pip install -q http://mercurial.selenic.com/release/mercurial-$HG_VERSION.tar.gz"
   - "python setup.py -q install"
 
 # specify various mercurial versions to test against
