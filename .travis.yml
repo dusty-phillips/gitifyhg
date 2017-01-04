@@ -1,7 +1,11 @@
 language: python
 python:
-  #- "2.6"
   - "2.7"
+  - "2.7.5"
+  - "2.7.9"
+  - "2.7.12"
+  - "2.7.13"
+  - "3.0"
 
 # install recent git version, and make sure the git config
 # contains suitable default
@@ -21,25 +25,13 @@ install:
   - "python setup.py -q install"
 
 # specify various mercurial versions to test against
-#
-# TODO: Also test against multiple git versions;
-# this may require setting up a custom PPA with suitable
-# .deb's in it.
-#
-# NOTE: Right now, hg versions 1.8.x and older are not supported,
-# due to problems with the bookmarks extension. We may or
-# may not add support for them in the future, see issue #20.
 env:
-  - HG_VERSION=2.8  # latest release
-  #- HG_VERSION=2.7.2
+  - HG_VERSION=4.0.1
+  - HG_VERSION=3.5
+  - HG_VERSION=3.0.0
+  - HG_VERSION=2.8 
   - HG_VERSION=2.6.3
-  #- HG_VERSION=2.5.4
   - HG_VERSION=2.4.2
-  - HG_VERSION=2.2.2  # Debian Wheezy, Ubuntu 12.10
-  - HG_VERSION=2.0.2  # Ubuntu 12.04 LTS
-  - HG_VERSION=1.9.1  # Ubuntu 11.10
-  #- HG_VERSION=1.8.4
-  #- HG_VERSION=1.6.4  # Debian Squeeze
 
 # command to run actual tests
 # We also output the git and hg versions to make sure we are using
@@ -52,12 +44,7 @@ script:
   - cd test
   - make
 
-# No need to test old hg versions against new python
 matrix:
   exclude:
     - python: 2.7
       env: HG_VERSION=1.9.1
-    #- python: 2.7
-    #  env: HG_VERSION=1.8.4
-    #- python: 2.7
-    #  env: HG_VERSION=1.6.4

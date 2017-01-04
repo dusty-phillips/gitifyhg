@@ -5,3 +5,6 @@ dist
 .tox
 gitifyhg.egg-info
 pytestdebug.log
+test/trash directory*
+test/test-results
+test/.prove
