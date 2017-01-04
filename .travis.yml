@@ -26,12 +26,15 @@ install:
 
 # specify various mercurial versions to test against
 env:
-  - HG_VERSION=4.0.1
-  - HG_VERSION=3.5
-  - HG_VERSION=3.0.0
+  - HG_VERSION=2.4
+  - HG_VERSION=2.5
+  - HG_VERSION=2.6
   - HG_VERSION=2.8 
-  - HG_VERSION=2.6.3
-  - HG_VERSION=2.4.2
+  - HG_VERSION=3.0
+  - HG_VERSION=3.5
+  - HG_VERSION=4.0
+  - HG_VERSION=4.0.1
+  
 
 # command to run actual tests
 # We also output the git and hg versions to make sure we are using
