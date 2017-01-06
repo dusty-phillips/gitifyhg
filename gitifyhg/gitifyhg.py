@@ -32,23 +32,25 @@ os.environ['HGPLAIN'] = '1'
 # interactions and it's better to run in a known state.
 os.environ['HGRCPATH'] = ''
 
+from .util import (log, die, output, branch_head, GitMarks,
+    HGMarks, hg_to_git_spaces, name_reftype_to_ref, BRANCH, BOOKMARK, TAG,
+    version, deactivate_stdout)
+
 # Version specific libraries from the Mercurial API
 from mercurial import hg
 from mercurial.bookmarks import listbookmarks
 from mercurial.ui import ui
 from mercurial.error import Abort, RepoError
 from mercurial.util import version as hg_version
+from mercurial.util import digester
 
-if hg_version() >= '4.0.1':
-    from mercurial.util import digester
-    from mercurial.bookmarks import _readactive
+if hg_version() >= '3.7':
+    from mercurial.bookmarks import _readactive as readCurrentBookmark
+elif hg_version() >= '3.5' and hg_version() < '3.7':
+    from mercurial.bookmarks import readactive as readCurrentBookmark
 else:
-    from mercurial.util import sha1
-    from mercurial.bookmarks import readcurrent
+    from mercurial.bookmarks import readcurrent as readCurrentBookmark
 
-from .util import (log, die, output, branch_head, GitMarks,
-    HGMarks, hg_to_git_spaces, name_reftype_to_ref, BRANCH, BOOKMARK, TAG,
-    version, deactivate_stdout)
 
 from .hgimporter import HGImporter
 from .gitexporter import GitExporter
@@ -128,12 +130,9 @@ class HGRemote(object):
         # use hash of URL as unique identifier in various places.
         # this has the advantage over 'alias' that it stays constant
         # when the user does a "git remote rename old new".
-        if hg_version() >= '4.0.1':
-            d = digester(['md5', 'sha1'])
-            d.update(url.encode('utf-8'))
-            self.uuid = d['sha1']
-        else:
-            self.uuid = sha1(url.encode('utf-8')).hexdigest()
+        d = digester(['md5', 'sha1'])
+        d.update(url.encode('utf-8'))
+        self.uuid = d['sha1']
 
         gitdir = p(os.environ['GIT_DIR'].decode('utf-8'))
         self.remotedir = gitdir.joinpath('hg', self.uuid)
@@ -254,10 +253,10 @@ class HGRemote(object):
         current_branch = self.repo.dirstate.branch()
 
         # Update the head reference
-        if hg_version() >= '4.0.1':
-            head = _readactive(self.repo,self.repo._bookmarks)
+        if hg_version() >= '3.7':
+            head = readCurrentBookmark(self.repo,self.repo._bookmarks)
         else:
-            head = readcurrent(self.repo)
+            head = readCurrentBookmark(self.repo)
 
         if head:
             node = self.repo[head]
