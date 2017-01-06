@@ -27,7 +27,7 @@ setup(
     packages=['gitifyhg'],
     install_requires=[
         'path.py>=2.5',
-        'Mercurial>=3.0 ',
+        'Mercurial>=2.5',
     ],
     entry_points={
         'console_scripts': [
