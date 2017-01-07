@@ -113,7 +113,7 @@ class HGImporter(object):
             return
         output("commit refs/notes/hg-%s" % (self.hgremote.uuid))
         output("mark :%d" % (self.marks.new_notes_mark()))
-        output("committer <gitifyhg-note> %s" % (time.strftime('%s %z')))
+        output("committer <gitifyhg-note> %s %s" % (time.time(), time.strftime('%z')))
         message = u"hg from %s (%s)\n" % (self.prefix, self.hgremote.url)
         message = message.encode("utf-8")
         output("data %d" % (len(message)))
