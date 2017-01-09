@@ -235,7 +235,12 @@ class GitExporter(object):
             is_exec = filespec['mode'] == 'x'
             is_link = filespec['mode'] == 'l'
             rename = filespec.get('rename', None)
-            return memfilectx(file, filespec['data'],
+
+            if hg_version()>='3.1'
+                return memfilectx(repo, file, filespec['data'],
+                    is_link, is_exec, rename)
+            else:
+                return memfilectx(file, filespec['data'],
                     is_link, is_exec, rename)
 
         ctx = memctx(self.repo, (parent_from, parent_merge), data,
@@ -285,7 +290,12 @@ class GitExporter(object):
         newtags.append(tag_line)
 
         def get_filectx(repo, memctx, file):
-            return memfilectx(file, ''.join(newtags))
+            #Hg 3.1 has an extra param  return memfilectx(repo, file, ''.join(newtags)) and not
+            #return memfilectx(file, ''.join(newtags))
+            if hg_version()>='3.1'
+                return memfilectx(repo, file, ''.join(newtags))
+            else:
+                return memfilectx(file, ''.join(newtags))
 
         if name in self.parsed_tags:
             author, message = self.parsed_tags[name]
