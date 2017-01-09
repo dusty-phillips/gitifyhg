@@ -3,9 +3,6 @@ python:
   - "2.6"
   - "2.7"
   - "3.2"
-  - "3.3"
-  - "3.4"
-  - "3.5"
 
 # install recent git version, and make sure the git config
 # contains suitable default
@@ -26,7 +23,6 @@ install:
 
 # specify various mercurial versions to test against
 env:
-  - HG_VERSION=2.4
   - HG_VERSION=2.5
   - HG_VERSION=2.6
   - HG_VERSION=2.8 

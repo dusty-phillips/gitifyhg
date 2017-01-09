@@ -236,7 +236,7 @@ class GitExporter(object):
             is_link = filespec['mode'] == 'l'
             rename = filespec.get('rename', None)
 
-            if hg_version()>='3.1'
+            if hg_version() >= '3.1':
                 return memfilectx(repo, file, filespec['data'],
                     is_link, is_exec, rename)
             else:
@@ -292,7 +292,7 @@ class GitExporter(object):
         def get_filectx(repo, memctx, file):
             #Hg 3.1 has an extra param  return memfilectx(repo, file, ''.join(newtags)) and not
             #return memfilectx(file, ''.join(newtags))
-            if hg_version()>='3.1'
+            if hg_version() >= '3.1':
                 return memfilectx(repo, file, ''.join(newtags))
             else:
                 return memfilectx(file, ''.join(newtags))
