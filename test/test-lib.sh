@@ -100,7 +100,8 @@ assert_hg_count() {
     else
         rev=tip
     fi
-    test `hg log -q -r 0:$rev | wc -l` -eq $1
+    echo "`hg log -q -r 0:$rev | wc -l`"
+    test "`hg log -q -r 0:$rev | wc -l`" -eq "$1"
 
 }
 
