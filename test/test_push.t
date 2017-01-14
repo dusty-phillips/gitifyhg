@@ -296,6 +296,4 @@ test_expect_success 'handle paths with quotes' '
     cd ..
 '
 
-
-
 test_done
