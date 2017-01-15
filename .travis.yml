@@ -1,7 +1,6 @@
 language: python
 python:
   - "2.7"
-  - "3.2"
 
 # install recent git version, and make sure the git config
 # contains suitable default
