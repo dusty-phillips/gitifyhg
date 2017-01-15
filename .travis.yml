@@ -1,6 +1,5 @@
 language: python
 python:
-  #- "2.6"
   - "2.7"
 
 # install recent git version, and make sure the git config
@@ -16,30 +15,30 @@ before_install:
 # install dependencies and gitifyhg itself;
 # py.test is already preinstalled
 install:
-  - "pip install -q --use-mirrors path.py>=2.5"
-  - "pip install -q --use-mirrors http://mercurial.selenic.com/release/mercurial-$HG_VERSION.tar.gz"
+  - "pip install -q path.py>=2.5"
+  - "pip install -q https://www.mercurial-scm.org/release/mercurial-$HG_VERSION.tar.gz"
   - "python setup.py -q install"
 
 # specify various mercurial versions to test against
-#
-# TODO: Also test against multiple git versions;
-# this may require setting up a custom PPA with suitable
-# .deb's in it.
-#
-# NOTE: Right now, hg versions 1.8.x and older are not supported,
-# due to problems with the bookmarks extension. We may or
-# may not add support for them in the future, see issue #20.
 env:
-  - HG_VERSION=2.8  # latest release
-  #- HG_VERSION=2.7.2
-  - HG_VERSION=2.6.3
-  #- HG_VERSION=2.5.4
-  - HG_VERSION=2.4.2
-  - HG_VERSION=2.2.2  # Debian Wheezy, Ubuntu 12.10
-  - HG_VERSION=2.0.2  # Ubuntu 12.04 LTS
-  - HG_VERSION=1.9.1  # Ubuntu 11.10
-  #- HG_VERSION=1.8.4
-  #- HG_VERSION=1.6.4  # Debian Squeeze
+  - HG_VERSION=2.5
+  - HG_VERSION=2.6
+  - HG_VERSION=2.8 
+  - HG_VERSION=2.9
+  - HG_VERSION=3.0
+  - HG_VERSION=3.1
+  - HG_VERSION=3.2
+  - HG_VERSION=3.3
+  - HG_VERSION=3.4
+  - HG_VERSION=3.5
+  - HG_VERSION=3.6
+  - HG_VERSION=3.7
+  - HG_VERSION=3.8
+  - HG_VERSION=3.9
+  - HG_VERSION=4.0
+  - HG_VERSION=4.0.1
+  
+
 
 # command to run actual tests
 # We also output the git and hg versions to make sure we are using
@@ -51,13 +50,3 @@ script:
   - hg --version
   - cd test
   - make
-
-# No need to test old hg versions against new python
-matrix:
-  exclude:
-    - python: 2.7
-      env: HG_VERSION=1.9.1
-    #- python: 2.7
-    #  env: HG_VERSION=1.8.4
-    #- python: 2.7
-    #  env: HG_VERSION=1.6.4

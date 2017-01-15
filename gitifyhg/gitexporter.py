@@ -18,31 +18,19 @@
 # Some of this code comes from https://github.com/felipec/git/tree/fc/remote/hg
 # but much of it has been rewritten.
 
-from mercurial.context import memctx, memfilectx
-from mercurial import encoding, extensions
+from mercurial.context import memctx
 from mercurial.error import Abort
 from mercurial.node import hex as hghex  # What idiot overrode a builtin?
 from mercurial.node import short as hgshort
 from mercurial.bookmarks import pushbookmark
 from mercurial.scmutil import revsingle
 from mercurial.util import version as hg_version
-
-from distutils.version import StrictVersion
+from mercurial import encoding
 
 from .util import (die, output, git_to_hg_spaces, hgmode, branch_tip,
     ref_to_name_reftype, BRANCH, BOOKMARK, TAG, user_config)
 
-class dummyui(object):
-    def debug(self, msg):
-        pass
-
-if StrictVersion(hg_version()) >= StrictVersion('2.8'):
-    stripext = extensions.load(dummyui(), 'strip', '')
-    def strip_revs(repo, processed_nodes):
-        stripext.strip(dummyui(), repo, processed_nodes)
-else:
-    def strip_revs(repo, processed_nodes):
-        repo.mq.strip(repo, processed_nodes)
+from apiwrapper import (hg_strip, hg_memfilectx, hg_push, handle_deleted_file)
 
 class GitExporter(object):
 
@@ -99,7 +87,8 @@ class GitExporter(object):
 
         success = False
         try:
-            self.repo.push(self.hgremote.peer, force=False, newbranch=new_branch)
+            hg_push(self.repo, self.hgremote.peer, False, new_branch)
+
             for bookmark, old, new in push_bookmarks:
                 self.hgremote.peer.pushkey('bookmarks', bookmark, old, new)
             self.marks.store()
@@ -110,7 +99,7 @@ class GitExporter(object):
                 self.marks.load()  # restore from checkpoint
                 # strip revs, implementation finds min revision from list
                 if self.processed_nodes:
-                    strip_revs(self.repo, self.processed_nodes)
+                    hg_strip(self.repo, self.processed_nodes)
             else:
                 die("unknown hg exception: %s" % e)
         # TODO: handle network/other errors?
@@ -228,15 +217,16 @@ class GitExporter(object):
 
         def get_filectx(repo, memctx, file):
             filespec = files[file]
+            
             if 'deleted' in filespec:
-                raise IOError
+                return handle_deleted_file()
             if 'ctx' in filespec:
                 return filespec['ctx']
             is_exec = filespec['mode'] == 'x'
             is_link = filespec['mode'] == 'l'
             rename = filespec.get('rename', None)
-            return memfilectx(file, filespec['data'],
-                    is_link, is_exec, rename)
+
+            return hg_memfilectx(repo,file, filespec['data'],is_link, is_exec, rename)
 
         ctx = memctx(self.repo, (parent_from, parent_merge), data,
             files.keys(), get_filectx, user, (date, tz), extra)
@@ -285,7 +275,7 @@ class GitExporter(object):
         newtags.append(tag_line)
 
         def get_filectx(repo, memctx, file):
-            return memfilectx(file, ''.join(newtags))
+            return hg_memfilectx(repo, file, ''.join(newtags))
 
         if name in self.parsed_tags:
             author, message = self.parsed_tags[name]

@@ -23,11 +23,11 @@ setup(
     author_email="dusty@buchuki.com",
     url="https://github.com/buchuki/gitifyhg",
     description="Use git as client for hg repos",
-    version="0.8.4",
+    version="0.8.6",
     packages=['gitifyhg'],
     install_requires=[
         'path.py>=2.5',
-        'Mercurial>=1.9.1',
+        'Mercurial>=2.5, <4.0.2',
     ],
     entry_points={
         'console_scripts': [
@@ -37,9 +37,8 @@ setup(
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Topic :: Software Development :: Version Control',
-        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)'
     ]
 )

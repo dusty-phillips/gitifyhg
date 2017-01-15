@@ -58,15 +58,15 @@ URLS
 
 Dependencies
 ------------
-``gitifyhg`` has been tested to run on CPython 2.6 and 2.7. Any python that
+``gitifyhg`` has been tested to run on CPython 2.7. Any python that
 supports Mercurial should be supported. Sadly, this excludes both pypy and
 CPython 3.
 
-``gitifyhg`` requires at least Mercurial 1.9, older versions are currently
+``gitifyhg`` requires at least Mercurial 2.5, older versions are currently
 not supported. We perform continuous testing against various Mercurial
-versions ranging from 1.9 to 2.5. However, this does not completely rule
+versions ranging from 2.5 to 4.0.1. However, this does not completely rule
 out the possibility of compatibility issues, so we recommend using Mercurial
-2.4.x or 2.5.x, as this is what ``gitifyhg`` is primarily developed for.
+3.9.x or 4.0.x, as this is what ``gitifyhg`` is primarily developed for.
 Should you actually encounter any compatibility issues with any older or
 newer Mercurial versions, please submit an issue.
 
