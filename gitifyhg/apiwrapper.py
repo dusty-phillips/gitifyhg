@@ -64,3 +64,11 @@ def hg_strip(repo, processed_nodes):
         return stripext.strip(dummyui(), repo, processed_nodes)
     else:
         return repo.mq.strip(repo, processed_nodes)
+
+# Helper Functions to help with changes to the mercurial API
+
+def handle_deleted_file():
+    if hg_version() >= '3.2':
+        return
+    else:
+        raise IOError

@@ -30,7 +30,7 @@ from mercurial import encoding
 from .util import (die, output, git_to_hg_spaces, hgmode, branch_tip,
     ref_to_name_reftype, BRANCH, BOOKMARK, TAG, user_config)
 
-from apiwrapper import (hg_strip, hg_memfilectx, hg_push)
+from apiwrapper import (hg_strip, hg_memfilectx, hg_push, handle_deleted_file)
 
 class GitExporter(object):
 
@@ -217,9 +217,9 @@ class GitExporter(object):
 
         def get_filectx(repo, memctx, file):
             filespec = files[file]
-
+            
             if 'deleted' in filespec:
-                return 
+                return handle_deleted_file()
             if 'ctx' in filespec:
                 return filespec['ctx']
             is_exec = filespec['mode'] == 'x'
