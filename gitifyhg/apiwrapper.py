@@ -11,11 +11,14 @@ elif hg_version() >= '3.5' and hg_version() < '3.7':
 else:
     from mercurial.bookmarks import readcurrent
 
-if hg_version() >= '3.0':
-    from mercurial import exchange
+if hg_version() >= '3.2':
     from mercurial.util import digester 
 else:
     from mercurial.util import sha1
+
+if hg_version() >= '3.0':
+    from mercurial import exchange
+else:
     from mercurial.localrepo import localrepository as exchange
  
 # Functions wrapping the Mercurial API. They follow the naming convention of
@@ -36,12 +39,14 @@ def hg_readactive(repo):
         return readcurrent(repo) 
 
 def hg_sha1(url):
-    if hg_version() >= '4.0.1':
+    encoded = url.encode('utf-8')
+
+    if hg_version() >= '3.2':
         d = digester(['md5', 'sha1'])
-        d.update(url.encode('utf-8'))
+        d.update(encoded)
         return d['sha1']
     else:
-        return sha1(url.encode('utf-8')).hexdigest()
+        return sha1(encoded).hexdigest()
 
 def hg_memfilectx(repo, path, data, is_link=False, is_exec=False, copied=None):
     if hg_version() >= '3.1':
