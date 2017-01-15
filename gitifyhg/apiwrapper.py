@@ -4,23 +4,36 @@ from distutils.version import StrictVersion
 from mercurial import extensions
 
 # Conditional imports depending on Mercurial version
-if hg_version() >= '4.0.1':
-    from mercurial.bookmarks import _readactive
-    from mercurial.util import digester
+if hg_version() >= '3.7': 
+    from mercurial.bookmarks import _readactive 
+elif hg_version() >= '3.5' and hg_version() < '3.7': 
+    from mercurial.bookmarks import readactive
 else:
     from mercurial.bookmarks import readcurrent
+
+if hg_version() >= '3.0':
+    from mercurial import exchange
+    from mercurial.util import digester 
+else:
     from mercurial.util import sha1
-
-
-
+    from mercurial.localrepo import localrepository as exchange
+ 
 # Functions wrapping the Mercurial API. They follow the naming convention of
 # hg_[function name]
 
+def hg_pull(repo, peer, heads=None, force=False):
+    return exchange.pull(repo, peer, heads=heads, force=force)
+
+def hg_push(repo, peer, force=False, newbranch=None):
+    return exchange.push(repo, peer, force=force, newbranch=newbranch)
+
 def hg_readactive(repo):
-    if hg_version() >= '4.0.1':
-        head = _readactive(repo,repo._bookmarks)
-    else:
-        head = readcurrent(repo)
+    if hg_version() >= '4.0.1': 
+        return _readactive(repo,repo._bookmarks) 
+    elif hg_version() >= '3.7': 
+        return readactive(repo,repo._bookmarks) 
+    else: 
+        return readcurrent(repo) 
 
 def hg_sha1(url):
     if hg_version() >= '4.0.1':

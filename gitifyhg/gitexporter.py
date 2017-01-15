@@ -30,7 +30,7 @@ from mercurial import encoding
 from .util import (die, output, git_to_hg_spaces, hgmode, branch_tip,
     ref_to_name_reftype, BRANCH, BOOKMARK, TAG, user_config)
 
-from apiwrapper import (hg_strip, hg_memfilectx)
+from apiwrapper import (hg_strip, hg_memfilectx, hg_push)
 
 class GitExporter(object):
 
@@ -87,7 +87,8 @@ class GitExporter(object):
 
         success = False
         try:
-            self.repo.push(self.hgremote.peer, force=False, newbranch=new_branch)
+            hg_push(self.repo, self.hgremote.peer, False, new_branch)
+            
             for bookmark, old, new in push_bookmarks:
                 self.hgremote.peer.pushkey('bookmarks', bookmark, old, new)
             self.marks.store()
@@ -225,7 +226,6 @@ class GitExporter(object):
             rename = filespec.get('rename', None)
 
             return hg_memfilectx(repo,file, filespec['data'],is_link, is_exec, rename)
-
 
         ctx = memctx(self.repo, (parent_from, parent_merge), data,
             files.keys(), get_filectx, user, (date, tz), extra)

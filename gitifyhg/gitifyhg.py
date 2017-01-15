@@ -44,7 +44,7 @@ from .util import (log, die, output, branch_head, GitMarks,
     HGMarks, hg_to_git_spaces, name_reftype_to_ref, BRANCH, BOOKMARK, TAG,
     version, deactivate_stdout)
 
-from apiwrapper import (hg_sha1, hg_readactive)
+from apiwrapper import (hg_sha1, hg_readactive, hg_pull)
 from .hgimporter import HGImporter
 from .gitexporter import GitExporter
 
@@ -168,7 +168,7 @@ class HGRemote(object):
         else:
             self.repo = hg.repository(myui, local_path.encode('utf-8'))
             self.peer = hg.peer(myui, {}, url.encode('utf-8'))
-            self.repo.pull(self.peer, heads=None, force=True)
+            hg_pull(self.repo, self.peer, None, True)
 
         self.marks.upgrade_marks(self)
 
