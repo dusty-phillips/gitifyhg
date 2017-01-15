@@ -88,7 +88,7 @@ class GitExporter(object):
         success = False
         try:
             hg_push(self.repo, self.hgremote.peer, False, new_branch)
-            
+
             for bookmark, old, new in push_bookmarks:
                 self.hgremote.peer.pushkey('bookmarks', bookmark, old, new)
             self.marks.store()
@@ -217,8 +217,9 @@ class GitExporter(object):
 
         def get_filectx(repo, memctx, file):
             filespec = files[file]
+
             if 'deleted' in filespec:
-                raise IOError
+                return 
             if 'ctx' in filespec:
                 return filespec['ctx']
             is_exec = filespec['mode'] == 'x'
