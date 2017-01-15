@@ -43,7 +43,6 @@ from mercurial.bookmarks import listbookmarks
 from mercurial.ui import ui
 from mercurial.error import Abort, RepoError
 from mercurial.util import version as hg_version
-from mercurial.util import digester
 
 from .util import (log, die, output, branch_head, GitMarks,
     HGMarks, hg_to_git_spaces, name_reftype_to_ref, BRANCH, BOOKMARK, TAG,
