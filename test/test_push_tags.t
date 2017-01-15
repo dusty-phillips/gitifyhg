@@ -139,7 +139,4 @@ test_expect_success 'push only new tag' '
     cd ..
 '
 
-
-
-
 test_done
