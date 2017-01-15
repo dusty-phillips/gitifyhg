@@ -19,18 +19,18 @@
 # but much of it has been rewritten.
 
 from mercurial.context import memctx
-from mercurial import encoding, extensions
 from mercurial.error import Abort
 from mercurial.node import hex as hghex  # What idiot overrode a builtin?
 from mercurial.node import short as hgshort
 from mercurial.bookmarks import pushbookmark
 from mercurial.scmutil import revsingle
 from mercurial.util import version as hg_version
+from mercurial import encoding
 
 from .util import (die, output, git_to_hg_spaces, hgmode, branch_tip,
     ref_to_name_reftype, BRANCH, BOOKMARK, TAG, user_config)
 
-from apiwrapper import (strip_revs, hg_memfilectx)
+from apiwrapper import (hg_strip, hg_memfilectx)
 
 class GitExporter(object):
 
@@ -98,7 +98,7 @@ class GitExporter(object):
                 self.marks.load()  # restore from checkpoint
                 # strip revs, implementation finds min revision from list
                 if self.processed_nodes:
-                    strip_revs(self.repo, self.processed_nodes)
+                    hg_strip(self.repo, self.processed_nodes)
             else:
                 die("unknown hg exception: %s" % e)
         # TODO: handle network/other errors?

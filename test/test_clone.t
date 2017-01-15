@@ -143,5 +143,4 @@ test_expect_success 'no implicit clone close branch' '
     cd ..
 '
 
-
 test_done
