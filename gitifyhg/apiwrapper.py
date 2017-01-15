@@ -31,10 +31,10 @@ def hg_push(repo, peer, force=False, newbranch=None):
     return exchange.push(repo, peer, force=force, newbranch=newbranch)
 
 def hg_readactive(repo):
-    if hg_version() >= '4.0.1': 
+    if hg_version() >= '3.7': 
         return _readactive(repo,repo._bookmarks) 
-    elif hg_version() >= '3.7': 
-        return readactive(repo,repo._bookmarks) 
+    elif hg_version() >= '3.5' and hg_version() < '3.7': 
+        return readactive(repo) 
     else: 
         return readcurrent(repo) 
 
