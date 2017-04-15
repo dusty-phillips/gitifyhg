@@ -23,7 +23,7 @@ test_expect_failure 'anonymous branches dont work' '
     make_hg_commit c test_file &&
     cd .. &&
 
-    git clone testgitifyhg::hg_repo git_clone 2>&1 | grep "more than one head" &&
+    git clone gitifyhg::hg_repo git_clone 2>&1 | grep "more than one head" &&
 
     # TODO: "more than one head" is the correct response for now, but a more
     # appropriate result would be to clone the extra commits, perhaps naming
@@ -47,7 +47,7 @@ test_expect_failure 'anonymous branch from named branch' '
     make_hg_commit e test_file &&
 
     cd .. &&
-    git clone testgitifyhg::hg_repo git_clone 2>&1 | grep "more than one head" &&
+    git clone gitifyhg::hg_repo git_clone 2>&1 | grep "more than one head" &&
     cd git_clone &&
     test "`git branch -r`" = "  origin/HEAD -> origin/master
   origin/branches/featurebranch
