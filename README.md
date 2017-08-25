@@ -260,10 +260,7 @@ for most development and decision-making related discussions.
 
 # Testing
 
-Tests are continuously run by Travis-CI: |BuildStatus|_
-
-.. |BuildStatus| image:: https://secure.travis-ci.org/buchuki/gitifyhg.png
-.. _BuildStatus: http://travis-ci.org/buchuki/gitifyhg
+Tests are continuously run by [Travis-CI](http://travis-ci.org/buchuki/gitifyhg):
 
 Note that testing has recently changed. We used to use `py.test(http://pytest.org/)
 and `tox(http://tox.testrun.org/) to run our tests. We've recently switched to
