@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import re
 
 from mercurial.node import hex as hghex  # What idiot overrode a builtin?
 from mercurial.node import bin as hgbin
@@ -78,15 +79,43 @@ def hgmode(mode):
     return modes.get(mode, '')
 
 
-def hg_to_git_spaces(name):
-    '''Spaces are allowed in mercurial, but not in git. We convert them to
-    the unlikely string ___'''
-    return name.replace(' ', '___')
+def hg_to_git_text(text, clean):
+    if not clean:
+        return text.replace(' ', '___')
+    else:
+        # remove trailing forward slashes
+        cleanedText = re.sub("\/+$", '', text, flags=re.M)
 
+        # remove back slashes
+        cleanedText = re.sub("\\\\", '', cleanedText, flags=re.M)
 
-def git_to_hg_spaces(name):
+        # remove single quotes
+        cleanedText = re.sub("'", '', cleanedText, flags=re.M)
+
+        # remove control characters
+        cleanedText = re.sub("[:^~]", '', cleanedText, flags=re.M)
+
+        # remove multiple spaces
+        cleanedText = re.sub("\s{2,}", ' ', cleanedText, flags=re.M)
+
+        # remove period from beginning of string
+        cleanedText = re.sub("^\.", '', cleanedText, flags=re.M)
+
+        # remove multiple periods
+        cleanedText = re.sub("\.{2,}", '', cleanedText, flags=re.M)
+
+        # remove .lock from end of string
+        cleanedText = re.sub("\.lock+$", '', cleanedText, flags=re.M)
+
+        # replacing spaces with hyphens
+        cleanedText = cleanedText.split(' ')
+        cleanedText = "-".join(cleanedText)
+
+        return cleanedText;
+
+def git_to_hg_text(text):
     '''But when we push back to mercurial, we need to convert it the other way.'''
-    return name.replace('___', ' ')
+    return text.replace('___', ' ')
 
 
 def branch_tip(repo, branch):

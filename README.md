@@ -152,6 +152,18 @@ And that's really it, you just use standard git commands and the remote
 takes care of the details. Just be cautious of incoming anonymous branches,
 don't do any octopus merges and you should be set.
 
+Options
+~~~~~~~
+Options can only be applied together without spaces like ::
+  git clone gitifyhg::-upath/to/url
+
+They can also be compounded  ::
+  git clone gitifyhg::-vupath/to/url-go
+
+-u [--url] - Sets the remote url
+-go [--gitonly] - Performs the conversion from hg to git without backwards compatibility
+-v [--version] - Returns versions of hg, git and gitifyhg
+
 Caveats
 ~~~~~~~
 Mercurial allows spaces in branch, bookmark, and tag names, while

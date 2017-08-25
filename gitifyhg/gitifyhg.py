@@ -32,10 +32,6 @@ os.environ['HGPLAIN'] = '1'
 # interactions and it's better to run in a known state.
 os.environ['HGRCPATH'] = ''
 
-from .util import (log, die, output, branch_head, GitMarks,
-    HGMarks, hg_to_git_spaces, name_reftype_to_ref, BRANCH, BOOKMARK, TAG,
-    version, deactivate_stdout)
-
 # Version specific libraries from the Mercurial API
 from mercurial import hg
 from mercurial import encoding
@@ -45,7 +41,7 @@ from mercurial.error import Abort, RepoError
 from mercurial.util import version as hg_version
 
 from .util import (log, die, output, branch_head, GitMarks,
-    HGMarks, hg_to_git_spaces, name_reftype_to_ref, BRANCH, BOOKMARK, TAG,
+    HGMarks, hg_to_git_text, name_reftype_to_ref, BRANCH, BOOKMARK, TAG,
     version, deactivate_stdout)
 
 from apiwrapper import (hg_sha1, hg_readactive, hg_pull)
@@ -115,7 +111,7 @@ class GitRemoteParser(object):
             self.line = self.read_line()
 
 class HGRemote(object):
-    def __init__(self, alias, url):
+    def __init__(self, alias, url, gitonly):
         if hg.islocal(url.encode('utf-8')):
             url = p(url).abspath()
             # Force git to use an absolute path in the future
@@ -144,6 +140,7 @@ class HGRemote(object):
         self.prefix = 'refs/hg/%s' % alias
         self.alias = alias
         self.url = url
+        self.git_only = gitonly
         self.build_repo(url)
 
     def build_repo(self, url):
@@ -290,21 +287,21 @@ class HGRemote(object):
         for branch in self.branches:
             output("%s %s" %
                     (self._change_hash(branch_head(self, branch)),
-                     name_reftype_to_ref(hg_to_git_spaces(branch), BRANCH)))
+                     name_reftype_to_ref(hg_to_git_text(branch, self.git_only), BRANCH)))
 
         # list the bookmark references
         for bookmark, changectx in self.bookmarks.items():
             if bookmark != "master":
                 output("%s %s" %
                         (self._change_hash(changectx),
-                         name_reftype_to_ref(hg_to_git_spaces(bookmark), BOOKMARK)))
+                         name_reftype_to_ref(hg_to_git_text(bookmark, self.git_only), BOOKMARK)))
 
         # list the tags
         for tag, node in self.repo.tagslist():
             if tag != "tip":
                 output("%s %s" %
                         (self._change_hash(self.repo[node]),
-                         name_reftype_to_ref(hg_to_git_spaces(tag), TAG)))
+                         name_reftype_to_ref(hg_to_git_text(tag, self.git_only), TAG)))
 
         output()
 
@@ -314,7 +311,7 @@ class HGRemote(object):
     def do_export(self, parser):
         GitExporter(self, parser).process()
 
-def log_versions(level="DEBUG"):
+def log_versions(level="VERBOSE"):
     log("gitifyhg version %s" % version(), level=level)
     log("Mercurial version %s" % hg_version(), level=level)
     log("Python version %s" % (sys.version.replace("\n", "")), level=level)
@@ -333,18 +330,30 @@ def main():
         """ % name
 
     parser = optparse.OptionParser(usage="usage: %prog [options] <git arguments>", description=description)
-    parser.add_option("-v", "--version", default=False, action="store_true",
+    parser.add_option("-v", "--version", default=False,  action="store_true",
                       help="Print version number only")
+    parser.add_option("-u", "--url", action="store", type="string",
+                      help="Remote url")
+    parser.add_option("-g", "--gitonly", action="store_true", default=False,
+                      help="When converting from Hg to Git without the possiblity of going backwards")
+
     opts, args = parser.parse_args()
+
     if opts.version:
         log_versions("VERSION")
         sys.exit(0)
+    if opts.url:
+        args.append(opts.url)
     if not args:
         parser.print_help()
         sys.exit(0)
 
+    args = [x.decode('utf-8') for x in args]
+    args.append(opts.gitonly)
+
     deactivate_stdout()
-    HGRemote(*[x.decode('utf-8') for x in args]).process()
+
+    HGRemote(*args).process()
     try:
         sys.stderr.close()
     except:
