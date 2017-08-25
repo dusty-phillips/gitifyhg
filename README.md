@@ -123,9 +123,9 @@ They can also be compounded:
 git clone gitifyhg::-vg<mercurial/url>
 ```
 
--u [--url] - Sets the remote url
--go [--gitonly] - Performs the conversion from hg to git without backwards compatibility
--v [--version] - Returns versions of hg, git and gitifyhg
+* -u [--url] - Sets the remote url
+* -go [--gitonly] - Performs the conversion from hg to git without backwards compatibility
+* -v [--version] - Returns versions of hg, git and gitifyhg
 
 # Dependencies
 
