@@ -311,7 +311,7 @@ class HGRemote(object):
     def do_export(self, parser):
         GitExporter(self, parser).process()
 
-def log_versions(level="VERBOSE"):
+def log_versions(level="DEBUG"):
     log("gitifyhg version %s" % version(), level=level)
     log("Mercurial version %s" % hg_version(), level=level)
     log("Python version %s" % (sys.version.replace("\n", "")), level=level)
