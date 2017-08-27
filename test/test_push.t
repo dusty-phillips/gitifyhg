@@ -4,15 +4,15 @@ test_description='Test gitifyhg push'
 
 . ./test-lib.sh
 
-# if ! test_have_prereq PYTHON; then
-#    skip_all='skipping gitifyhg tests; python not available'
-#    test_done
-# fi
+if ! test_have_prereq PYTHON; then
+   skip_all='skipping gitifyhg tests; python not available'
+   test_done
+fi
 
-# if ! "$PYTHON_PATH" -c 'import mercurial'; then
-#    skip_all='skipping gitifyhg tests; mercurial not available'
-#    test_done
-# fi
+if ! "$PYTHON_PATH" -c 'import mercurial'; then
+   skip_all='skipping gitifyhg tests; mercurial not available'
+   test_done
+fi
 test_expect_success 'simple push from master' '
     test_when_finished "rm -rf hg_repo git_clone" &&
     make_hg_repo &&
@@ -49,9 +49,7 @@ test_expect_success 'test push empty repo' '
     mkdir hg_repo &&
     cd hg_repo &&
     hg init &&
-    
     clone_repo &&
-    git status | grep "Initial commit" &&
     make_git_commit a test_file &&
     git push origin master &&
     cd ../hg_repo &&

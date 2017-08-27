@@ -263,8 +263,8 @@ for most development and decision-making related discussions.
 Tests are continuously run by [Travis-CI](http://travis-ci.org/buchuki/gitifyhg):
 
 Note that testing has recently changed. We used to use `py.test(http://pytest.org/)
-and `tox(http://tox.testrun.org/) to run our tests. We've recently switched to
-`sharness(https://github.com/mlafeldt/sharness) both because it's easier to
+and [tox](http://tox.testrun.org/) to run our tests. We've recently switched to
+[sharness](https://github.com/mlafeldt/sharness) both because it's easier to
 test command-line tools with and because it is the same infrastructure used by
 git itself.
 
@@ -274,7 +274,7 @@ test files with `./test-name.t`.
 # License
 
 gitifyhg is copyright 2012-2013 Dusty Phillips and is licensed under the
-`GNU General Public License(https://www.gnu.org/licenses/gpl.html)
+[GNU General Public License](https://www.gnu.org/licenses/gpl.html)
 
 >Copyright 2012-2013 Dusty Phillips
   This file is part of gitifyhg.
