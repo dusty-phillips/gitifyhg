@@ -135,7 +135,7 @@ CPython 3.
 
 ``gitifyhg`` requires at least Mercurial 2.5, older versions are currently
 not supported. We perform continuous testing against various Mercurial
-versions ranging from 2.5 to 4.0.1. However, this does not completely rule
+versions ranging from 2.5 to 4.0.2. However, this does not completely rule
 out the possibility of compatibility issues, so we recommend using Mercurial
 3.9.x or 4.0.x, as this is what ``gitifyhg`` is primarily developed for.
 Should you actually encounter any compatibility issues with any older or
