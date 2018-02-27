@@ -1,3 +1,5 @@
+https://travis-ci.org/buchuki/gitifyhg.svg?branch=master
+
 # gitifyhg
 
 This git remote allows you to do local development in a git repository and push 
@@ -33,7 +35,7 @@ Unfortunately, though, maintenance of gitifyhg has fallen off. You can pick it u
 * [Dusty Phillips](https://archlinux.me/dusty>)
 * [Inspired by Felipe Contreras](https://felipec.wordpress.com/2012/11/13/git-remote-hg-bzr-2/)
 
-# Install
+## Install
 
 ``gitifyhg`` is a properly designed Python package. You can get it from
 `pypi(https://pypi.python.org) using either
@@ -59,7 +61,7 @@ You can also install ``gitifyhg`` manually with ::
 If you want to hack on it, use ``setup.py develop``, instead. In this case, you
 probably **are** better off using a ``virtualenv``.
 
-# Usage
+## Usage
 
 ``gitifyhg`` is a git remote. Once installed, you can clone any Mercurial repo
 using:
@@ -109,7 +111,7 @@ And that's really it, you just use standard git commands and the remote
 takes care of the details. Just be cautious of incoming anonymous branches,
 don't do any octopus merges and you should be set.
 
-## Options
+### Options
 
 Options can only be applied together without spaces like:
 
@@ -127,7 +129,7 @@ git clone gitifyhg::-vg<mercurial/url>
 * -go [--gitonly] - Performs the conversion from hg to git without backwards compatibility
 * -v [--version] - Returns versions of hg, git and gitifyhg
 
-# Dependencies
+## Dependencies
 
 ``gitifyhg`` has been tested to run on CPython 2.7. Any python that
 supports Mercurial should be supported. Sadly, this excludes both pypy and
@@ -160,7 +162,7 @@ These packages will be installed automatically by ``easy_install``,
 * [git](http://git-scm.com/)
 
 
-# Caveats
+## Caveats
 
 Mercurial allows spaces in branch, bookmark, and tag names, while
 git does not. To keep git from choking if upstream has spaces in names, gitifyhg
@@ -183,7 +185,7 @@ GITIFYHG_ALLOW_CLOSED_BRANCHES environment variable.
 If you have any trouble, please let us know via the issue tracker, preferably
 with pull requests containing test cases.
 
-# Communicating with Mercurial Users
+## Communicating with Mercurial Users
 
 One problem with using git to access Mercurial repos is that the sha identifiers
 in the two DVCSs are different. This makes it difficult to discuss or share
@@ -219,7 +221,7 @@ for that commit in git using:
 git log --grep=<HGSHA1>
 ```
 
-# Development
+## Development
 
 You can hack on gitifyhg by forking the
 `github(https://github.com/buchuki/gitifyhg) repository. All the code is
@@ -258,7 +260,7 @@ The gitifyhg mailing list is hosted on
 prefer the [issue tracker](https://github.com/buchuki/gitifyhg/issues)
 for most development and decision-making related discussions.
 
-# Testing
+## Testing
 
 Tests are continuously run by [Travis-CI](http://travis-ci.org/buchuki/gitifyhg):
 
@@ -271,7 +273,7 @@ git itself.
 To test with sharness, simply `cd test` and run `make`. You can run individual
 test files with `./test-name.t`.
 
-# License
+## License
 
 gitifyhg is copyright 2012-2013 Dusty Phillips and is licensed under the
 [GNU General Public License](https://www.gnu.org/licenses/gpl.html)
@@ -291,7 +293,7 @@ gitifyhg is copyright 2012-2013 Dusty Phillips and is licensed under the
   along with gitifyhg.
 
 
-# Credits
+## Credits
 
 Dusty Phillips is the primary author of ``gitifyhg``.
 
