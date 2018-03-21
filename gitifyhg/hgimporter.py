@@ -24,7 +24,7 @@ import re
 from mercurial import encoding
 
 from .util import (log, output, gittz, gitmode,
-    git_to_hg_spaces, hg_to_git_spaces, branch_head, ref_to_name_reftype,
+    git_to_hg_text, branch_head, ref_to_name_reftype,
     BRANCH, BOOKMARK, TAG, relative_path)
 
 AUTHOR = re.compile(r'^([^<>]+)?(<(?:[^<>]*)>| [^ ]*@.*|[<>].*)$')
@@ -89,11 +89,11 @@ class HGImporter(object):
             else:
                 name, reftype = ref_to_name_reftype(ref)
                 if reftype == BRANCH:
-                    head = branch_head(self.hgremote, git_to_hg_spaces(name))
+                    head = branch_head(self.hgremote, git_to_hg_text(name))
                 elif reftype == BOOKMARK:
-                    head = self.hgremote.bookmarks[git_to_hg_spaces(name)]
+                    head = self.hgremote.bookmarks[git_to_hg_text(name)]
                 elif reftype == TAG:
-                    head = self.repo[git_to_hg_spaces(name)]
+                    head = self.repo[git_to_hg_text(name)]
                 else:
                     assert False, "unexpected reftype: %s" % reftype
                 self.process_ref(name, reftype, head)

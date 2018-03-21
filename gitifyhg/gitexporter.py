@@ -27,7 +27,7 @@ from mercurial.scmutil import revsingle
 from mercurial.util import version as hg_version
 from mercurial import encoding
 
-from .util import (die, output, git_to_hg_spaces, hgmode, branch_tip,
+from .util import (die, output, git_to_hg_text, hgmode, branch_tip,
     ref_to_name_reftype, BRANCH, BOOKMARK, TAG, user_config)
 
 from apiwrapper import (hg_strip, hg_memfilectx, hg_push, handle_deleted_file)
@@ -69,7 +69,7 @@ class GitExporter(object):
                 # This seems to be a git fast-export bug
                 continue
             name, reftype = ref_to_name_reftype(ref)
-            name = git_to_hg_spaces(name)
+            name = git_to_hg_text(name)
             if reftype == BRANCH:
                 if name not in self.hgremote.branches:
                     new_branch = True
@@ -213,7 +213,7 @@ class GitExporter(object):
 
         name, reftype = ref_to_name_reftype(ref)
         if reftype == BRANCH:
-            extra['branch'] = git_to_hg_spaces(name)
+            extra['branch'] = git_to_hg_text(name)
 
         def get_filectx(repo, memctx, file):
             filespec = files[file]
@@ -247,7 +247,7 @@ class GitExporter(object):
         tagger = self.parser.read_author()
         message = self.parser.read_data()
         self.parser.read_line()
-        self.parsed_tags[git_to_hg_spaces(name)] = tagger, message
+        self.parsed_tags[git_to_hg_text(name)] = tagger, message
 
     def do_feature(self):
         pass  # Ignore

@@ -37,7 +37,7 @@ env:
   - HG_VERSION=3.9
   - HG_VERSION=4.0
   - HG_VERSION=4.0.1
-  
+  - HG_VERSION=4.0.2
 
 
 # command to run actual tests
