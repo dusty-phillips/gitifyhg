@@ -71,7 +71,7 @@ Should you actually encounter any compatibility issues with any older or
 newer Mercurial versions, please submit an issue.
 
 It has been tested on Arch Linux and Mac OS X. In general it should
-work equally well on other Unix-like operating systems like *BSD or Solaris.
+work equally well on other Unix-like operating systems like \*BSD or Solaris.
 All bets are off with Windows, but please let us know if it works or you fixed
 it.
 
